@@ -46,6 +46,6 @@ class Settings:
         return cls(**values)
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path.cwd()
 DEFAULT_SOURCES_PATH = PROJECT_ROOT / "config" / "sources.yml"
 DEFAULT_OUT_DIR = PROJECT_ROOT / "out"
