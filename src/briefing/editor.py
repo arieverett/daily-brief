@@ -91,15 +91,13 @@ def build_prompt(candidates: list[Candidate], timezone_name: str) -> str:
 
 
 def validate_links(edition: Edition, candidates: list[Candidate]) -> None:
-    allowed = {(item.url, item.source) for item in candidates}
+    allowed_urls = {item.url for item in candidates}
     stories = [*edition.front_page]
     for section in (edition.sweden, edition.indonesia):
         stories.extend([section.lead, *section.stories, *section.quick_hits])
-    invalid = [
-        (story.url, story.source) for story in stories if (story.url, story.source) not in allowed
-    ]
+    invalid = [story.url for story in stories if story.url not in allowed_urls]
     if invalid:
-        raise ValueError(f"Editor returned {len(invalid)} source links not present in candidates")
+        raise ValueError(f"Editor returned {len(invalid)} links not present in candidates")
 
 
 def create_edition(
