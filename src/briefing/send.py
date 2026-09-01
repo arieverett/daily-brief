@@ -15,7 +15,8 @@ def send_email(
     text: str,
     edition_date: str,
 ) -> str:
-    digest = hashlib.sha256(f"{edition_date}:{to_email}".encode()).hexdigest()[:24]
+    digest_input = f"{edition_date}:{to_email}:{subject}:{html}"
+    digest = hashlib.sha256(digest_input.encode()).hexdigest()[:24]
     response = httpx.post(
         "https://api.resend.com/emails",
         headers={
