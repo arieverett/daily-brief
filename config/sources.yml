@@ -1,0 +1,84 @@
+feeds:
+  # Broad discovery catches major international and English-language coverage.
+  - name: Google News — Sweden
+    country: Sweden
+    url: "https://news.google.com/rss/search?q=%28Sweden%20OR%20Swedish%20OR%20Sverige%29%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: &sweden_sources
+      - Reuters
+      - AP News
+      - Associated Press
+      - Bloomberg
+      - BBC
+      - Financial Times
+      - POLITICO Europe
+      - Euronews
+      - The Local Sweden
+      - The Local
+      - SVT Nyheter
+      - Sveriges Radio
+      - Dagens Nyheter
+      - Svenska Dagbladet
+      - Government Offices of Sweden
+      - Sveriges Riksbank
+  - name: Google News — Stockholm
+    country: Sweden
+    url: "https://news.google.com/rss/search?q=Stockholm%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *sweden_sources
+  - name: Google News — Sweden economy
+    country: Sweden
+    url: "https://news.google.com/rss/search?q=%28Sweden%20economy%20OR%20Swedish%20business%20OR%20Riksbank%29%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *sweden_sources
+  - name: Google News — Sweden government
+    country: Sweden
+    url: "https://news.google.com/rss/search?q=site%3Agovernment.se%20Sweden%20when%3A3d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *sweden_sources
+
+  - name: Google News — Swedish outlets
+    country: Sweden
+    url: "https://news.google.com/rss/search?q=Sweden%20%28site%3Asvt.se%20OR%20site%3Asverigesradio.se%20OR%20site%3Athelocal.se%29%20when%3A3d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *sweden_sources
+
+  - name: Google News — Indonesia
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=Indonesia%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: &indonesia_sources
+      - Reuters
+      - AP News
+      - Associated Press
+      - Bloomberg
+      - BBC
+      - Financial Times
+      - Nikkei Asia
+      - Channel NewsAsia
+      - South China Morning Post
+      - The Jakarta Post
+      - Jakarta Globe
+      - Tempo.co English
+      - ANTARA News
+  - name: Google News — Jakarta
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=Jakarta%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *indonesia_sources
+  - name: Google News — Indonesia economy
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=%28Indonesia%20economy%20OR%20Indonesian%20business%20OR%20Bank%20Indonesia%29%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *indonesia_sources
+
+  - name: Google News — Indonesian outlets
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=Indonesia%20%28site%3Athejakartapost.com%20OR%20site%3Ajakartaglobe.id%20OR%20site%3Atempo.co%29%20when%3A3d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *indonesia_sources
+
+  # ANTARA is Indonesia's national news agency and publishes official RSS feeds.
+  - name: ANTARA — Latest
+    country: Indonesia
+    url: "https://en.antaranews.com/rss/latest-news.xml"
+  - name: ANTARA — Politics
+    country: Indonesia
+    url: "https://en.antaranews.com/rss/politik.xml"
+  - name: ANTARA — Economy
+    country: Indonesia
+    url: "https://en.antaranews.com/rss/ekonomi.xml"
+  - name: ANTARA — Jakarta
+    country: Indonesia
+    url: "https://en.antaranews.com/rss/metro.xml"

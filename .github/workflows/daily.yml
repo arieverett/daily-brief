@@ -1,0 +1,35 @@
+name: Send daily brief
+
+on:
+  schedule:
+    # 12:45 UTC = 5:45 AM America/Phoenix year-round.
+    - cron: "45 12 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: daily-brief
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install .
+      - name: Generate and send
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          BRIEF_TO_EMAIL: ${{ secrets.BRIEF_TO_EMAIL }}
+          BRIEF_FROM_EMAIL: ${{ secrets.BRIEF_FROM_EMAIL }}
+          BRIEF_TIMEZONE: America/Phoenix
+        run: python -m briefing --send
+

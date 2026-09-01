@@ -1,0 +1,126 @@
+{
+  "edition_date": "2026-09-01",
+  "date_label": "Tuesday, September 1",
+  "subject": "Sweden's defense push + Indonesia's new central-bank chief",
+  "preview_text": "Sweden buys French frigates while Indonesia appoints its first woman central-bank governor.",
+  "front_page": [
+    {
+      "headline": "Sweden signs a major French warship deal",
+      "summary": "A roughly $4 billion order for four frigates anchors Sweden's latest post-NATO defense expansion.",
+      "why_it_matters": "The ships would substantially expand Sweden's naval air-defense capacity.",
+      "url": "https://www.reuters.com/world/sweden-inks-french-war-ship-order-2026-08-31/",
+      "source": "Reuters",
+      "label": "DEFENSE"
+    },
+    {
+      "headline": "Indonesia names a new central-bank governor",
+      "summary": "Parliament backed Destry Damayanti to lead Bank Indonesia, making her the institution's first woman governor.",
+      "why_it_matters": "Her tenure begins as policymakers push for faster growth without losing control of inflation.",
+      "url": "https://www.reuters.com/world/asia-pacific/indonesias-destry-wins-parliaments-backing-central-bank-chief-prioritise-2026-09-01/",
+      "source": "Reuters",
+      "label": "MONEY"
+    },
+    {
+      "headline": "Both economies are leaning into growth",
+      "summary": "Sweden lifted its growth outlook while Indonesia reported a return to a monthly trade surplus.",
+      "why_it_matters": "The numbers set the economic backdrop for major policy decisions in both countries.",
+      "url": "https://www.reuters.com/world/europe/swedish-government-raises-gdp-forecast-ahead-september-election-2026-08-27/",
+      "source": "Reuters",
+      "label": "ECONOMY"
+    }
+  ],
+  "sweden": {
+    "lead": {
+      "headline": "Sweden goes shopping for warships",
+      "summary": "Sweden signed an agreement for four French frigates, with deliveries expected to begin around 2030 as Stockholm reinforces its navy after joining NATO.",
+      "why_it_matters": "The purchase is a long-term bet on stronger Baltic and European defense capacity.",
+      "url": "https://www.reuters.com/world/sweden-inks-french-war-ship-order-2026-08-31/",
+      "source": "Reuters",
+      "label": "DEFENSE"
+    },
+    "stories": [
+      {
+        "headline": "The government raises its growth forecast",
+        "summary": "Officials lifted their 2026 GDP-growth projection from 2.3% to 2.5%, arguing that domestic demand is strengthening despite global uncertainty.",
+        "why_it_matters": "A better economy could reshape the final stretch of Sweden's election campaign.",
+        "url": "https://www.reuters.com/world/europe/swedish-government-raises-gdp-forecast-ahead-september-election-2026-08-27/",
+        "source": "Reuters",
+        "label": "MONEY"
+      },
+      {
+        "headline": "Sweden and France deepen defense cooperation",
+        "summary": "The frigate signing came with a broader framework agreement between the two countries during President Emmanuel Macron's Stockholm visit.",
+        "why_it_matters": "The pact adds a bilateral layer to Sweden's expanding NATO relationships.",
+        "url": "https://www.government.se/articles/2026/09/prime-minister-receives-french-president-emmanuel-macron/",
+        "source": "Government Offices of Sweden",
+        "label": "POLITICS"
+      }
+    ],
+    "quick_hits": [
+      {
+        "headline": "Election season moves to center stage",
+        "summary": "Economic and security policy are dominating the national conversation.",
+        "why_it_matters": "The campaign will determine Sweden's next policy mix.",
+        "url": "https://www.government.se/",
+        "source": "Government Offices of Sweden",
+        "label": "ELECTION"
+      },
+      {
+        "headline": "Riksbank watches lingering inflation risk",
+        "summary": "Officials see room to wait while acknowledging that inflation could remain elevated.",
+        "why_it_matters": "That balance will guide the next rate decision.",
+        "url": "https://www.riksbank.se/en-gb/press-and-published/notices-and-press-releases/",
+        "source": "Sveriges Riksbank",
+        "label": "RATES"
+      }
+    ]
+  },
+  "indonesia": {
+    "lead": {
+      "headline": "Indonesia gets a new central-bank boss",
+      "summary": "Parliament approved Destry Damayanti as governor of Bank Indonesia. She is the first woman to lead the central bank and has spoken optimistically about stronger growth.",
+      "why_it_matters": "The governor must balance the government's growth ambitions with price and currency stability.",
+      "url": "https://www.reuters.com/world/asia-pacific/indonesias-destry-wins-parliaments-backing-central-bank-chief-prioritise-2026-09-01/",
+      "source": "Reuters",
+      "label": "MONEY"
+    },
+    "stories": [
+      {
+        "headline": "Trade returns to surplus—but only just",
+        "summary": "Indonesia posted a modest July surplus as exports rose, though a sharp increase in imports narrowed the cushion.",
+        "why_it_matters": "The trade balance affects the rupiah and Indonesia's room to pursue faster growth.",
+        "url": "https://www.reuters.com/world/asia-pacific/indonesia-exports-rise-605-annually-july-beating-expectations-2026-09-01/",
+        "source": "Reuters",
+        "label": "ECONOMY"
+      },
+      {
+        "headline": "Inflation ticks higher",
+        "summary": "Annual inflation accelerated in August but remained inside Bank Indonesia's target range.",
+        "why_it_matters": "Rising prices could complicate efforts to lower rates and accelerate growth.",
+        "url": "https://www.thejakartapost.com/business/2026/09/01/inflation-accelerates-while-house-approves-new-bi-governor.html",
+        "source": "The Jakarta Post",
+        "label": "PRICES"
+      }
+    ],
+    "quick_hits": [
+      {
+        "headline": "Jakarta readies a major trade expo",
+        "summary": "JITEX is targeting Rp16 trillion in potential transactions and investment.",
+        "why_it_matters": "The event is part of Jakarta's investment push.",
+        "url": "https://en.antaranews.com/",
+        "source": "ANTARA",
+        "label": "JAKARTA"
+      },
+      {
+        "headline": "Wildfire response intensifies",
+        "summary": "Officials are increasing resources to control forest and land fires.",
+        "why_it_matters": "Severe fires carry health, climate, and regional diplomatic costs.",
+        "url": "https://en.antaranews.com/rss",
+        "source": "ANTARA",
+        "label": "CLIMATE"
+      }
+    ]
+  },
+  "bottom_line": "Sweden is pairing a brighter growth outlook with a long-term defense buildout. Indonesia is chasing faster expansion too, but its new central-bank leadership will have to manage inflation, imports, and currency pressure along the way."
+}
+
