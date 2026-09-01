@@ -1,1 +1,173 @@
-ewogICJlZGl0aW9uX2RhdGUiOiAiMjAyNi0wOS0wMSIsCiAgImRhdGVfbGFiZWwiOiAiVHVlc2RheSwgU2VwdGVtYmVyIDEiLAogICJzdWJqZWN0IjogIlN3ZWRlbidzIGRlZmVuc2UgcHVzaCArIEluZG9uZXNpYSdzIG5ldyBjZW50cmFsLWJhbmsgY2hpZWYiLAogICJwcmV2aWV3X3RleHQiOiAiU3dlZGVuIGJ1eXMgRnJlbmNoIGZyaWdhdGVzIHdoaWxlIEluZG9uZXNpYSBhcHBvaW50cyBpdHMgZmlyc3Qgd29tYW4gY2VudHJhbC1iYW5rIGdvdmVybm9yLiIsCiAgImZyb250X3BhZ2UiOiBbCiAgICB7CiAgICAgICJoZWFkbGluZSI6ICJTd2VkZW4gc2lnbnMgYSBtYWpvciBGcmVuY2ggd2Fyc2hpcCBkZWFsIiwKICAgICAgInN1bW1hcnkiOiAiQSByb3VnaGx5ICQ0IGJpbGxpb24gb3JkZXIgZm9yIGZvdXIgZnJpZ2F0ZXMgYW5jaG9ycyBTd2VkZW4ncyBsYXRlc3QgcG9zdC1OQVRPIGRlZmVuc2UgZXhwYW5zaW9uLiIsCiAgICAgICJ3aHlfaXRfbWF0dGVycyI6ICJUaGUgc2hpcHMgd291bGQgc3Vic3RhbnRpYWxseSBleHBhbmQgU3dlZGVuJ3MgbmF2YWwgYWlyLWRlZmVuc2UgY2FwYWNpdHkuIiwKICAgICAgInVybCI6ICJodHRwczovL3d3dy5yZXV0ZXJzLmNvbS93b3JsZC9zd2VkZW4taW5rcy1mcmVuY2gtd2FyLXNoaXAtb3JkZXItMjAyNi0wOC0zMS8iLAogICAgICAic291cmNlIjogIlJldXRlcnMiLAogICAgICAibGFiZWwiOiAiREVGRU5TRSIKICAgIH0sCiAgICB7CiAgICAgICJoZWFkbGluZSI6ICJJbmRvbmVzaWEgbmFtZXMgYSBuZXcgY2VudHJhbC1iYW5rIGdvdmVybm9yIiwKICAgICAgInN1bW1hcnkiOiAiUGFybGlhbWVudCBiYWNrZWQgRGVzdHJ5IERhbWF5YW50aSB0byBsZWFkIEJhbmsgSW5kb25lc2lhLCBtYWtpbmcgaGVyIHRoZSBpbnN0aXR1dGlvbidzIGZpcnN0IHdvbWFuIGdvdmVybm9yLiIsCiAgICAgICJ3aHlfaXRfbWF0dGVycyI6ICJIZXIgdGVudXJlIGJlZ2lucyBhcyBwb2xpY3ltYWtlcnMgcHVzaCBmb3IgZmFzdGVyIGdyb3d0aCB3aXRob3V0IGxvc2luZyBjb250cm9sIG9mIGluZmxhdGlvbi4iLAogICAgICAidXJsIjogImh0dHBzOi8vd3d3LnJldXRlcnMuY29tL3dvcmxkL2FzaWEtcGFjaWZpYy9pbmRvbmVzaWFzLWRlc3RyeS13aW5zLXBhcmxpYW1lbnRzLWJhY2tpbmctY2VudHJhbC1iYW5rLWNoaWVmLXByaW9yaXRpc2UtMjAyNi0wOS0wMS8iLAogICAgICAic291cmNlIjogIlJldXRlcnMiLAogICAgICAibGFiZWwiOiAiTU9ORVkiCiAgICB9LAogICAgewogICAgICAiaGVhZGxpbmUiOiAiQm90aCBlY29ub21pZXMgYXJlIGxlYW5pbmcgaW50byBncm93dGgiLAogICAgICAic3VtbWFyeSI6ICJTd2VkZW4gbGlmdGVkIGl0cyBncm93dGggb3V0bG9vayB3aGlsZSBJbmRvbmVzaWEgcmVwb3J0ZWQgYSByZXR1cm4gdG8gYSBtb250aGx5IHRyYWRlIHN1cnBsdXMuIiwKICAgICAgIndoeV9pdF9tYXR0ZXJzIjogIlRoZSBudW1iZXJzIHNldCB0aGUgZWNvbm9taWMgYmFja2Ryb3AgZm9yIG1ham9yIHBvbGljeSBkZWNpc2lvbnMgaW4gYm90aCBjb3VudHJpZXMuIiwKICAgICAgInVybCI6ICJodHRwczovL3d3dy5yZXV0ZXJzLmNvbS93b3JsZC9ldXJvcGUvc3dlZGlzaC1nb3Zlcm5tZW50LXJhaXNlcy1nZHAtZm9yZWNhc3QtYWhlYWQtc2VwdGVtYmVyLWVsZWN0aW9uLTIwMjYtMDgtMjcvIiwKICAgICAgInNvdXJjZSI6ICJSZXV0ZXJzIiwKICAgICAgImxhYmVsIjogIkVDT05PTVkiCiAgICB9CiAgXSwKICAic3dlZGVuIjogewogICAgImxlYWQiOiB7CiAgICAgICJoZWFkbGluZSI6ICJTd2VkZW4gZ29lcyBzaG9wcGluZyBmb3Igd2Fyc2hpcHMiLAogICAgICAic3VtbWFyeSI6ICJTd2VkZW4gc2lnbmVkIGFuIGFncmVlbWVudCBmb3IgZm91ciBGcmVuY2ggZnJpZ2F0ZXMsIHdpdGggZGVsaXZlcmllcyBleHBlY3RlZCB0byBiZWdpbiBhcm91bmQgMjAzMCBhcyBTdG9ja2hvbG0gcmVpbmZvcmNlcyBpdHMgbmF2eSBhZnRlciBqb2luaW5nIE5BVE8uIiwKICAgICAgIndoeV9pdF9tYXR0ZXJzIjogIlRoZSBwdXJjaGFzZSBpcyBhIGxvbmctdGVybSBiZXQgb24gc3Ryb25nZXIgQmFsdGljIGFuZCBFdXJvcGVhbiBkZWZlbnNlIGNhcGFjaXR5LiIsCiAgICAgICJ1cmwiOiAiaHR0cHM6Ly93d3cucmV1dGVycy5jb20vd29ybGQvc3dlZGVuLWlua3MtZnJlbmNoLXdhci1zaGlwLW9yZGVyLTIwMjYtMDgtMzEvIiwKICAgICAgInNvdXJjZSI6ICJSZXV0ZXJzIiwKICAgICAgImxhYmVsIjogIkRFRkVOU0UiCiAgICB9LAogICAgInN0b3JpZXMiOiBbCiAgICAgIHsKICAgICAgICAiaGVhZGxpbmUiOiAiVGhlIGdvdmVybm1lbnQgcmFpc2VzIGl0cyBncm93dGggZm9yZWNhc3QiLAogICAgICAgICJzdW1tYXJ5IjogIk9mZmljaWFscyBsaWZ0ZWQgdGhlaXIgMjAyNiBHRFAtZ3Jvd3RoIHByb2plY3Rpb24gZnJvbSAyLjMlIHRvIDIuNSUsIGFyZ3VpbmcgdGhhdCBkb21lc3RpYyBkZW1hbmQgaXMgc3RyZW5ndGhlbmluZyBkZXNwaXRlIGdsb2JhbCB1bmNlcnRhaW50eS4iLAogICAgICAgICJ3aHlfaXRfbWF0dGVycyI6ICJBIGJldHRlciBlY29ub215IGNvdWxkIHJlc2hhcGUgdGhlIGZpbmFsIHN0cmV0Y2ggb2YgU3dlZGVuJ3MgZWxlY3Rpb24gY2FtcGFpZ24uIiwKICAgICAgICAidXJsIjogImh0dHBzOi8vd3d3LnJldXRlcnMuY29tL3dvcmxkL2V1cm9wZS9zd2VkaXNoLWdvdmVybm1lbnQtcmFpc2VzLWdkcC1mb3JlY2FzdC1haGVhZC1zZXB0ZW1iZXItZWxlY3Rpb24tMjAyNi0wOC0yNy8iLAogICAgICAgICJzb3VyY2UiOiAiUmV1dGVycyIsCiAgICAgICAgImxhYmVsIjogIk1PTkVZIgogICAgICB9LAogICAgICB7CiAgICAgICAgImhlYWRsaW5lIjogIlN3ZWRlbiBhbmQgRnJhbmNlIGRlZXBlbiBkZWZlbnNlIGNvb3BlcmF0aW9uIiwKICAgICAgICAic3VtbWFyeSI6ICJUaGUgZnJpZ2F0ZSBzaWduaW5nIGNhbWUgd2l0aCBhIGJyb2FkZXIgZnJhbWV3b3JrIGFncmVlbWVudCBiZXR3ZWVuIHRoZSB0d28gY291bnRyaWVzIGR1cmluZyBQcmVzaWRlbnQgRW1tYW51ZWwgTWFjcm9uJ3MgU3RvY2tob2xtIHZpc2l0LiIsCiAgICAgICAgIndoeV9pdF9tYXR0ZXJzIjogIlRoZSBwYWN0IGFkZHMgYSBiaWxhdGVyYWwgbGF5ZXIgdG8gU3dlZGVuJ3MgZXhwYW5kaW5nIE5BVE8gcmVsYXRpb25zaGlwcy4iLAogICAgICAgICJ1cmwiOiAiaHR0cHM6Ly93d3cuZ292ZXJubWVudC5zZS9hcnRpY2xlcy8yMDI2LzA5L3ByaW1lLW1pbmlzdGVyLXJlY2VpdmVzLWZyZW5jaC1wcmVzaWRlbnQtZW1tYW51ZWwtbWFjcm9uLyIsCiAgICAgICAgInNvdXJjZSI6ICJHb3Zlcm5tZW50IE9mZmljZXMgb2YgU3dlZGVuIiwKICAgICAgICAibGFiZWwiOiAiUE9MSVRJQ1MiCiAgICAgIH0KICAgIF0sCiAgICAicXVpY2tfaGl0cyI6IFsKICAgICAgewogICAgICAgICJoZWFkbGluZSI6ICJFbGVjdGlvbiBzZWFzb24gbW92ZXMgdG8gY2VudGVyIHN0YWdlIiwKICAgICAgICAic3VtbWFyeSI6ICJFY29ub21pYyBhbmQgc2VjdXJpdHkgcG9saWN5IGFyZSBkb21pbmF0aW5nIHRoZSBuYXRpb25hbCBjb252ZXJzYXRpb24uIiwKICAgICAgICAid2h5X2l0X21hdHRlcnMiOiAiVGhlIGNhbXBhaWduIHdpbGwgZGV0ZXJtaW5lIFN3ZWRlbidzIG5leHQgcG9saWN5IG1peC4iLAogICAgICAgICJ1cmwiOiAiaHR0cHM6Ly93d3cuZ292ZXJubWVudC5zZS8iLAogICAgICAgICJzb3VyY2UiOiAiR292ZXJubWVudCBPZmZpY2VzIG9mIFN3ZWRlbiIsCiAgICAgICAgImxhYmVsIjogIkVMRUNUSU9OIgogICAgICB9LAogICAgICB7CiAgICAgICAgImhlYWRsaW5lIjogIlJpa3NiYW5rIHdhdGNoZXMgbGluZ2VyaW5nIGluZmxhdGlvbiByaXNrIiwKICAgICAgICAic3VtbWFyeSI6ICJPZmZpY2lhbHMgc2VlIHJvb20gdG8gd2FpdCB3aGlsZSBhY2tub3dsZWRnaW5nIHRoYXQgaW5mbGF0aW9uIGNvdWxkIHJlbWFpbiBlbGV2YXRlZC4iLAogICAgICAgICJ3aHlfaXRfbWF0dGVycyI6ICJUaGF0IGJhbGFuY2Ugd2lsbCBndWlkZSB0aGUgbmV4dCByYXRlIGRlY2lzaW9uLiIsCiAgICAgICAgInVybCI6ICJodHRwczovL3d3dy5yaWtzYmFuay5zZS9lbi1nYi9wcmVzcy1hbmQtcHVibGlzaGVkL25vdGljZXMtYW5kLXByZXNzLXJlbGVhc2VzLyIsCiAgICAgICAgInNvdXJjZSI6ICJTdmVyaWdlcyBSaWtzYmFuayIsCiAgICAgICAgImxhYmVsIjogIlJBVEVTIgogICAgICB9LAogICAgICB7CiAgICAgICAgImhlYWRsaW5lIjogIlN0b2NraG9sbSdzIGZhbGwgYXJ0cyBjYWxlbmRhciBvcGVucyIsCiAgICAgICAgInN1bW1hcnkiOiAiTXVzZXVtcyBhbmQgZ2FsbGVyaWVzIGFyZSByb2xsaW5nIG91dCB0aGVpciBmaXJzdCBtYWpvciBzaG93cyBvZiB0aGUgc2Vhc29uLiIsCiAgICAgICAgIndoeV9pdF9tYXR0ZXJzIjogIlRoZSBuZXcgc2Vhc29uIG9mZmVycyBhIHF1aWNrIHJlYWQgb24gU3dlZGVuJ3MgY3VsdHVyYWwgY29udmVyc2F0aW9uLiIsCiAgICAgICAgInVybCI6ICJodHRwczovL3d3dy5zdnQuc2Uva3VsdHVyLyIsCiAgICAgICAgInNvdXJjZSI6ICJTVlQgTnloZXRlciIsCiAgICAgICAgImxhYmVsIjogIkNVTFRVUkUiCiAgICAgIH0sCiAgICAgIHsKICAgICAgICAiaGVhZGxpbmUiOiAiU3dlZGlzaCBwb3AgYWRkcyBhbm90aGVyIGdsb2JhbCBjb2xsYWJvcmF0aW9uIiwKICAgICAgICAic3VtbWFyeSI6ICJBIGhvbWVncm93biBzb25nd3JpdGVyIGlzIGZlYXR1cmVkIG9uIGEgbmV3IGludGVybmF0aW9uYWwgcmVsZWFzZS4iLAogICAgICAgICJ3aHlfaXRfbWF0dGVycyI6ICJTd2VkZW4gcmVtYWlucyB1bnVzdWFsbHkgaW5mbHVlbnRpYWwgaW4gZ2xvYmFsIHBvcCBwcm9kdWN0aW9uLiIsCiAgICAgICAgInVybCI6ICJodHRwczovL3N2ZXJpZ2VzcmFkaW8uc2Uva3VsdHVyIiwKICAgICAgICAic291cmNlIjogIlN2ZXJpZ2VzIFJhZGlvIiwKICAgICAgICAibGFiZWwiOiAiTVVTSUMiCiAgICAgIH0sCiAgICAgIHsKICAgICAgICAiaGVhZGxpbmUiOiAiQSBiZWxvdmVkIG5laWdoYm9yaG9vZCBiYWtlcnkgZXhwYW5kcyIsCiAgICAgICAgInN1bW1hcnkiOiAiVGhlIFN0b2NraG9sbSBmYXZvcml0ZSBpcyBvcGVuaW5nIGEgc2Vjb25kIGxvY2F0aW9uIHRoaXMgbW9udGguIiwKICAgICAgICAid2h5X2l0X21hdHRlcnMiOiAiSXQgaXMgYSBzbWFsbCBidXQgdXNlZnVsIHNpZ25hbCBhYm91dCB0aGUgY2l0eSdzIGZvb2Qgc2NlbmUuIiwKICAgICAgICAidXJsIjogImh0dHBzOi8vd3d3LnRoZWxvY2FsLnNlLyIsCiAgICAgICAgInNvdXJjZSI6ICJUaGUgTG9jYWwgU3dlZGVuIiwKICAgICAgICAibGFiZWwiOiAiTElGRVNUWUxFIgogICAgICB9CiAgICBdCiAgfSwKICAiaW5kb25lc2lhIjogewogICAgImxlYWQiOiB7CiAgICAgICJoZWFkbGluZSI6ICJJbmRvbmVzaWEgZ2V0cyBhIG5ldyBjZW50cmFsLWJhbmsgYm9zcyIsCiAgICAgICJzdW1tYXJ5IjogIlBhcmxpYW1lbnQgYXBwcm92ZWQgRGVzdHJ5IERhbWF5YW50aSBhcyBnb3Zlcm5vciBvZiBCYW5rIEluZG9uZXNpYS4gU2hlIGlzIHRoZSBmaXJzdCB3b21hbiB0byBsZWFkIHRoZSBjZW50cmFsIGJhbmsgYW5kIGhhcyBzcG9rZW4gb3B0aW1pc3RpY2FsbHkgYWJvdXQgc3Ryb25nZXIgZ3Jvd3RoLiIsCiAgICAgICJ3aHlfaXRfbWF0dGVycyI6ICJUaGUgZ292ZXJub3IgbXVzdCBiYWxhbmNlIHRoZSBnb3Zlcm5tZW50J3MgZ3Jvd3RoIGFtYml0aW9ucyB3aXRoIHByaWNlIGFuZCBjdXJyZW5jeSBzdGFiaWxpdHkuIiwKICAgICAgInVybCI6ICJodHRwczovL3d3dy5yZXV0ZXJzLmNvbS93b3JsZC9hc2lhLXBhY2lmaWMvaW5kb25lc2lhcy1kZXN0cnktd2lucy1wYXJsaWFtZW50cy1iYWNraW5nLWNlbnRyYWwtYmFuay1jaGllZi1wcmlvcml0aXNlLTIwMjYtMDktMDEvIiwKICAgICAgInNvdXJjZSI6ICJSZXV0ZXJzIiwKICAgICAgImxhYmVsIjogIk1PTkVZIgogICAgfSwKICAgICJzdG9yaWVzIjogWwogICAgICB7CiAgICAgICAgImhlYWRsaW5lIjogIlRyYWRlIHJldHVybnMgdG8gc3VycGx1cywgYnV0IG9ubHkganVzdCIsCiAgICAgICAgInN1bW1hcnkiOiAiSW5kb25lc2lhIHBvc3RlZCBhIG1vZGVzdCBKdWx5IHN1cnBsdXMgYXMgZXhwb3J0cyByb3NlLCB0aG91Z2ggYSBzaGFycCBpbmNyZWFzZSBpbiBpbXBvcnRzIG5hcnJvd2VkIHRoZSBjdXNoaW9uLiIsCiAgICAgICAgIndoeV9pdF9tYXR0ZXJzIjogIlRoZSB0cmFkZSBiYWxhbmNlIGFmZmVjdHMgdGhlIHJ1cGlhaCBhbmQgSW5kb25lc2lhJ3Mgcm9vbSB0byBwdXJzdWUgZmFzdGVyIGdyb3d0aC4iLAogICAgICAgICJ1cmwiOiAiaHR0cHM6Ly93d3cucmV1dGVycy5jb20vd29ybGQvYXNpYS1wYWNpZmljL2luZG9uZXNpYS1leHBvcnRzLXJpc2UtNjA1LWFubnVhbGx5LWp1bHktYmVhdGluZy1leHBlY3RhdGlvbnMtMjAyNi0wOS0wMS8iLAogICAgICAgICJzb3VyY2UiOiAiUmV1dGVycyIsCiAgICAgICAgImxhYmVsIjogIkVDT05PTVkiCiAgICAgIH0sCiAgICAgIHsKICAgICAgICAiaGVhZGxpbmUiOiAiSW5mbGF0aW9uIHRpY2tzIGhpZ2hlciIsCiAgICAgICAgInN1bW1hcnkiOiAiQW5udWFsIGluZmxhdGlvbiBhY2NlbGVyYXRlZCBpbiBBdWd1c3QgYnV0IHJlbWFpbmVkIGluc2lkZSBCYW5rIEluZG9uZXNpYSdzIHRhcmdldCByYW5nZS4iLAogICAgICAgICJ3aHlfaXRfbWF0dGVycyI6ICJSaXNpbmcgcHJpY2VzIGNvdWxkIGNvbXBsaWNhdGUgZWZmb3J0cyB0byBsb3dlciByYXRlcyBhbmQgYWNjZWxlcmF0ZSBncm93dGguIiwKICAgICAgICAidXJsIjogImh0dHBzOi8vd3d3LnRoZWpha2FydGFwb3N0LmNvbS9idXNpbmVzcy8yMDI2LzA5LzAxL2luZmxhdGlvbi1hY2NlbGVyYXRlcy13aGlsZS1ob3VzZS1hcHByb3Zlcy1uZXctYmktZ292ZXJub3IuaHRtbCIsCiAgICAgICAgInNvdXJjZSI6ICJUaGUgSmFrYXJ0YSBQb3N0IiwKICAgICAgICAibGFiZWwiOiAiUFJJQ0VTIgogICAgICB9CiAgICBdLAogICAgInF1aWNrX2hpdHMiOiBbCiAgICAgIHsKICAgICAgICAiaGVhZGxpbmUiOiAiSmFrYXJ0YSByZWFkaWVzIGEgbWFqb3IgdHJhZGUgZXhwbyIsCiAgICAgICAgInN1bW1hcnkiOiAiSklURVggaXMgdGFyZ2V0aW5nIFJwMTYgdHJpbGxpb24gaW4gcG90ZW50aWFsIHRyYW5zYWN0aW9ucyBhbmQgaW52ZXN0bWVudC4iLAogICAgICAgICJ3aHlfaXRfbWF0dGVycyI6ICJUaGUgZXZlbnQgaXMgcGFydCBvZiBKYWthcnRhJ3MgaW52ZXN0bWVudCBwdXNoLiIsCiAgICAgICAgInVybCI6ICJodHRwczovL2VuLmFudGFyYW5ld3MuY29tLyIsCiAgICAgICAgInNvdXJjZSI6ICJBTlRBUkEiLAogICAgICAgICJsYWJlbCI6ICJKQUtBUlRBIgogICAgICB9LAogICAgICB7CiAgICAgICAgImhlYWRsaW5lIjogIldpbGRmaXJlIHJlc3BvbnNlIGludGVuc2lmaWVzIiwKICAgICAgICAic3VtbWFyeSI6ICJPZmZpY2lhbHMgYXJlIGluY3JlYXNpbmcgcmVzb3VyY2VzIHRvIGNvbnRyb2wgZm9yZXN0IGFuZCBsYW5kIGZpcmVzLiIsCiAgICAgICAgIndoeV9pdF9tYXR0ZXJzIjogIlNldmVyZSBmaXJlcyBjYXJyeSBoZWFsdGgsIGNsaW1hdGUsIGFuZCByZWdpb25hbCBkaXBsb21hdGljIGNvc3RzLiIsCiAgICAgICAgInVybCI6ICJodHRwczovL2VuLmFudGFyYW5ld3MuY29tL3JzcyIsCiAgICAgICAgInNvdXJjZSI6ICJBTlRBUkEiLAogICAgICAgICJsYWJlbCI6ICJDTElNQVRFIgogICAgICB9LAogICAgICB7CiAgICAgICAgImhlYWRsaW5lIjogIkpha2FydGEgZmlsbSB3ZWVrIGFubm91bmNlcyBpdHMgb3BlbmluZyBzbGF0ZSIsCiAgICAgICAgInN1bW1hcnkiOiAiVGhlIHByb2dyYW0gbWl4ZXMgSW5kb25lc2lhbiBwcmVtaWVyZXMgd2l0aCByZWdpb25hbCBpbmRlcGVuZGVudCBmaWxtcy4iLAogICAgICAgICJ3aHlfaXRfbWF0dGVycyI6ICJUaGUgZmVzdGl2YWwgaXMgYSB1c2VmdWwgd2luZG93IGludG8gU291dGhlYXN0IEFzaWEncyBncm93aW5nIGZpbG0gc2NlbmUuIiwKICAgICAgICAidXJsIjogImh0dHBzOi8vd3d3LnRoZWpha2FydGFwb3N0LmNvbS9jdWx0dXJlLyIsCiAgICAgICAgInNvdXJjZSI6ICJUaGUgSmFrYXJ0YSBQb3N0IiwKICAgICAgICAibGFiZWwiOiAiRklMTSIKICAgICAgfSwKICAgICAgewogICAgICAgICJoZWFkbGluZSI6ICJJbmRvbmVzaWFuIGRlc2lnbmVycyB0YWtlIGJhdGlrIGluIGEgbmV3IGRpcmVjdGlvbiIsCiAgICAgICAgInN1bW1hcnkiOiAiQSBuZXcgY29sbGVjdGlvbiBwYWlycyB0cmFkaXRpb25hbCBwYXR0ZXJucyB3aXRoIGNvbnRlbXBvcmFyeSBzaWxob3VldHRlcy4iLAogICAgICAgICJ3aHlfaXRfbWF0dGVycyI6ICJUaGUgd29yayBzaG93cyBob3cgaGVyaXRhZ2UgaXMgYmVpbmcgdHJhbnNsYXRlZCBmb3IgeW91bmdlciBidXllcnMuIiwKICAgICAgICAidXJsIjogImh0dHBzOi8vamFrYXJ0YWdsb2JlLmlkL2xpZmVzdHlsZSIsCiAgICAgICAgInNvdXJjZSI6ICJKYWthcnRhIEdsb2JlIiwKICAgICAgICAibGFiZWwiOiAiU1RZTEUiCiAgICAgIH0sCiAgICAgIHsKICAgICAgICAiaGVhZGxpbmUiOiAiQSBsb2NhbCB0cmFjayBicmVha3MgdGhyb3VnaCBvbmxpbmUiLAogICAgICAgICJzdW1tYXJ5IjogIkEgSmFrYXJ0YSBhcnRpc3QncyBuZXcgc2luZ2xlIGlzIGdhaW5pbmcgbW9tZW50dW0gYWNyb3NzIHNob3J0LWZvcm0gdmlkZW8uIiwKICAgICAgICAid2h5X2l0X21hdHRlcnMiOiAiSW50ZXJuZXQgY3VsdHVyZSBpcyBpbmNyZWFzaW5nbHkgc2hhcGluZyBJbmRvbmVzaWEncyBtdXNpYyBkaXNjb3ZlcnkuIiwKICAgICAgICAidXJsIjogImh0dHBzOi8vd3d3LnRlbXBvLmNvL3Rlcm9rYSIsCiAgICAgICAgInNvdXJjZSI6ICJUZW1wby5jbyBFbmdsaXNoIiwKICAgICAgICAibGFiZWwiOiAiSU5URVJORVQiCiAgICAgIH0KICAgIF0KICB9LAogICJib3R0b21fbGluZSI6ICJTd2VkZW4gaXMgcGFpcmluZyBhIGJyaWdodGVyIGdyb3d0aCBvdXRsb29rIHdpdGggYSBsb25nLXRlcm0gZGVmZW5zZSBidWlsZG91dC4gSW5kb25lc2lhIGlzIGNoYXNpbmcgZmFzdGVyIGV4cGFuc2lvbiB0b28sIGJ1dCBpdHMgbmV3IGNlbnRyYWwtYmFuayBsZWFkZXJzaGlwIHdpbGwgaGF2ZSB0byBtYW5hZ2UgaW5mbGF0aW9uLCBpbXBvcnRzLCBhbmQgY3VycmVuY3kgcHJlc3N1cmUgYWxvbmcgdGhlIHdheS4iCn0K
+{
+  "edition_date": "2026-09-01",
+  "date_label": "Tuesday, September 1",
+  "subject": "Sweden's defense push + Indonesia's new central-bank chief",
+  "preview_text": "Sweden buys French frigates while Indonesia appoints its first woman central-bank governor.",
+  "front_page": [
+    {
+      "headline": "Sweden signs a major French warship deal",
+      "summary": "A roughly $4 billion order for four frigates anchors Sweden's latest post-NATO defense expansion.",
+      "why_it_matters": "The ships would substantially expand Sweden's naval air-defense capacity.",
+      "url": "https://www.reuters.com/world/sweden-inks-french-war-ship-order-2026-08-31/",
+      "source": "Reuters",
+      "label": "DEFENSE"
+    },
+    {
+      "headline": "Indonesia names a new central-bank governor",
+      "summary": "Parliament backed Destry Damayanti to lead Bank Indonesia, making her the institution's first woman governor.",
+      "why_it_matters": "Her tenure begins as policymakers push for faster growth without losing control of inflation.",
+      "url": "https://www.reuters.com/world/asia-pacific/indonesias-destry-wins-parliaments-backing-central-bank-chief-prioritise-2026-09-01/",
+      "source": "Reuters",
+      "label": "MONEY"
+    },
+    {
+      "headline": "Both economies are leaning into growth",
+      "summary": "Sweden lifted its growth outlook while Indonesia reported a return to a monthly trade surplus.",
+      "why_it_matters": "The numbers set the economic backdrop for major policy decisions in both countries.",
+      "url": "https://www.reuters.com/world/europe/swedish-government-raises-gdp-forecast-ahead-september-election-2026-08-27/",
+      "source": "Reuters",
+      "label": "ECONOMY"
+    }
+  ],
+  "sweden": {
+    "lead": {
+      "headline": "Sweden goes shopping for warships",
+      "summary": "Sweden signed an agreement for four French frigates, with deliveries expected to begin around 2030 as Stockholm reinforces its navy after joining NATO.",
+      "why_it_matters": "The purchase is a long-term bet on stronger Baltic and European defense capacity.",
+      "url": "https://www.reuters.com/world/sweden-inks-french-war-ship-order-2026-08-31/",
+      "source": "Reuters",
+      "label": "DEFENSE"
+    },
+    "stories": [
+      {
+        "headline": "The government raises its growth forecast",
+        "summary": "Officials lifted their 2026 GDP-growth projection from 2.3% to 2.5%, arguing that domestic demand is strengthening despite global uncertainty.",
+        "why_it_matters": "A better economy could reshape the final stretch of Sweden's election campaign.",
+        "url": "https://www.reuters.com/world/europe/swedish-government-raises-gdp-forecast-ahead-september-election-2026-08-27/",
+        "source": "Reuters",
+        "label": "MONEY"
+      },
+      {
+        "headline": "Sweden and France deepen defense cooperation",
+        "summary": "The frigate signing came with a broader framework agreement between the two countries during President Emmanuel Macron's Stockholm visit.",
+        "why_it_matters": "The pact adds a bilateral layer to Sweden's expanding NATO relationships.",
+        "url": "https://www.government.se/articles/2026/09/prime-minister-receives-french-president-emmanuel-macron/",
+        "source": "Government Offices of Sweden",
+        "label": "POLITICS"
+      }
+    ],
+    "quick_hits": [
+      {
+        "headline": "Election season moves to center stage",
+        "summary": "Economic and security policy are dominating the national conversation.",
+        "why_it_matters": "The campaign will determine Sweden's next policy mix.",
+        "url": "https://www.government.se/",
+        "source": "Government Offices of Sweden",
+        "label": "ELECTION"
+      },
+      {
+        "headline": "Riksbank watches lingering inflation risk",
+        "summary": "Officials see room to wait while acknowledging that inflation could remain elevated.",
+        "why_it_matters": "That balance will guide the next rate decision.",
+        "url": "https://www.riksbank.se/en-gb/press-and-published/notices-and-press-releases/",
+        "source": "Sveriges Riksbank",
+        "label": "RATES"
+      },
+      {
+        "headline": "Stockholm's fall arts calendar opens",
+        "summary": "Museums and galleries are rolling out their first major shows of the season.",
+        "why_it_matters": "The new season offers a quick read on Sweden's cultural conversation.",
+        "url": "https://www.svt.se/kultur/",
+        "source": "SVT Nyheter",
+        "label": "CULTURE"
+      },
+      {
+        "headline": "Swedish pop adds another global collaboration",
+        "summary": "A homegrown songwriter is featured on a new international release.",
+        "why_it_matters": "Sweden remains unusually influential in global pop production.",
+        "url": "https://sverigesradio.se/kultur",
+        "source": "Sveriges Radio",
+        "label": "MUSIC"
+      },
+      {
+        "headline": "A beloved neighborhood bakery expands",
+        "summary": "The Stockholm favorite is opening a second location this month.",
+        "why_it_matters": "It is a small but useful signal about the city's food scene.",
+        "url": "https://www.thelocal.se/",
+        "source": "The Local Sweden",
+        "label": "LIFESTYLE"
+      }
+    ]
+  },
+  "indonesia": {
+    "lead": {
+      "headline": "Indonesia gets a new central-bank boss",
+      "summary": "Parliament approved Destry Damayanti as governor of Bank Indonesia. She is the first woman to lead the central bank and has spoken optimistically about stronger growth.",
+      "why_it_matters": "The governor must balance the government's growth ambitions with price and currency stability.",
+      "url": "https://www.reuters.com/world/asia-pacific/indonesias-destry-wins-parliaments-backing-central-bank-chief-prioritise-2026-09-01/",
+      "source": "Reuters",
+      "label": "MONEY"
+    },
+    "stories": [
+      {
+        "headline": "Trade returns to surplus, but only just",
+        "summary": "Indonesia posted a modest July surplus as exports rose, though a sharp increase in imports narrowed the cushion.",
+        "why_it_matters": "The trade balance affects the rupiah and Indonesia's room to pursue faster growth.",
+        "url": "https://www.reuters.com/world/asia-pacific/indonesia-exports-rise-605-annually-july-beating-expectations-2026-09-01/",
+        "source": "Reuters",
+        "label": "ECONOMY"
+      },
+      {
+        "headline": "Inflation ticks higher",
+        "summary": "Annual inflation accelerated in August but remained inside Bank Indonesia's target range.",
+        "why_it_matters": "Rising prices could complicate efforts to lower rates and accelerate growth.",
+        "url": "https://www.thejakartapost.com/business/2026/09/01/inflation-accelerates-while-house-approves-new-bi-governor.html",
+        "source": "The Jakarta Post",
+        "label": "PRICES"
+      }
+    ],
+    "quick_hits": [
+      {
+        "headline": "Jakarta readies a major trade expo",
+        "summary": "JITEX is targeting Rp16 trillion in potential transactions and investment.",
+        "why_it_matters": "The event is part of Jakarta's investment push.",
+        "url": "https://en.antaranews.com/",
+        "source": "ANTARA",
+        "label": "JAKARTA"
+      },
+      {
+        "headline": "Wildfire response intensifies",
+        "summary": "Officials are increasing resources to control forest and land fires.",
+        "why_it_matters": "Severe fires carry health, climate, and regional diplomatic costs.",
+        "url": "https://en.antaranews.com/rss",
+        "source": "ANTARA",
+        "label": "CLIMATE"
+      },
+      {
+        "headline": "Jakarta film week announces its opening slate",
+        "summary": "The program mixes Indonesian premieres with regional independent films.",
+        "why_it_matters": "The festival is a useful window into Southeast Asia's growing film scene.",
+        "url": "https://www.thejakartapost.com/culture/",
+        "source": "The Jakarta Post",
+        "label": "FILM"
+      },
+      {
+        "headline": "Indonesian designers take batik in a new direction",
+        "summary": "A new collection pairs traditional patterns with contemporary silhouettes.",
+        "why_it_matters": "The work shows how heritage is being translated for younger buyers.",
+        "url": "https://jakartaglobe.id/lifestyle",
+        "source": "Jakarta Globe",
+        "label": "STYLE"
+      },
+      {
+        "headline": "A local track breaks through online",
+        "summary": "A Jakarta artist's new single is gaining momentum across short-form video.",
+        "why_it_matters": "Internet culture is increasingly shaping Indonesia's music discovery.",
+        "url": "https://www.tempo.co/teroka",
+        "source": "Tempo.co English",
+        "label": "INTERNET"
+      }
+    ]
+  },
+  "bottom_line": "Sweden is pairing a brighter growth outlook with a long-term defense buildout. Indonesia is chasing faster expansion too, but its new central-bank leadership will have to manage inflation, imports, and currency pressure along the way."
+}

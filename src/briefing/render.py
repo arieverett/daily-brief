@@ -1,1 +1,48 @@
-ZnJvbSBfX2Z1dHVyZV9fIGltcG9ydCBhbm5vdGF0aW9ucwoKZnJvbSBpbXBvcnRsaWIucmVzb3VyY2VzIGltcG9ydCBmaWxlcwoKZnJvbSBqaW5qYTIgaW1wb3J0IEVudmlyb25tZW50LCBGaWxlU3lzdGVtTG9hZGVyLCBzZWxlY3RfYXV0b2VzY2FwZQoKZnJvbSAubW9kZWxzIGltcG9ydCBFZGl0aW9uLCBTdG9yeQoKCmRlZiBfdGVtcGxhdGVfZW52KCkgLT4gRW52aXJvbm1lbnQ6CiAgICB0ZW1wbGF0ZV9kaXIgPSBmaWxlcygiYnJpZWZpbmciKS5qb2lucGF0aCgidGVtcGxhdGVzIikKICAgIHJldHVybiBFbnZpcm9ubWVudCgKICAgICAgICBsb2FkZXI9RmlsZVN5c3RlbUxvYWRlcihzdHIodGVtcGxhdGVfZGlyKSksCiAgICAgICAgYXV0b2VzY2FwZT1zZWxlY3RfYXV0b2VzY2FwZShbImh0bWwiLCAieG1sIl0pLAogICAgICAgIHRyaW1fYmxvY2tzPVRydWUsCiAgICAgICAgbHN0cmlwX2Jsb2Nrcz1UcnVlLAogICAgKQoKCmRlZiByZW5kZXJfaHRtbChlZGl0aW9uOiBFZGl0aW9uKSAtPiBzdHI6CiAgICByZXR1cm4gX3RlbXBsYXRlX2VudigpLmdldF90ZW1wbGF0ZSgibmV3c2xldHRlci5odG1sIikucmVuZGVyKGVkaXRpb249ZWRpdGlvbikKCgpkZWYgX3N0b3J5X3RleHQoc3Rvcnk6IFN0b3J5LCAqLCBpbmNsdWRlX3doeTogYm9vbCA9IFRydWUpIC0+IHN0cjoKICAgIGxpbmVzID0gW2Yie3N0b3J5LmxhYmVsfToge3N0b3J5LmhlYWRsaW5lfSIsIHN0b3J5LnN1bW1hcnldCiAgICBpZiBpbmNsdWRlX3doeToKICAgICAgICBsaW5lcy5hcHBlbmQoZiJXaHkgaXQgbWF0dGVyczoge3N0b3J5LndoeV9pdF9tYXR0ZXJzfSIpCiAgICBsaW5lcy5hcHBlbmQoZiJ7c3Rvcnkuc291cmNlfToge3N0b3J5LnVybH0iKQogICAgcmV0dXJuICJcbiIuam9pbihsaW5lcykKCgpkZWYgcmVuZGVyX3RleHQoZWRpdGlvbjogRWRpdGlvbikgLT4gc3RyOgogICAgYmxvY2tzID0gWwogICAgICAgICJEQUlMWSBCUklFRiIsCiAgICAgICAgZWRpdGlvbi5kYXRlX2xhYmVsLAogICAgICAgICIiLAogICAgICAgICJUSEUgU0VUVVAiLAogICAgICAgIGVkaXRpb24uYm90dG9tX2xpbmUsCiAgICAgICAgIiIsCiAgICAgICAgIlRIRSBGUk9OVCBQQUdFIiwKICAgICAgICAqKF9zdG9yeV90ZXh0KHN0b3J5LCBpbmNsdWRlX3doeT1GYWxzZSkgZm9yIHN0b3J5IGluIGVkaXRpb24uZnJvbnRfcGFnZSksCiAgICBdCiAgICBmb3IgaGVhZGluZywgc2VjdGlvbiBpbiAoKCJTV0VERU4iLCBlZGl0aW9uLnN3ZWRlbiksICgiSU5ET05FU0lBIiwgZWRpdGlvbi5pbmRvbmVzaWEpKToKICAgICAgICBibG9ja3MgKz0gWyIiLCBoZWFkaW5nLCBfc3RvcnlfdGV4dChzZWN0aW9uLmxlYWQpXQogICAgICAgIGJsb2Nrcy5leHRlbmQoX3N0b3J5X3RleHQoc3RvcnkpIGZvciBzdG9yeSBpbiBzZWN0aW9uLnN0b3JpZXMpCiAgICAgICAgYmxvY2tzLmFwcGVuZCgiUVVJQ0sgSElUUyIpCiAgICAgICAgYmxvY2tzLmV4dGVuZChfc3RvcnlfdGV4dChzdG9yeSwgaW5jbHVkZV93aHk9RmFsc2UpIGZvciBzdG9yeSBpbiBzZWN0aW9uLnF1aWNrX2hpdHMpCiAgICByZXR1cm4gIlxuXG4iLmpvaW4oYmxvY2tzKQo=
+from __future__ import annotations
+
+from importlib.resources import files
+
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+from .models import Edition, Story
+
+
+def _template_env() -> Environment:
+    template_dir = files("briefing").joinpath("templates")
+    return Environment(
+        loader=FileSystemLoader(str(template_dir)),
+        autoescape=select_autoescape(["html", "xml"]),
+        trim_blocks=True,
+        lstrip_blocks=True,
+    )
+
+
+def render_html(edition: Edition) -> str:
+    return _template_env().get_template("newsletter.html").render(edition=edition)
+
+
+def _story_text(story: Story, *, include_why: bool = True) -> str:
+    lines = [f"{story.label}: {story.headline}", story.summary]
+    if include_why:
+        lines.append(f"Why it matters: {story.why_it_matters}")
+    lines.append(f"{story.source}: {story.url}")
+    return "\n".join(lines)
+
+
+def render_text(edition: Edition) -> str:
+    blocks = [
+        "DAILY BRIEF",
+        edition.date_label,
+        "",
+        "THE SETUP",
+        edition.bottom_line,
+        "",
+        "THE FRONT PAGE",
+        *(_story_text(story, include_why=False) for story in edition.front_page),
+    ]
+    for heading, section in (("SWEDEN", edition.sweden), ("INDONESIA", edition.indonesia)):
+        blocks += ["", heading, _story_text(section.lead)]
+        blocks.extend(_story_text(story) for story in section.stories)
+        blocks.append("QUICK HITS")
+        blocks.extend(_story_text(story, include_why=False) for story in section.quick_hits)
+    return "\n\n".join(blocks)

@@ -1,1 +1,76 @@
-ZnJvbSBfX2Z1dHVyZV9fIGltcG9ydCBhbm5vdGF0aW9ucwoKaW1wb3J0IGFyZ3BhcnNlCmltcG9ydCBhc3luY2lvCmltcG9ydCBqc29uCmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aAoKZnJvbSAuY29sbGVjdCBpbXBvcnQgYWRkX2FydGljbGVfaW1hZ2VzLCBjb2xsZWN0X2NhbmRpZGF0ZXMKZnJvbSAuY29uZmlnIGltcG9ydCBERUZBVUxUX09VVF9ESVIsIERFRkFVTFRfU09VUkNFU19QQVRILCBTZXR0aW5ncwpmcm9tIC5lZGl0b3IgaW1wb3J0IGNyZWF0ZV9lZGl0aW9uCmZyb20gLm1vZGVscyBpbXBvcnQgZWRpdGlvbl9mcm9tX2RpY3QKZnJvbSAucmVuZGVyIGltcG9ydCByZW5kZXJfaHRtbCwgcmVuZGVyX3RleHQKZnJvbSAuc2VuZCBpbXBvcnQgc2VuZF9lbWFpbAoKCmRlZiBwYXJzZV9hcmdzKCkgLT4gYXJncGFyc2UuTmFtZXNwYWNlOgogICAgcGFyc2VyID0gYXJncGFyc2UuQXJndW1lbnRQYXJzZXIoZGVzY3JpcHRpb249IkdlbmVyYXRlIERhaWx5IEJyaWVmIikKICAgIHBhcnNlci5hZGRfYXJndW1lbnQoIi0tc2VuZCIsIGFjdGlvbj0ic3RvcmVfdHJ1ZSIsIGhlbHA9IlNlbmQgdGhyb3VnaCBSZXNlbmQgYWZ0ZXIgZ2VuZXJhdGlvbiIpCiAgICBwYXJzZXIuYWRkX2FyZ3VtZW50KAogICAgICAgICItLXNhbXBsZSIsIGFjdGlvbj0ic3RvcmVfdHJ1ZSIsIGhlbHA9IlJlbmRlciBidW5kbGVkIHNhbXBsZSB3aXRob3V0IG5ldHdvcmsgb3IgQVBJIGtleXMiCiAgICApCiAgICBwYXJzZXIuYWRkX2FyZ3VtZW50KCItLXNvdXJjZXMiLCB0eXBlPVBhdGgsIGRlZmF1bHQ9REVGQVVMVF9TT1VSQ0VTX1BBVEgpCiAgICBwYXJzZXIuYWRkX2FyZ3VtZW50KCItLW91dCIsIHR5cGU9UGF0aCwgZGVmYXVsdD1ERUZBVUxUX09VVF9ESVIpCiAgICByZXR1cm4gcGFyc2VyLnBhcnNlX2FyZ3MoKQoKCmRlZiBsb2FkX3NhbXBsZSgpOgogICAgc2FtcGxlX3BhdGggPSBQYXRoKF9fZmlsZV9fKS53aXRoX25hbWUoImRhdGEiKSAvICJzYW1wbGVfZWRpdGlvbi5qc29uIgogICAgcmV0dXJuIGVkaXRpb25fZnJvbV9kaWN0KGpzb24ubG9hZHMoc2FtcGxlX3BhdGgucmVhZF90ZXh0KGVuY29kaW5nPSJ1dGYtOCIpKSkKCgpkZWYgd3JpdGVfb3V0cHV0cyhlZGl0aW9uLCBvdXRfZGlyOiBQYXRoKSAtPiB0dXBsZVtQYXRoLCBzdHIsIHN0cl06CiAgICBodG1sID0gcmVuZGVyX2h0bWwoZWRpdGlvbikKICAgIHRleHQgPSByZW5kZXJfdGV4dChlZGl0aW9uKQogICAgb3V0X2Rpci5ta2RpcihwYXJlbnRzPVRydWUsIGV4aXN0X29rPVRydWUpCiAgICBodG1sX3BhdGggPSBvdXRfZGlyIC8gZiJ7ZWRpdGlvbi5lZGl0aW9uX2RhdGV9Lmh0bWwiCiAgICBodG1sX3BhdGgud3JpdGVfdGV4dChodG1sLCBlbmNvZGluZz0idXRmLTgiKQogICAgKG91dF9kaXIgLyBmIntlZGl0aW9uLmVkaXRpb25fZGF0ZX0udHh0Iikud3JpdGVfdGV4dCh0ZXh0LCBlbmNvZGluZz0idXRmLTgiKQogICAgcmV0dXJuIGh0bWxfcGF0aCwgaHRtbCwgdGV4dAoKCmRlZiBtYWluKCkgLT4gTm9uZToKICAgIGFyZ3MgPSBwYXJzZV9hcmdzKCkKICAgIGlmIGFyZ3Muc2FtcGxlOgogICAgICAgIGVkaXRpb24gPSBsb2FkX3NhbXBsZSgpCiAgICAgICAgc2V0dGluZ3MgPSBOb25lCiAgICBlbHNlOgogICAgICAgIHNldHRpbmdzID0gU2V0dGluZ3MuZnJvbV9lbnYocmVxdWlyZV9kZWxpdmVyeT1hcmdzLnNlbmQpCiAgICAgICAgY2FuZGlkYXRlcyA9IGFzeW5jaW8ucnVuKAogICAgICAgICAgICBjb2xsZWN0X2NhbmRpZGF0ZXMoYXJncy5zb3VyY2VzLCBzZXR0aW5ncy5sb29rYmFja19ob3Vycywgc2V0dGluZ3MubWF4X2NhbmRpZGF0ZXMpCiAgICAgICAgKQogICAgICAgIGVkaXRpb24gPSBjcmVhdGVfZWRpdGlvbigKICAgICAgICAgICAgY2FuZGlkYXRlcywKICAgICAgICAgICAgc2V0dGluZ3Mub3BlbmFpX2FwaV9rZXksCiAgICAgICAgICAgIHNldHRpbmdzLm9wZW5haV9tb2RlbCwKICAgICAgICAgICAgc2V0dGluZ3MudGltZXpvbmUsCiAgICAgICAgKQogICAgICAgIGVkaXRpb24gPSBhc3luY2lvLnJ1bihhZGRfYXJ0aWNsZV9pbWFnZXMoZWRpdGlvbiwgY2FuZGlkYXRlcykpCiAgICBodG1sX3BhdGgsIGh0bWwsIHRleHQgPSB3cml0ZV9vdXRwdXRzKGVkaXRpb24sIGFyZ3Mub3V0KQogICAgcHJpbnQoZiJSZW5kZXJlZCB7aHRtbF9wYXRofSIpCiAgICBpZiBhcmdzLnNlbmQ6CiAgICAgICAgYXNzZXJ0IHNldHRpbmdzIGlzIG5vdCBOb25lCiAgICAgICAgbWVzc2FnZV9pZCA9IHNlbmRfZW1haWwoCiAgICAgICAgICAgIGFwaV9rZXk9c2V0dGluZ3MucmVzZW5kX2FwaV9rZXksCiAgICAgICAgICAgIGZyb21fZW1haWw9c2V0dGluZ3MuZnJvbV9lbWFpbCwKICAgICAgICAgICAgdG9fZW1haWw9c2V0dGluZ3MudG9fZW1haWwsCiAgICAgICAgICAgIHN1YmplY3Q9ZWRpdGlvbi5zdWJqZWN0LAogICAgICAgICAgICBodG1sPWh0bWwsCiAgICAgICAgICAgIHRleHQ9dGV4dCwKICAgICAgICAgICAgZWRpdGlvbl9kYXRlPWVkaXRpb24uZWRpdGlvbl9kYXRlLAogICAgICAgICkKICAgICAgICBwcmludChmIlNlbnQgbWVzc2FnZSB7bWVzc2FnZV9pZH0iKQoKCmlmIF9fbmFtZV9fID09ICJfX21haW5fXyI6CiAgICBtYWluKCkK
+from __future__ import annotations
+
+import argparse
+import asyncio
+import json
+from pathlib import Path
+
+from .collect import add_article_images, collect_candidates
+from .config import DEFAULT_OUT_DIR, DEFAULT_SOURCES_PATH, Settings
+from .editor import create_edition
+from .models import edition_from_dict
+from .render import render_html, render_text
+from .send import send_email
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Generate Daily Brief")
+    parser.add_argument("--send", action="store_true", help="Send through Resend after generation")
+    parser.add_argument(
+        "--sample", action="store_true", help="Render bundled sample without network or API keys"
+    )
+    parser.add_argument("--sources", type=Path, default=DEFAULT_SOURCES_PATH)
+    parser.add_argument("--out", type=Path, default=DEFAULT_OUT_DIR)
+    return parser.parse_args()
+
+
+def load_sample():
+    sample_path = Path(__file__).with_name("data") / "sample_edition.json"
+    return edition_from_dict(json.loads(sample_path.read_text(encoding="utf-8")))
+
+
+def write_outputs(edition, out_dir: Path) -> tuple[Path, str, str]:
+    html = render_html(edition)
+    text = render_text(edition)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    html_path = out_dir / f"{edition.edition_date}.html"
+    html_path.write_text(html, encoding="utf-8")
+    (out_dir / f"{edition.edition_date}.txt").write_text(text, encoding="utf-8")
+    return html_path, html, text
+
+
+def main() -> None:
+    args = parse_args()
+    if args.sample:
+        edition = load_sample()
+        settings = None
+    else:
+        settings = Settings.from_env(require_delivery=args.send)
+        candidates = asyncio.run(
+            collect_candidates(args.sources, settings.lookback_hours, settings.max_candidates)
+        )
+        edition = create_edition(
+            candidates,
+            settings.openai_api_key,
+            settings.openai_model,
+            settings.timezone,
+        )
+        edition = asyncio.run(add_article_images(edition, candidates))
+    html_path, html, text = write_outputs(edition, args.out)
+    print(f"Rendered {html_path}")
+    if args.send:
+        assert settings is not None
+        message_id = send_email(
+            api_key=settings.resend_api_key,
+            from_email=settings.from_email,
+            to_email=settings.to_email,
+            subject=edition.subject,
+            html=html,
+            text=text,
+            edition_date=edition.edition_date,
+        )
+        print(f"Sent message {message_id}")
+
+
+if __name__ == "__main__":
+    main()

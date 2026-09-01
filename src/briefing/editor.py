@@ -1,1 +1,130 @@
-ZnJvbSBfX2Z1dHVyZV9fIGltcG9ydCBhbm5vdGF0aW9ucwoKaW1wb3J0IGpzb24KZnJvbSBkYXRldGltZSBpbXBvcnQgZGF0ZXRpbWUKZnJvbSB6b25laW5mbyBpbXBvcnQgWm9uZUluZm8KCmZyb20gb3BlbmFpIGltcG9ydCBPcGVuQUkKCmZyb20gLm1vZGVscyBpbXBvcnQgQ2FuZGlkYXRlLCBFZGl0aW9uLCBlZGl0aW9uX2Zyb21fZGljdAoKU1RPUllfU0NIRU1BID0gewogICAgInR5cGUiOiAib2JqZWN0IiwKICAgICJhZGRpdGlvbmFsUHJvcGVydGllcyI6IEZhbHNlLAogICAgInByb3BlcnRpZXMiOiB7CiAgICAgICAgImhlYWRsaW5lIjogeyJ0eXBlIjogInN0cmluZyJ9LAogICAgICAgICJzdW1tYXJ5IjogeyJ0eXBlIjogInN0cmluZyJ9LAogICAgICAgICJ3aHlfaXRfbWF0dGVycyI6IHsidHlwZSI6ICJzdHJpbmcifSwKICAgICAgICAidXJsIjogeyJ0eXBlIjogInN0cmluZyJ9LAogICAgICAgICJzb3VyY2UiOiB7InR5cGUiOiAic3RyaW5nIn0sCiAgICAgICAgImxhYmVsIjogeyJ0eXBlIjogInN0cmluZyJ9LAogICAgfSwKICAgICJyZXF1aXJlZCI6IFsiaGVhZGxpbmUiLCAic3VtbWFyeSIsICJ3aHlfaXRfbWF0dGVycyIsICJ1cmwiLCAic291cmNlIiwgImxhYmVsIl0sCn0KCkNPVU5UUllfU0NIRU1BID0gewogICAgInR5cGUiOiAib2JqZWN0IiwKICAgICJhZGRpdGlvbmFsUHJvcGVydGllcyI6IEZhbHNlLAogICAgInByb3BlcnRpZXMiOiB7CiAgICAgICAgImxlYWQiOiBTVE9SWV9TQ0hFTUEsCiAgICAgICAgInN0b3JpZXMiOiB7InR5cGUiOiAiYXJyYXkiLCAiaXRlbXMiOiBTVE9SWV9TQ0hFTUEsICJtaW5JdGVtcyI6IDIsICJtYXhJdGVtcyI6IDR9LAogICAgICAgICJxdWlja19oaXRzIjogeyJ0eXBlIjogImFycmF5IiwgIml0ZW1zIjogU1RPUllfU0NIRU1BLCAibWluSXRlbXMiOiA1LCAibWF4SXRlbXMiOiA1fSwKICAgIH0sCiAgICAicmVxdWlyZWQiOiBbImxlYWQiLCAic3RvcmllcyIsICJxdWlja19oaXRzIl0sCn0KCkVESVRJT05fU0NIRU1BID0gewogICAgInR5cGUiOiAib2JqZWN0IiwKICAgICJhZGRpdGlvbmFsUHJvcGVydGllcyI6IEZhbHNlLAogICAgInByb3BlcnRpZXMiOiB7CiAgICAgICAgImVkaXRpb25fZGF0ZSI6IHsidHlwZSI6ICJzdHJpbmcifSwKICAgICAgICAiZGF0ZV9sYWJlbCI6IHsidHlwZSI6ICJzdHJpbmcifSwKICAgICAgICAic3ViamVjdCI6IHsidHlwZSI6ICJzdHJpbmcifSwKICAgICAgICAicHJldmlld190ZXh0IjogeyJ0eXBlIjogInN0cmluZyJ9LAogICAgICAgICJmcm9udF9wYWdlIjogeyJ0eXBlIjogImFycmF5IiwgIml0ZW1zIjogU1RPUllfU0NIRU1BLCAibWluSXRlbXMiOiAzLCAibWF4SXRlbXMiOiAzfSwKICAgICAgICAic3dlZGVuIjogQ09VTlRSWV9TQ0hFTUEsCiAgICAgICAgImluZG9uZXNpYSI6IENPVU5UUllfU0NIRU1BLAogICAgICAgICJib3R0b21fbGluZSI6IHsidHlwZSI6ICJzdHJpbmcifSwKICAgIH0sCiAgICAicmVxdWlyZWQiOiBbCiAgICAgICAgImVkaXRpb25fZGF0ZSIsCiAgICAgICAgImRhdGVfbGFiZWwiLAogICAgICAgICJzdWJqZWN0IiwKICAgICAgICAicHJldmlld190ZXh0IiwKICAgICAgICAiZnJvbnRfcGFnZSIsCiAgICAgICAgInN3ZWRlbiIsCiAgICAgICAgImluZG9uZXNpYSIsCiAgICAgICAgImJvdHRvbV9saW5lIiwKICAgIF0sCn0KClNZU1RFTV9QUk9NUFQgPSAiIiJZb3UgYXJlIHRoZSBlZGl0b3Igb2YgYSBjb25jaXNlIHBlcnNvbmFsIGRhaWx5IGJyaWVmaW5nIGNvdmVyaW5nIFN3ZWRlbiBhbmQgSW5kb25lc2lhLgpZb3VyIHJlYWRlciBsaWtlcyB0aGUgZnJvbnQgdHdvIHBhZ2VzIG9mIHRoZSBXYWxsIFN0cmVldCBKb3VybmFsIGFuZCBNb3JuaW5nIEJyZXc6IGhpZ2gtc2lnbmFsLCBmYXN0LApzbWFydCwgY29udmVyc2F0aW9uYWwsIGFuZCBuZXZlciBicmVhdGhsZXNzLiBTZWxlY3Qgc2lnbmlmaWNhbmNlIG92ZXIgbm92ZWx0eSBvciB2aXJhbGl0eS4KClJ1bGVzOgotIFVzZSBvbmx5IGZhY3RzIHByZXNlbnQgaW4gdGhlIGNhbmRpZGF0ZSBtZXRhZGF0YS4gTmV2ZXIgaW52ZW50IGEgbnVtYmVyLCBxdW90ZSwgaW1wbGljYXRpb24sIG9yIGV2ZW50LgotIFByZXNlcnZlIHRoZSBleGFjdCBjYW5kaWRhdGUgVVJMIGFuZCBzb3VyY2UgZm9yIGV2ZXJ5IHNlbGVjdGVkIHN0b3J5LgotIENvbWJpbmUgZHVwbGljYXRlIGNvdmVyYWdlIGludG8gb25lIHN0b3J5IGFuZCBwcmVmZXIgUmV1dGVycy9BUCwgb2ZmaWNpYWwgaW5zdGl0dXRpb25zLCBwdWJsaWMgYnJvYWRjYXN0ZXJzLAogIGVzdGFibGlzaGVkIG5hdGlvbmFsIG91dGxldHMsIGFuZCB3ZWxsLXNvdXJjZWQgbG9jYWwgb3V0bGV0cy4KLSBGcm9udCBwYWdlOiBleGFjdGx5IHRocmVlIGRpc3RpbmN0IHN0b3JpZXMgdGhhdCBjb252ZXkgdGhlIGRheSdzIG92ZXJhbGwgcGljdHVyZS4KLSBFYWNoIGNvdW50cnk6IG9uZSBsZWFkLCAyLTQgc2Vjb25kYXJ5IHN0b3JpZXMsIGFuZCBleGFjdGx5IDUgcXVpY2sgaGl0cy4gRG8gbm90IHJlcGVhdCBhbiBpdGVtIHdpdGhpbiBhIGNvdW50cnkuCi0gSW5jbHVkZSBhdCBsZWFzdCBvbmUgY3VsdHVyZSBzdG9yeSBmb3IgZWFjaCBjb3VudHJ5IGRhaWx5LiBDdWx0dXJlIGluY2x1ZGVzIHBvcCBjdWx0dXJlLCBpbnRlcm5ldCBjdWx0dXJlLAogIG11c2ljLCBmaWxtLCB0ZWxldmlzaW9uLCBib29rcywgYXJ0cywgZm9vZCwgZmFzaGlvbiwgdHJhdmVsLCBhbmQgbGlmZXN0eWxlLgotIExhYmVscyBzaG91bGQgYmUgc2hvcnQgdXBwZXJjYXNlIGNhdGVnb3JpZXMgc3VjaCBhcyBQT0xJVElDUywgTU9ORVksIFNUT0NLSE9MTSwgSkFLQVJUQSwgU09DSUVUWSwgb3IgV0FUQ0guCi0gSGVhZGxpbmU6IHB1bmNoeSBidXQgYWNjdXJhdGUsIG5vIGNsaWNrYmFpdC4gU3VtbWFyeTogMS0yIHNlbnRlbmNlcy4gV2h5IGl0IG1hdHRlcnM6IG9uZSBjcmlzcCBzZW50ZW5jZS4KLSBRdWljay1oaXQgc3VtbWFyaWVzIGFuZCB3aHktaXQtbWF0dGVycyBmaWVsZHMgc2hvdWxkIGVhY2ggYmUgYSBzaW5nbGUgc2hvcnQgc2VudGVuY2UuCi0gRXhwbGFpbiB1bmZhbWlsaWFyIGluc3RpdHV0aW9ucyBvciBhY3JvbnltcyBpbmxpbmUuIFVzZSBjbGVhciBBbWVyaWNhbiBFbmdsaXNoLgotIFN1YmplY3Qgc2hvdWxkIGJlIHVuZGVyIDcwIGNoYXJhY3RlcnMgYW5kIHByZXZpZXdfdGV4dCB1bmRlciAxNDAgY2hhcmFjdGVycy4KLSBUaGUgYm90dG9tIGxpbmUgaXMgMi0zIHNlbnRlbmNlcyBjb25uZWN0aW5nIHRoZSBkYXkncyBoaWdoZXN0LWltcGFjdCBkZXZlbG9wbWVudHMgd2l0aG91dCBmb3JjaW5nIGEgdGhlbWUuCi0gTmV2ZXIgdXNlIGVtIGRhc2hlcy4gVXNlIGNvbW1hcywgY29sb25zLCBwZXJpb2RzLCBvciBwYXJlbnRoZXNlcyBpbnN0ZWFkLgoiIiIKCgpkZWYgYnVpbGRfcHJvbXB0KGNhbmRpZGF0ZXM6IGxpc3RbQ2FuZGlkYXRlXSwgdGltZXpvbmVfbmFtZTogc3RyKSAtPiBzdHI6CiAgICBsb2NhbF9ub3cgPSBkYXRldGltZS5ub3coWm9uZUluZm8odGltZXpvbmVfbmFtZSkpCiAgICBwYXlsb2FkID0gW2NhbmRpZGF0ZS5wcm9tcHRfZGljdCgpIGZvciBjYW5kaWRhdGUgaW4gY2FuZGlkYXRlc10KICAgIHJldHVybiAoCiAgICAgICAgZiJDcmVhdGUgdGhlIGVkaXRpb24gZm9yIHtsb2NhbF9ub3c6JVktJW0tJWR9LiBVc2UgZGF0ZSBsYWJlbCB7bG9jYWxfbm93OiVBLCAlQiAlLWR9LiAiCiAgICAgICAgIkNhbmRpZGF0ZSBzdG9yaWVzIGZvbGxvdyBhcyBKU09OLlxuXG4iICsganNvbi5kdW1wcyhwYXlsb2FkLCBlbnN1cmVfYXNjaWk9RmFsc2UpCiAgICApCgoKZGVmIHZhbGlkYXRlX2xpbmtzKGVkaXRpb246IEVkaXRpb24sIGNhbmRpZGF0ZXM6IGxpc3RbQ2FuZGlkYXRlXSkgLT4gTm9uZToKICAgIGFsbG93ZWQgPSB7KGl0ZW0udXJsLCBpdGVtLnNvdXJjZSkgZm9yIGl0ZW0gaW4gY2FuZGlkYXRlc30KICAgIHN0b3JpZXMgPSBbKmVkaXRpb24uZnJvbnRfcGFnZV0KICAgIGZvciBzZWN0aW9uIGluIChlZGl0aW9uLnN3ZWRlbiwgZWRpdGlvbi5pbmRvbmVzaWEpOgogICAgICAgIHN0b3JpZXMuZXh0ZW5kKFtzZWN0aW9uLmxlYWQsICpzZWN0aW9uLnN0b3JpZXMsICpzZWN0aW9uLnF1aWNrX2hpdHNdKQogICAgaW52YWxpZCA9IFsKICAgICAgICAoc3RvcnkudXJsLCBzdG9yeS5zb3VyY2UpIGZvciBzdG9yeSBpbiBzdG9yaWVzIGlmIChzdG9yeS51cmwsIHN0b3J5LnNvdXJjZSkgbm90IGluIGFsbG93ZWQKICAgIF0KICAgIGlmIGludmFsaWQ6CiAgICAgICAgcmFpc2UgVmFsdWVFcnJvcihmIkVkaXRvciByZXR1cm5lZCB7bGVuKGludmFsaWQpfSBzb3VyY2UgbGlua3Mgbm90IHByZXNlbnQgaW4gY2FuZGlkYXRlcyIpCgoKZGVmIGNyZWF0ZV9lZGl0aW9uKAogICAgY2FuZGlkYXRlczogbGlzdFtDYW5kaWRhdGVdLCBhcGlfa2V5OiBzdHIsIG1vZGVsOiBzdHIsIHRpbWV6b25lX25hbWU6IHN0cgopIC0+IEVkaXRpb246CiAgICBjb3VudHMgPSB7CiAgICAgICAgY291bnRyeTogc3VtKDEgZm9yIGl0ZW0gaW4gY2FuZGlkYXRlcyBpZiBpdGVtLmNvdW50cnkgPT0gY291bnRyeSkKICAgICAgICBmb3IgY291bnRyeSBpbiAoIlN3ZWRlbiIsICJJbmRvbmVzaWEiKQogICAgfQogICAgaWYgbWluKGNvdW50cy52YWx1ZXMoKSkgPCA5OgogICAgICAgIHJhaXNlIFJ1bnRpbWVFcnJvcihmIk5vdCBlbm91Z2ggZnJlc2ggc3RvcmllcyB0byBwdWJsaXNoIHNhZmVseToge2NvdW50c30iKQogICAgY2xpZW50ID0gT3BlbkFJKGFwaV9rZXk9YXBpX2tleSkKICAgIHJlc3BvbnNlID0gY2xpZW50LnJlc3BvbnNlcy5jcmVhdGUoCiAgICAgICAgbW9kZWw9bW9kZWwsCiAgICAgICAgaW5zdHJ1Y3Rpb25zPVNZU1RFTV9QUk9NUFQsCiAgICAgICAgaW5wdXQ9YnVpbGRfcHJvbXB0KGNhbmRpZGF0ZXMsIHRpbWV6b25lX25hbWUpLAogICAgICAgIHRleHQ9ewogICAgICAgICAgICAiZm9ybWF0IjogewogICAgICAgICAgICAgICAgInR5cGUiOiAianNvbl9zY2hlbWEiLAogICAgICAgICAgICAgICAgIm5hbWUiOiAiZGFpbHlfYnJpZWYiLAogICAgICAgICAgICAgICAgInNjaGVtYSI6IEVESVRJT05fU0NIRU1BLAogICAgICAgICAgICAgICAgInN0cmljdCI6IFRydWUsCiAgICAgICAgICAgIH0KICAgICAgICB9LAogICAgKQogICAgZWRpdGlvbiA9IGVkaXRpb25fZnJvbV9kaWN0KGpzb24ubG9hZHMocmVzcG9uc2Uub3V0cHV0X3RleHQpKQogICAgdmFsaWRhdGVfbGlua3MoZWRpdGlvbiwgY2FuZGlkYXRlcykKICAgIHJldHVybiBlZGl0aW9uCg==
+from __future__ import annotations
+
+import json
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+from openai import OpenAI
+
+from .models import Candidate, Edition, edition_from_dict
+
+STORY_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "headline": {"type": "string"},
+        "summary": {"type": "string"},
+        "why_it_matters": {"type": "string"},
+        "url": {"type": "string"},
+        "source": {"type": "string"},
+        "label": {"type": "string"},
+    },
+    "required": ["headline", "summary", "why_it_matters", "url", "source", "label"],
+}
+
+COUNTRY_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "lead": STORY_SCHEMA,
+        "stories": {"type": "array", "items": STORY_SCHEMA, "minItems": 2, "maxItems": 4},
+        "quick_hits": {"type": "array", "items": STORY_SCHEMA, "minItems": 5, "maxItems": 5},
+    },
+    "required": ["lead", "stories", "quick_hits"],
+}
+
+EDITION_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "edition_date": {"type": "string"},
+        "date_label": {"type": "string"},
+        "subject": {"type": "string"},
+        "preview_text": {"type": "string"},
+        "front_page": {"type": "array", "items": STORY_SCHEMA, "minItems": 3, "maxItems": 3},
+        "sweden": COUNTRY_SCHEMA,
+        "indonesia": COUNTRY_SCHEMA,
+        "bottom_line": {"type": "string"},
+    },
+    "required": [
+        "edition_date",
+        "date_label",
+        "subject",
+        "preview_text",
+        "front_page",
+        "sweden",
+        "indonesia",
+        "bottom_line",
+    ],
+}
+
+SYSTEM_PROMPT = """You are the editor of a concise personal daily briefing covering Sweden and Indonesia.
+Your reader likes the front two pages of the Wall Street Journal and Morning Brew: high-signal, fast,
+smart, conversational, and never breathless. Select significance over novelty or virality.
+
+Rules:
+- Use only facts present in the candidate metadata. Never invent a number, quote, implication, or event.
+- Preserve the exact candidate URL and source for every selected story.
+- Combine duplicate coverage into one story and prefer Reuters/AP, official institutions, public broadcasters,
+  established national outlets, and well-sourced local outlets.
+- Front page: exactly three distinct stories that convey the day's overall picture.
+- Each country: one lead, 2-4 secondary stories, and exactly 5 quick hits. Do not repeat an item within a country.
+- Include at least one culture story for each country daily. Culture includes pop culture, internet culture,
+  music, film, television, books, arts, food, fashion, travel, and lifestyle.
+- Labels should be short uppercase categories such as POLITICS, MONEY, STOCKHOLM, JAKARTA, SOCIETY, or WATCH.
+- Headline: punchy but accurate, no clickbait. Summary: 1-2 sentences. Why it matters: one crisp sentence.
+- Quick-hit summaries and why-it-matters fields should each be a single short sentence.
+- Explain unfamiliar institutions or acronyms inline. Use clear American English.
+- Subject should be under 70 characters and preview_text under 140 characters.
+- The bottom line is 2-3 sentences connecting the day's highest-impact developments without forcing a theme.
+- Never use em dashes. Use commas, colons, periods, or parentheses instead.
+"""
+
+
+def build_prompt(candidates: list[Candidate], timezone_name: str) -> str:
+    local_now = datetime.now(ZoneInfo(timezone_name))
+    payload = [candidate.prompt_dict() for candidate in candidates]
+    return (
+        f"Create the edition for {local_now:%Y-%m-%d}. Use date label {local_now:%A, %B %-d}. "
+        "Candidate stories follow as JSON.\n\n" + json.dumps(payload, ensure_ascii=False)
+    )
+
+
+def validate_links(edition: Edition, candidates: list[Candidate]) -> None:
+    allowed = {(item.url, item.source) for item in candidates}
+    stories = [*edition.front_page]
+    for section in (edition.sweden, edition.indonesia):
+        stories.extend([section.lead, *section.stories, *section.quick_hits])
+    invalid = [
+        (story.url, story.source) for story in stories if (story.url, story.source) not in allowed
+    ]
+    if invalid:
+        raise ValueError(f"Editor returned {len(invalid)} source links not present in candidates")
+
+
+def create_edition(
+    candidates: list[Candidate], api_key: str, model: str, timezone_name: str
+) -> Edition:
+    counts = {
+        country: sum(1 for item in candidates if item.country == country)
+        for country in ("Sweden", "Indonesia")
+    }
+    if min(counts.values()) < 9:
+        raise RuntimeError(f"Not enough fresh stories to publish safely: {counts}")
+    client = OpenAI(api_key=api_key)
+    response = client.responses.create(
+        model=model,
+        instructions=SYSTEM_PROMPT,
+        input=build_prompt(candidates, timezone_name),
+        text={
+            "format": {
+                "type": "json_schema",
+                "name": "daily_brief",
+                "schema": EDITION_SCHEMA,
+                "strict": True,
+            }
+        },
+    )
+    edition = edition_from_dict(json.loads(response.output_text))
+    validate_links(edition, candidates)
+    return edition

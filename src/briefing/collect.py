@@ -1,1 +1,239 @@
-ZnJvbSBfX2Z1dHVyZV9fIGltcG9ydCBhbm5vdGF0aW9ucwoKaW1wb3J0IGFzeW5jaW8KaW1wb3J0IGh0bWwKaW1wb3J0IHJlCmZyb20gZGF0YWNsYXNzZXMgaW1wb3J0IHJlcGxhY2UKZnJvbSBkYXRldGltZSBpbXBvcnQgVVRDLCBkYXRldGltZSwgdGltZWRlbHRhCmZyb20gZGlmZmxpYiBpbXBvcnQgU2VxdWVuY2VNYXRjaGVyCmZyb20gaHRtbC5wYXJzZXIgaW1wb3J0IEhUTUxQYXJzZXIKZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCmZyb20gdXJsbGliLnBhcnNlIGltcG9ydCB1cmxwYXJzZQoKaW1wb3J0IGZlZWRwYXJzZXIKaW1wb3J0IGh0dHB4CmltcG9ydCB5YW1sCmZyb20gZGF0ZXV0aWwgaW1wb3J0IHBhcnNlciBhcyBkYXRlX3BhcnNlcgoKZnJvbSAubW9kZWxzIGltcG9ydCBDYW5kaWRhdGUsIEVkaXRpb24KClRBR19SRSA9IHJlLmNvbXBpbGUociI8W14+XSs+IikKU1BBQ0VfUkUgPSByZS5jb21waWxlKHIiXHMrIikKTk9OX1dPUkRfUkUgPSByZS5jb21waWxlKHIiW15hLXowLTkgXSsiKQpQVUJMSVNIRVJfU1VGRklYX1JFID0gcmUuY29tcGlsZShyIlxzKy1ccysoW14tXXsyLDgwfSkkIikKSU1BR0VfUkUgPSByZS5jb21waWxlKHInPGltZ1tePl0rc3JjPVsiXCddKFteIlwnXSspWyJcJ10nLCByZS5JR05PUkVDQVNFKQoKCmNsYXNzIFNvY2lhbEltYWdlUGFyc2VyKEhUTUxQYXJzZXIpOgogICAgZGVmIF9faW5pdF9fKHNlbGYpIC0+IE5vbmU6CiAgICAgICAgc3VwZXIoKS5fX2luaXRfXygpCiAgICAgICAgc2VsZi5pbWFnZV91cmwgPSAiIgoKICAgIGRlZiBoYW5kbGVfc3RhcnR0YWcoc2VsZiwgdGFnOiBzdHIsIGF0dHJzOiBsaXN0W3R1cGxlW3N0ciwgc3RyIHwgTm9uZV1dKSAtPiBOb25lOgogICAgICAgIGlmIHRhZy5jYXNlZm9sZCgpICE9ICJtZXRhIiBvciBzZWxmLmltYWdlX3VybDoKICAgICAgICAgICAgcmV0dXJuCiAgICAgICAgdmFsdWVzID0ge2tleS5jYXNlZm9sZCgpOiB2YWx1ZSBvciAiIiBmb3Iga2V5LCB2YWx1ZSBpbiBhdHRyc30KICAgICAgICBpbWFnZV9rZXkgPSB2YWx1ZXMuZ2V0KCJwcm9wZXJ0eSIpIG9yIHZhbHVlcy5nZXQoIm5hbWUiKQogICAgICAgIGlmIGltYWdlX2tleS5jYXNlZm9sZCgpIGluIHsib2c6aW1hZ2UiLCAib2c6aW1hZ2U6dXJsIiwgInR3aXR0ZXI6aW1hZ2UifToKICAgICAgICAgICAgdXJsID0gdmFsdWVzLmdldCgiY29udGVudCIsICIiKS5zdHJpcCgpCiAgICAgICAgICAgIGlmIHVybHBhcnNlKHVybCkuc2NoZW1lIGluIHsiaHR0cCIsICJodHRwcyJ9OgogICAgICAgICAgICAgICAgc2VsZi5pbWFnZV91cmwgPSBodG1sLnVuZXNjYXBlKHVybCkKCgpkZWYgY2xlYW5fdGV4dCh2YWx1ZTogc3RyKSAtPiBzdHI6CiAgICB2YWx1ZSA9IFRBR19SRS5zdWIoIiAiLCBodG1sLnVuZXNjYXBlKHZhbHVlIG9yICIiKSkKICAgIHJldHVybiBTUEFDRV9SRS5zdWIoIiAiLCB2YWx1ZSkuc3RyaXAoKQoKCmRlZiBub3JtYWxpemVkX3RpdGxlKHZhbHVlOiBzdHIpIC0+IHN0cjoKICAgIHZhbHVlID0gTk9OX1dPUkRfUkUuc3ViKCIgIiwgdmFsdWUubG93ZXIoKSkKICAgIHN0b3AgPSB7ImEiLCAiYW4iLCAiYW5kIiwgImluIiwgIm9mIiwgIm9uIiwgInRoZSIsICJ0byIsICJmb3IiLCAid2l0aCJ9CiAgICByZXR1cm4gIiAiLmpvaW4od29yZCBmb3Igd29yZCBpbiB2YWx1ZS5zcGxpdCgpIGlmIHdvcmQgbm90IGluIHN0b3ApCgoKZGVmIHNwbGl0X2dvb2dsZV90aXRsZSh0aXRsZTogc3RyLCBmZWVkX25hbWU6IHN0cikgLT4gdHVwbGVbc3RyLCBzdHJdOgogICAgaWYgbm90IGZlZWRfbmFtZS5zdGFydHN3aXRoKCJHb29nbGUgTmV3cyIpOgogICAgICAgIHJldHVybiB0aXRsZSwgZmVlZF9uYW1lCiAgICBtYXRjaCA9IFBVQkxJU0hFUl9TVUZGSVhfUkUuc2VhcmNoKHRpdGxlKQogICAgaWYgbm90IG1hdGNoOgogICAgICAgIHJldHVybiB0aXRsZSwgZmVlZF9uYW1lCiAgICByZXR1cm4gdGl0bGVbOiBtYXRjaC5zdGFydCgpXS5zdHJpcCgpLCBtYXRjaC5ncm91cCgxKS5zdHJpcCgpCgoKZGVmIHNvdXJjZV9hbGxvd2VkKHNvdXJjZTogc3RyLCBhbGxvd2VkX3NvdXJjZXM6IGxpc3Rbc3RyXSB8IE5vbmUpIC0+IGJvb2w6CiAgICBpZiBub3QgYWxsb3dlZF9zb3VyY2VzOgogICAgICAgIHJldHVybiBUcnVlCiAgICBzb3VyY2Vfa2V5ID0gc291cmNlLmNhc2Vmb2xkKCkKICAgIHJldHVybiBhbnkoYWxsb3dlZC5jYXNlZm9sZCgpIGluIHNvdXJjZV9rZXkgZm9yIGFsbG93ZWQgaW4gYWxsb3dlZF9zb3VyY2VzKQoKCmRlZiBwYXJzZV9kYXRlKGVudHJ5OiBkaWN0KSAtPiBkYXRldGltZSB8IE5vbmU6CiAgICB2YWx1ZSA9IGVudHJ5LmdldCgicHVibGlzaGVkIikgb3IgZW50cnkuZ2V0KCJ1cGRhdGVkIikKICAgIGlmIG5vdCB2YWx1ZToKICAgICAgICByZXR1cm4gTm9uZQogICAgdHJ5OgogICAgICAgIHBhcnNlZCA9IGRhdGVfcGFyc2VyLnBhcnNlKHZhbHVlKQogICAgICAgIGlmIHBhcnNlZC50emluZm8gaXMgTm9uZToKICAgICAgICAgICAgcGFyc2VkID0gcGFyc2VkLnJlcGxhY2UodHppbmZvPVVUQykKICAgICAgICByZXR1cm4gcGFyc2VkLmFzdGltZXpvbmUoVVRDKQogICAgZXhjZXB0IChUeXBlRXJyb3IsIFZhbHVlRXJyb3IsIE92ZXJmbG93RXJyb3IpOgogICAgICAgIHJldHVybiBOb25lCgoKZGVmIGV4dHJhY3RfaW1hZ2VfdXJsKGVudHJ5OiBkaWN0KSAtPiBzdHI6CiAgICBmb3Iga2V5IGluICgibWVkaWFfY29udGVudCIsICJtZWRpYV90aHVtYm5haWwiKToKICAgICAgICBmb3IgaXRlbSBpbiBlbnRyeS5nZXQoa2V5LCBbXSk6CiAgICAgICAgICAgIHVybCA9IHN0cihpdGVtLmdldCgidXJsIiwgIiIpKS5zdHJpcCgpCiAgICAgICAgICAgIGlmIHVybHBhcnNlKHVybCkuc2NoZW1lIGluIHsiaHR0cCIsICJodHRwcyJ9OgogICAgICAgICAgICAgICAgcmV0dXJuIHVybAogICAgZm9yIGl0ZW0gaW4gZW50cnkuZ2V0KCJlbmNsb3N1cmVzIiwgW10pOgogICAgICAgIHVybCA9IHN0cihpdGVtLmdldCgiaHJlZiIpIG9yIGl0ZW0uZ2V0KCJ1cmwiKSBvciAiIikuc3RyaXAoKQogICAgICAgIGlmIHN0cihpdGVtLmdldCgidHlwZSIsICIiKSkuc3RhcnRzd2l0aCgiaW1hZ2UvIikgYW5kIHVybHBhcnNlKHVybCkuc2NoZW1lIGluIHsKICAgICAgICAgICAgImh0dHAiLAogICAgICAgICAgICAiaHR0cHMiLAogICAgICAgIH06CiAgICAgICAgICAgIHJldHVybiB1cmwKICAgIHJhd19zdW1tYXJ5ID0gZW50cnkuZ2V0KCJzdW1tYXJ5IiwgIiIpIG9yIGVudHJ5LmdldCgiZGVzY3JpcHRpb24iLCAiIikKICAgIG1hdGNoID0gSU1BR0VfUkUuc2VhcmNoKHJhd19zdW1tYXJ5KQogICAgaWYgbWF0Y2ggYW5kIHVybHBhcnNlKG1hdGNoLmdyb3VwKDEpKS5zY2hlbWUgaW4geyJodHRwIiwgImh0dHBzIn06CiAgICAgICAgcmV0dXJuIGh0bWwudW5lc2NhcGUobWF0Y2guZ3JvdXAoMSkpCiAgICByZXR1cm4gIiIKCgpkZWYgZXh0cmFjdF9hcnRpY2xlX2ltYWdlKHBhZ2VfaHRtbDogc3RyKSAtPiBzdHI6CiAgICBwYXJzZXIgPSBTb2NpYWxJbWFnZVBhcnNlcigpCiAgICBwYXJzZXIuZmVlZChwYWdlX2h0bWwpCiAgICByZXR1cm4gcGFyc2VyLmltYWdlX3VybAoKCmRlZiBwYXJzZV9mZWVkKHBheWxvYWQ6IGJ5dGVzLCBmZWVkOiBkaWN0LCBjdXRvZmY6IGRhdGV0aW1lKSAtPiBsaXN0W0NhbmRpZGF0ZV06CiAgICBwYXJzZWQgPSBmZWVkcGFyc2VyLnBhcnNlKHBheWxvYWQpCiAgICBjYW5kaWRhdGVzOiBsaXN0W0NhbmRpZGF0ZV0gPSBbXQogICAgZm9yIGVudHJ5IGluIHBhcnNlZC5lbnRyaWVzOgogICAgICAgIHB1Ymxpc2hlZF9hdCA9IHBhcnNlX2RhdGUoZW50cnkpCiAgICAgICAgaWYgcHVibGlzaGVkX2F0IGFuZCBwdWJsaXNoZWRfYXQgPCBjdXRvZmY6CiAgICAgICAgICAgIGNvbnRpbnVlCiAgICAgICAgcmF3X3RpdGxlID0gY2xlYW5fdGV4dChlbnRyeS5nZXQoInRpdGxlIiwgIiIpKQogICAgICAgIHRpdGxlLCBzb3VyY2UgPSBzcGxpdF9nb29nbGVfdGl0bGUocmF3X3RpdGxlLCBmZWVkWyJuYW1lIl0pCiAgICAgICAgaWYgbm90IHNvdXJjZV9hbGxvd2VkKHNvdXJjZSwgZmVlZC5nZXQoImFsbG93ZWRfc291cmNlcyIpKToKICAgICAgICAgICAgY29udGludWUKICAgICAgICB1cmwgPSBlbnRyeS5nZXQoImxpbmsiLCAiIikuc3RyaXAoKQogICAgICAgIGlmIG5vdCB0aXRsZSBvciBub3QgdXJsIG9yIHVybHBhcnNlKHVybCkuc2NoZW1lIG5vdCBpbiB7Imh0dHAiLCAiaHR0cHMifToKICAgICAgICAgICAgY29udGludWUKICAgICAgICBjYW5kaWRhdGVzLmFwcGVuZCgKICAgICAgICAgICAgQ2FuZGlkYXRlKAogICAgICAgICAgICAgICAgY291bnRyeT1mZWVkWyJjb3VudHJ5Il0sCiAgICAgICAgICAgICAgICB0aXRsZT10aXRsZSwKICAgICAgICAgICAgICAgIHVybD11cmwsCiAgICAgICAgICAgICAgICBzb3VyY2U9c291cmNlLAogICAgICAgICAgICAgICAgcHVibGlzaGVkX2F0PXB1Ymxpc2hlZF9hdCwKICAgICAgICAgICAgICAgIHN1bW1hcnk9Y2xlYW5fdGV4dChlbnRyeS5nZXQoInN1bW1hcnkiLCAiIikgb3IgZW50cnkuZ2V0KCJkZXNjcmlwdGlvbiIsICIiKSksCiAgICAgICAgICAgICAgICBpbWFnZV91cmw9ZXh0cmFjdF9pbWFnZV91cmwoZW50cnkpLAogICAgICAgICAgICApCiAgICAgICAgKQogICAgcmV0dXJuIGNhbmRpZGF0ZXMKCgpkZWYgZGVkdXBsaWNhdGUoY2FuZGlkYXRlczogbGlzdFtDYW5kaWRhdGVdKSAtPiBsaXN0W0NhbmRpZGF0ZV06CiAgICBrZXB0OiBsaXN0W0NhbmRpZGF0ZV0gPSBbXQogICAgZmluZ2VycHJpbnRzOiBsaXN0W3N0cl0gPSBbXQogICAgZm9yIGNhbmRpZGF0ZSBpbiBzb3J0ZWQoCiAgICAgICAgY2FuZGlkYXRlcywga2V5PWxhbWJkYSB4OiB4LnB1Ymxpc2hlZF9hdCBvciBkYXRldGltZS5taW4ucmVwbGFjZSh0emluZm89VVRDKSwgcmV2ZXJzZT1UcnVlCiAgICApOgogICAgICAgIGZpbmdlcnByaW50ID0gbm9ybWFsaXplZF90aXRsZShjYW5kaWRhdGUudGl0bGUpCiAgICAgICAgZHVwbGljYXRlID0gYW55KAogICAgICAgICAgICBmaW5nZXJwcmludCA9PSBleGlzdGluZyBvciBTZXF1ZW5jZU1hdGNoZXIoTm9uZSwgZmluZ2VycHJpbnQsIGV4aXN0aW5nKS5yYXRpbygpID49IDAuODYKICAgICAgICAgICAgZm9yIGV4aXN0aW5nIGluIGZpbmdlcnByaW50cwogICAgICAgICkKICAgICAgICBpZiBub3QgZHVwbGljYXRlOgogICAgICAgICAgICBrZXB0LmFwcGVuZChjYW5kaWRhdGUpCiAgICAgICAgICAgIGZpbmdlcnByaW50cy5hcHBlbmQoZmluZ2VycHJpbnQpCiAgICByZXR1cm4ga2VwdAoKCmFzeW5jIGRlZiBfZmV0Y2hfb25lKGNsaWVudDogaHR0cHguQXN5bmNDbGllbnQsIGZlZWQ6IGRpY3QsIGN1dG9mZjogZGF0ZXRpbWUpIC0+IGxpc3RbQ2FuZGlkYXRlXToKICAgIHRyeToKICAgICAgICByZXNwb25zZSA9IGF3YWl0IGNsaWVudC5nZXQoZmVlZFsidXJsIl0pCiAgICAgICAgcmVzcG9uc2UucmFpc2VfZm9yX3N0YXR1cygpCiAgICAgICAgcmV0dXJuIHBhcnNlX2ZlZWQocmVzcG9uc2UuY29udGVudCwgZmVlZCwgY3V0b2ZmKQogICAgZXhjZXB0IChodHRweC5IVFRQRXJyb3IsIFVuaWNvZGVFcnJvcik6CiAgICAgICAgcmV0dXJuIFtdCgoKYXN5bmMgZGVmIGNvbGxlY3RfY2FuZGlkYXRlcygKICAgIHNvdXJjZXNfcGF0aDogUGF0aCwgbG9va2JhY2tfaG91cnM6IGludCwgbWF4X2NhbmRpZGF0ZXM6IGludAopIC0+IGxpc3RbQ2FuZGlkYXRlXToKICAgIGNvbmZpZyA9IHlhbWwuc2FmZV9sb2FkKHNvdXJjZXNfcGF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IikpCiAgICBmZWVkcyA9IGNvbmZpZy5nZXQoImZlZWRzIiwgW10pCiAgICBjdXRvZmYgPSBkYXRldGltZS5ub3coVVRDKSAtIHRpbWVkZWx0YShob3Vycz1sb29rYmFja19ob3VycykKICAgIGhlYWRlcnMgPSB7IlVzZXItQWdlbnQiOiAiRGFpbHlCcmllZi8wLjEgKCtwZXJzb25hbC1uZXdzbGV0dGVyKSJ9CiAgICB0aW1lb3V0ID0gaHR0cHguVGltZW91dCgyMC4wLCBjb25uZWN0PTEwLjApCiAgICBhc3luYyB3aXRoIGh0dHB4LkFzeW5jQ2xpZW50KGhlYWRlcnM9aGVhZGVycywgdGltZW91dD10aW1lb3V0LCBmb2xsb3dfcmVkaXJlY3RzPVRydWUpIGFzIGNsaWVudDoKICAgICAgICBiYXRjaGVzID0gYXdhaXQgYXN5bmNpby5nYXRoZXIoKihfZmV0Y2hfb25lKGNsaWVudCwgZmVlZCwgY3V0b2ZmKSBmb3IgZmVlZCBpbiBmZWVkcykpCiAgICB1bmlxdWUgPSBkZWR1cGxpY2F0ZShbaXRlbSBmb3IgYmF0Y2ggaW4gYmF0Y2hlcyBmb3IgaXRlbSBpbiBiYXRjaF0pCiAgICBieV9jb3VudHJ5OiBsaXN0W0NhbmRpZGF0ZV0gPSBbXQogICAgcGVyX2NvdW50cnkgPSBtYXgoMTIsIG1heF9jYW5kaWRhdGVzIC8vIDIpCiAgICBmb3IgY291bnRyeSBpbiAoIlN3ZWRlbiIsICJJbmRvbmVzaWEiKToKICAgICAgICBzb3VyY2VfY291bnRzOiBkaWN0W3N0ciwgaW50XSA9IHt9CiAgICAgICAgc2VsZWN0ZWQ6IGxpc3RbQ2FuZGlkYXRlXSA9IFtdCiAgICAgICAgZm9yIGNhbmRpZGF0ZSBpbiAoeCBmb3IgeCBpbiB1bmlxdWUgaWYgeC5jb3VudHJ5ID09IGNvdW50cnkpOgogICAgICAgICAgICBrZXkgPSBjYW5kaWRhdGUuc291cmNlLmNhc2Vmb2xkKCkKICAgICAgICAgICAgaWYgc291cmNlX2NvdW50cy5nZXQoa2V5LCAwKSA+PSA4OgogICAgICAgICAgICAgICAgY29udGludWUKICAgICAgICAgICAgc2VsZWN0ZWQuYXBwZW5kKGNhbmRpZGF0ZSkKICAgICAgICAgICAgc291cmNlX2NvdW50c1trZXldID0gc291cmNlX2NvdW50cy5nZXQoa2V5LCAwKSArIDEKICAgICAgICAgICAgaWYgbGVuKHNlbGVjdGVkKSA+PSBwZXJfY291bnRyeToKICAgICAgICAgICAgICAgIGJyZWFrCiAgICAgICAgYnlfY291bnRyeS5leHRlbmQoc2VsZWN0ZWQpCiAgICByZXR1cm4gYnlfY291bnRyeVs6bWF4X2NhbmRpZGF0ZXNdCgoKYXN5bmMgZGVmIGFkZF9hcnRpY2xlX2ltYWdlcygKICAgIGVkaXRpb246IEVkaXRpb24sIGNhbmRpZGF0ZXM6IGxpc3RbQ2FuZGlkYXRlXSwgbGltaXQ6IGludCA9IDQKKSAtPiBFZGl0aW9uOgogICAgZmFsbGJhY2tfYnlfdXJsID0ge2l0ZW0udXJsOiBpdGVtLmltYWdlX3VybCBmb3IgaXRlbSBpbiBjYW5kaWRhdGVzIGlmIGl0ZW0uaW1hZ2VfdXJsfQogICAgcGVyX2NvdW50cnkgPSBtYXgoMSwgbGltaXQgLy8gMikKICAgIHN3ZWRlbl90YXJnZXRzID0gW2VkaXRpb24uc3dlZGVuLmxlYWQsICplZGl0aW9uLnN3ZWRlbi5zdG9yaWVzXQogICAgaW5kb25lc2lhX3RhcmdldHMgPSBbZWRpdGlvbi5pbmRvbmVzaWEubGVhZCwgKmVkaXRpb24uaW5kb25lc2lhLnN0b3JpZXNdCiAgICB0YXJnZXRzID0gWypzd2VkZW5fdGFyZ2V0cywgKmluZG9uZXNpYV90YXJnZXRzXQogICAgaGVhZGVycyA9IHsiVXNlci1BZ2VudCI6ICJEYWlseUJyaWVmLzAuMSAoK3BlcnNvbmFsLW5ld3NsZXR0ZXIpIn0KICAgIHRpbWVvdXQgPSBodHRweC5UaW1lb3V0KDE1LjAsIGNvbm5lY3Q9OC4wKQoKICAgIGFzeW5jIGRlZiBmZXRjaF9pbWFnZShzdG9yeSkgLT4gc3RyOgogICAgICAgIHRyeToKICAgICAgICAgICAgcmVzcG9uc2UgPSBhd2FpdCBjbGllbnQuZ2V0KHN0b3J5LnVybCkKICAgICAgICAgICAgcmVzcG9uc2UucmFpc2VfZm9yX3N0YXR1cygpCiAgICAgICAgICAgIHJldHVybiBleHRyYWN0X2FydGljbGVfaW1hZ2UocmVzcG9uc2UudGV4dCkgb3IgZmFsbGJhY2tfYnlfdXJsLmdldChzdG9yeS51cmwsICIiKQogICAgICAgIGV4Y2VwdCAoaHR0cHguSFRUUEVycm9yLCBVbmljb2RlRXJyb3IpOgogICAgICAgICAgICByZXR1cm4gZmFsbGJhY2tfYnlfdXJsLmdldChzdG9yeS51cmwsICIiKQoKICAgIGFzeW5jIHdpdGggaHR0cHguQXN5bmNDbGllbnQoaGVhZGVycz1oZWFkZXJzLCB0aW1lb3V0PXRpbWVvdXQsIGZvbGxvd19yZWRpcmVjdHM9VHJ1ZSkgYXMgY2xpZW50OgogICAgICAgIGltYWdlcyA9IGF3YWl0IGFzeW5jaW8uZ2F0aGVyKCooZmV0Y2hfaW1hZ2Uoc3RvcnkpIGZvciBzdG9yeSBpbiB0YXJnZXRzKSkKICAgIGRpc2NvdmVyZWQgPSBkaWN0KHppcCgoc3RvcnkudXJsIGZvciBzdG9yeSBpbiB0YXJnZXRzKSwgaW1hZ2VzLCBzdHJpY3Q9VHJ1ZSkpCiAgICBpbWFnZV9ieV9zdG9yeV91cmw6IGRpY3Rbc3RyLCBzdHJdID0ge30KICAgIGZvciBzdG9yaWVzLCBhbGxvd2FuY2UgaW4gKAogICAgICAgIChzd2VkZW5fdGFyZ2V0cywgcGVyX2NvdW50cnkpLAogICAgICAgIChpbmRvbmVzaWFfdGFyZ2V0cywgbGltaXQgLSBwZXJfY291bnRyeSksCiAgICApOgogICAgICAgIGZvciBzdG9yeSBpbiBzdG9yaWVzOgogICAgICAgICAgICBpbWFnZV91cmwgPSBkaXNjb3ZlcmVkLmdldChzdG9yeS51cmwsICIiKQogICAgICAgICAgICBpZiBpbWFnZV91cmwgYW5kIGFsbG93YW5jZToKICAgICAgICAgICAgICAgIGltYWdlX2J5X3N0b3J5X3VybFtzdG9yeS51cmxdID0gaW1hZ2VfdXJsCiAgICAgICAgICAgICAgICBhbGxvd2FuY2UgLT0gMQoKICAgIGRlZiBkZWNvcmF0ZShzdG9yeSk6CiAgICAgICAgcmV0dXJuIHJlcGxhY2Uoc3RvcnksIGltYWdlX3VybD1pbWFnZV9ieV9zdG9yeV91cmwuZ2V0KHN0b3J5LnVybCwgIiIpKQoKICAgIHJldHVybiByZXBsYWNlKAogICAgICAgIGVkaXRpb24sCiAgICAgICAgc3dlZGVuPXJlcGxhY2UoCiAgICAgICAgICAgIGVkaXRpb24uc3dlZGVuLAogICAgICAgICAgICBsZWFkPWRlY29yYXRlKGVkaXRpb24uc3dlZGVuLmxlYWQpLAogICAgICAgICAgICBzdG9yaWVzPVtkZWNvcmF0ZShzdG9yeSkgZm9yIHN0b3J5IGluIGVkaXRpb24uc3dlZGVuLnN0b3JpZXNdLAogICAgICAgICksCiAgICAgICAgaW5kb25lc2lhPXJlcGxhY2UoCiAgICAgICAgICAgIGVkaXRpb24uaW5kb25lc2lhLAogICAgICAgICAgICBsZWFkPWRlY29yYXRlKGVkaXRpb24uaW5kb25lc2lhLmxlYWQpLAogICAgICAgICAgICBzdG9yaWVzPVtkZWNvcmF0ZShzdG9yeSkgZm9yIHN0b3J5IGluIGVkaXRpb24uaW5kb25lc2lhLnN0b3JpZXNdLAogICAgICAgICksCiAgICApCg==
+from __future__ import annotations
+
+import asyncio
+import html
+import re
+from dataclasses import replace
+from datetime import UTC, datetime, timedelta
+from difflib import SequenceMatcher
+from html.parser import HTMLParser
+from pathlib import Path
+from urllib.parse import urlparse
+
+import feedparser
+import httpx
+import yaml
+from dateutil import parser as date_parser
+
+from .models import Candidate, Edition
+
+TAG_RE = re.compile(r"<[^>]+>")
+SPACE_RE = re.compile(r"\s+")
+NON_WORD_RE = re.compile(r"[^a-z0-9 ]+")
+PUBLISHER_SUFFIX_RE = re.compile(r"\s+-\s+([^-]{2,80})$")
+IMAGE_RE = re.compile(r'<img[^>]+src=["\']([^"\']+)["\']', re.IGNORECASE)
+
+
+class SocialImageParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.image_url = ""
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag.casefold() != "meta" or self.image_url:
+            return
+        values = {key.casefold(): value or "" for key, value in attrs}
+        image_key = values.get("property") or values.get("name")
+        if image_key.casefold() in {"og:image", "og:image:url", "twitter:image"}:
+            url = values.get("content", "").strip()
+            if urlparse(url).scheme in {"http", "https"}:
+                self.image_url = html.unescape(url)
+
+
+def clean_text(value: str) -> str:
+    value = TAG_RE.sub(" ", html.unescape(value or ""))
+    return SPACE_RE.sub(" ", value).strip()
+
+
+def normalized_title(value: str) -> str:
+    value = NON_WORD_RE.sub(" ", value.lower())
+    stop = {"a", "an", "and", "in", "of", "on", "the", "to", "for", "with"}
+    return " ".join(word for word in value.split() if word not in stop)
+
+
+def split_google_title(title: str, feed_name: str) -> tuple[str, str]:
+    if not feed_name.startswith("Google News"):
+        return title, feed_name
+    match = PUBLISHER_SUFFIX_RE.search(title)
+    if not match:
+        return title, feed_name
+    return title[: match.start()].strip(), match.group(1).strip()
+
+
+def source_allowed(source: str, allowed_sources: list[str] | None) -> bool:
+    if not allowed_sources:
+        return True
+    source_key = source.casefold()
+    return any(allowed.casefold() in source_key for allowed in allowed_sources)
+
+
+def parse_date(entry: dict) -> datetime | None:
+    value = entry.get("published") or entry.get("updated")
+    if not value:
+        return None
+    try:
+        parsed = date_parser.parse(value)
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=UTC)
+        return parsed.astimezone(UTC)
+    except (TypeError, ValueError, OverflowError):
+        return None
+
+
+def extract_image_url(entry: dict) -> str:
+    for key in ("media_content", "media_thumbnail"):
+        for item in entry.get(key, []):
+            url = str(item.get("url", "")).strip()
+            if urlparse(url).scheme in {"http", "https"}:
+                return url
+    for item in entry.get("enclosures", []):
+        url = str(item.get("href") or item.get("url") or "").strip()
+        if str(item.get("type", "")).startswith("image/") and urlparse(url).scheme in {
+            "http",
+            "https",
+        }:
+            return url
+    raw_summary = entry.get("summary", "") or entry.get("description", "")
+    match = IMAGE_RE.search(raw_summary)
+    if match and urlparse(match.group(1)).scheme in {"http", "https"}:
+        return html.unescape(match.group(1))
+    return ""
+
+
+def extract_article_image(page_html: str) -> str:
+    parser = SocialImageParser()
+    parser.feed(page_html)
+    return parser.image_url
+
+
+def parse_feed(payload: bytes, feed: dict, cutoff: datetime) -> list[Candidate]:
+    parsed = feedparser.parse(payload)
+    candidates: list[Candidate] = []
+    for entry in parsed.entries:
+        published_at = parse_date(entry)
+        if published_at and published_at < cutoff:
+            continue
+        raw_title = clean_text(entry.get("title", ""))
+        title, source = split_google_title(raw_title, feed["name"])
+        if not source_allowed(source, feed.get("allowed_sources")):
+            continue
+        url = entry.get("link", "").strip()
+        if not title or not url or urlparse(url).scheme not in {"http", "https"}:
+            continue
+        candidates.append(
+            Candidate(
+                country=feed["country"],
+                title=title,
+                url=url,
+                source=source,
+                published_at=published_at,
+                summary=clean_text(entry.get("summary", "") or entry.get("description", "")),
+                image_url=extract_image_url(entry),
+            )
+        )
+    return candidates
+
+
+def deduplicate(candidates: list[Candidate]) -> list[Candidate]:
+    kept: list[Candidate] = []
+    fingerprints: list[str] = []
+    for candidate in sorted(
+        candidates, key=lambda x: x.published_at or datetime.min.replace(tzinfo=UTC), reverse=True
+    ):
+        fingerprint = normalized_title(candidate.title)
+        duplicate = any(
+            fingerprint == existing or SequenceMatcher(None, fingerprint, existing).ratio() >= 0.86
+            for existing in fingerprints
+        )
+        if not duplicate:
+            kept.append(candidate)
+            fingerprints.append(fingerprint)
+    return kept
+
+
+async def _fetch_one(client: httpx.AsyncClient, feed: dict, cutoff: datetime) -> list[Candidate]:
+    try:
+        response = await client.get(feed["url"])
+        response.raise_for_status()
+        return parse_feed(response.content, feed, cutoff)
+    except (httpx.HTTPError, UnicodeError):
+        return []
+
+
+async def collect_candidates(
+    sources_path: Path, lookback_hours: int, max_candidates: int
+) -> list[Candidate]:
+    config = yaml.safe_load(sources_path.read_text(encoding="utf-8"))
+    feeds = config.get("feeds", [])
+    cutoff = datetime.now(UTC) - timedelta(hours=lookback_hours)
+    headers = {"User-Agent": "DailyBrief/0.1 (+personal-newsletter)"}
+    timeout = httpx.Timeout(20.0, connect=10.0)
+    async with httpx.AsyncClient(headers=headers, timeout=timeout, follow_redirects=True) as client:
+        batches = await asyncio.gather(*(_fetch_one(client, feed, cutoff) for feed in feeds))
+    unique = deduplicate([item for batch in batches for item in batch])
+    by_country: list[Candidate] = []
+    per_country = max(12, max_candidates // 2)
+    for country in ("Sweden", "Indonesia"):
+        source_counts: dict[str, int] = {}
+        selected: list[Candidate] = []
+        for candidate in (x for x in unique if x.country == country):
+            key = candidate.source.casefold()
+            if source_counts.get(key, 0) >= 8:
+                continue
+            selected.append(candidate)
+            source_counts[key] = source_counts.get(key, 0) + 1
+            if len(selected) >= per_country:
+                break
+        by_country.extend(selected)
+    return by_country[:max_candidates]
+
+
+async def add_article_images(
+    edition: Edition, candidates: list[Candidate], limit: int = 4
+) -> Edition:
+    fallback_by_url = {item.url: item.image_url for item in candidates if item.image_url}
+    per_country = max(1, limit // 2)
+    sweden_targets = [edition.sweden.lead, *edition.sweden.stories]
+    indonesia_targets = [edition.indonesia.lead, *edition.indonesia.stories]
+    targets = [*sweden_targets, *indonesia_targets]
+    headers = {"User-Agent": "DailyBrief/0.1 (+personal-newsletter)"}
+    timeout = httpx.Timeout(15.0, connect=8.0)
+
+    async def fetch_image(story) -> str:
+        try:
+            response = await client.get(story.url)
+            response.raise_for_status()
+            return extract_article_image(response.text) or fallback_by_url.get(story.url, "")
+        except (httpx.HTTPError, UnicodeError):
+            return fallback_by_url.get(story.url, "")
+
+    async with httpx.AsyncClient(headers=headers, timeout=timeout, follow_redirects=True) as client:
+        images = await asyncio.gather(*(fetch_image(story) for story in targets))
+    discovered = dict(zip((story.url for story in targets), images, strict=True))
+    image_by_story_url: dict[str, str] = {}
+    for stories, allowance in (
+        (sweden_targets, per_country),
+        (indonesia_targets, limit - per_country),
+    ):
+        for story in stories:
+            image_url = discovered.get(story.url, "")
+            if image_url and allowance:
+                image_by_story_url[story.url] = image_url
+                allowance -= 1
+
+    def decorate(story):
+        return replace(story, image_url=image_by_story_url.get(story.url, ""))
+
+    return replace(
+        edition,
+        sweden=replace(
+            edition.sweden,
+            lead=decorate(edition.sweden.lead),
+            stories=[decorate(story) for story in edition.sweden.stories],
+        ),
+        indonesia=replace(
+            edition.indonesia,
+            lead=decorate(edition.indonesia.lead),
+            stories=[decorate(story) for story in edition.indonesia.stories],
+        ),
+    )

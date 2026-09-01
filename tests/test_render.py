@@ -1,1 +1,34 @@
-ZnJvbSBkYXRhY2xhc3NlcyBpbXBvcnQgcmVwbGFjZQoKZnJvbSBicmllZmluZy5tYWluIGltcG9ydCBsb2FkX3NhbXBsZQpmcm9tIGJyaWVmaW5nLnJlbmRlciBpbXBvcnQgcmVuZGVyX2h0bWwsIHJlbmRlcl90ZXh0CgoKZGVmIHRlc3RfaHRtbF9oYXNfY29yZV9zZWN0aW9uc19hbmRfbGlua3MoKToKICAgIGh0bWwgPSByZW5kZXJfaHRtbChsb2FkX3NhbXBsZSgpKQogICAgYXNzZXJ0ICJOT1JESUMgKyBOVVNBTlRBUkEiIGluIGh0bWwKICAgIGFzc2VydCAiVGhlIGZyb250IHBhZ2UiIGluIGh0bWwKICAgIGFzc2VydCAiU3dlZGVuIiBpbiBodG1sCiAgICBhc3NlcnQgIkluZG9uZXNpYSIgaW4gaHRtbAogICAgYXNzZXJ0ICJodHRwczovL3d3dy5yZXV0ZXJzLmNvbSIgaW4gaHRtbAogICAgYXNzZXJ0ICI1LW1pbnV0ZSByZWFkIiBub3QgaW4gaHRtbAogICAgYXNzZXJ0ICJWaWV3IG9ubGluZSIgbm90IGluIGh0bWwKICAgIGFzc2VydCAiUGhvZW5peCIgbm90IGluIGh0bWwKICAgIGFzc2VydCBodG1sLmluZGV4KCJUaGUgc2V0dXAiKSA8IGh0bWwuaW5kZXgoIlRoZSBmcm9udCBwYWdlIikKICAgIGFzc2VydCBodG1sLmNvdW50KCdjbGFzcz0ic3BlZWQtcm93IicpID09IDEwCiAgICBhc3NlcnQgIuKAlCIgbm90IGluIGh0bWwKCgpkZWYgdGVzdF9zdG9yeV9oZWFkaW5nX3ByZWNlZGVzX2FydGljbGVfaW1hZ2UoKToKICAgIGVkaXRpb24gPSBsb2FkX3NhbXBsZSgpCiAgICBsZWFkID0gcmVwbGFjZShlZGl0aW9uLnN3ZWRlbi5sZWFkLCBpbWFnZV91cmw9Imh0dHBzOi8vZXhhbXBsZS5jb20vYXJ0aWNsZS1tYWluLmpwZyIpCiAgICBodG1sID0gcmVuZGVyX2h0bWwocmVwbGFjZShlZGl0aW9uLCBzd2VkZW49cmVwbGFjZShlZGl0aW9uLnN3ZWRlbiwgbGVhZD1sZWFkKSkpCiAgICBhc3NlcnQgaHRtbC5pbmRleChsZWFkLmhlYWRsaW5lKSA8IGh0bWwuaW5kZXgoImh0dHBzOi8vZXhhbXBsZS5jb20vYXJ0aWNsZS1tYWluLmpwZyIpCgoKZGVmIHRlc3RfcGxhaW5fdGV4dF9mYWxsYmFja19oYXNfY29yZV9zZWN0aW9ucygpOgogICAgdGV4dCA9IHJlbmRlcl90ZXh0KGxvYWRfc2FtcGxlKCkpCiAgICBhc3NlcnQgIlRIRSBGUk9OVCBQQUdFIiBpbiB0ZXh0CiAgICBhc3NlcnQgIlNXRURFTiIgaW4gdGV4dAogICAgYXNzZXJ0ICJJTkRPTkVTSUEiIGluIHRleHQKICAgIGFzc2VydCB0ZXh0LmluZGV4KCJUSEUgU0VUVVAiKSA8IHRleHQuaW5kZXgoIlRIRSBGUk9OVCBQQUdFIikK
+from dataclasses import replace
+
+from briefing.main import load_sample
+from briefing.render import render_html, render_text
+
+
+def test_html_has_core_sections_and_links():
+    html = render_html(load_sample())
+    assert "NORDIC + NUSANTARA" in html
+    assert "The front page" in html
+    assert "Sweden" in html
+    assert "Indonesia" in html
+    assert "https://www.reuters.com" in html
+    assert "5-minute read" not in html
+    assert "View online" not in html
+    assert "Phoenix" not in html
+    assert html.index("The setup") < html.index("The front page")
+    assert html.count('class="speed-row"') == 10
+    assert "—" not in html
+
+
+def test_story_heading_precedes_article_image():
+    edition = load_sample()
+    lead = replace(edition.sweden.lead, image_url="https://example.com/article-main.jpg")
+    html = render_html(replace(edition, sweden=replace(edition.sweden, lead=lead)))
+    assert html.index(lead.headline) < html.index("https://example.com/article-main.jpg")
+
+
+def test_plain_text_fallback_has_core_sections():
+    text = render_text(load_sample())
+    assert "THE FRONT PAGE" in text
+    assert "SWEDEN" in text
+    assert "INDONESIA" in text
+    assert text.index("THE SETUP") < text.index("THE FRONT PAGE")
