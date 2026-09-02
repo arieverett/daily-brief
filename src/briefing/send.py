@@ -31,6 +31,7 @@ def send_email(
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
             "Idempotency-Key": f"daily-brief-{digest}",
+            "User-Agent": "DailyBrief/1.0",
         },
         json={
             "from": from_email,
@@ -42,5 +43,10 @@ def send_email(
         },
         timeout=30.0,
     )
-    response.raise_for_status()
+    if response.is_error:
+        raise httpx.HTTPStatusError(
+            f"Resend rejected the email ({response.status_code}): {response.text}",
+            request=response.request,
+            response=response,
+        )
     return response.json()["id"]

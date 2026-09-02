@@ -15,7 +15,7 @@ concurrency:
 jobs:
   send:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 8
     permissions:
       contents: read
     steps:
@@ -46,4 +46,5 @@ jobs:
           BRIEF_TO_EMAIL: ${{ secrets.BRIEF_TO_EMAIL }}
           BRIEF_FROM_EMAIL: ${{ secrets.BRIEF_FROM_EMAIL }}
           BRIEF_TIMEZONE: America/New_York
+          BRIEF_MAX_CANDIDATES: "40"
         run: python -m briefing --send

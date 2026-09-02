@@ -266,8 +266,9 @@ def create_edition(
     }
     if min(counts.values()) < 9:
         raise RuntimeError(f"Not enough fresh stories to publish safely: {counts}")
-    # Avoid the SDK's long default timeout/retry cycle hiding a stalled workflow.
-    client = OpenAI(api_key=api_key, timeout=120.0, max_retries=1)
+    # The two-country schema is large. Give one request enough time to finish
+    # instead of repeating the full generation after a short timeout.
+    client = OpenAI(api_key=api_key, timeout=300.0, max_retries=0)
     request_kwargs = {
         "model": model,
         "instructions": SYSTEM_PROMPT,
@@ -296,7 +297,7 @@ def create_indonesia_edition(
         raise RuntimeError(
             f"Not enough fresh Indonesia stories to publish safely: {len(indonesia_candidates)}"
         )
-    client = OpenAI(api_key=api_key, timeout=120.0, max_retries=1)
+    client = OpenAI(api_key=api_key, timeout=180.0, max_retries=0)
     local_now = datetime.now(ZoneInfo(timezone_name))
     days = ("Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu")
     months = (
