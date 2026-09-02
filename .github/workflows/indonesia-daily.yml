@@ -42,9 +42,8 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          # Resend's test sender can deliver only to the account owner's email.
-          # Gmail forwards this edition to family after delivery.
-          BRIEF_TO_EMAIL: ${{ secrets.BRIEF_TO_EMAIL }}
+          # Send directly to Mom and Ari from the verified custom domain.
+          BRIEF_TO_EMAIL: "${{ secrets.INDONESIA_BRIEF_TO_EMAIL }},${{ secrets.BRIEF_TO_EMAIL }}"
           BRIEF_FROM_EMAIL: ${{ secrets.BRIEF_FROM_EMAIL }}
           BRIEF_TIMEZONE: America/New_York
         run: python -m briefing --edition indonesia --sources config/indonesia_sources.yml --send
