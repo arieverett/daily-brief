@@ -5,6 +5,13 @@ import hashlib
 import httpx
 
 
+def parse_recipients(value: str) -> list[str]:
+    recipients = [address.strip() for address in value.split(",") if address.strip()]
+    if not recipients:
+        raise ValueError("At least one recipient email is required")
+    return recipients
+
+
 def send_email(
     *,
     api_key: str,
@@ -15,7 +22,8 @@ def send_email(
     text: str,
     edition_date: str,
 ) -> str:
-    digest_input = f"{edition_date}:{to_email}:{subject}:{html}"
+    recipients = parse_recipients(to_email)
+    digest_input = f"{edition_date}:{','.join(recipients)}:{subject}:{html}"
     digest = hashlib.sha256(digest_input.encode()).hexdigest()[:24]
     response = httpx.post(
         "https://api.resend.com/emails",
@@ -26,7 +34,7 @@ def send_email(
         },
         json={
             "from": from_email,
-            "to": [to_email],
+            "to": recipients,
             "subject": subject,
             "html": html,
             "text": text,
