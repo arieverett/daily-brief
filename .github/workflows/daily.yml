@@ -2,8 +2,10 @@ name: Send daily brief
 
 on:
   schedule:
-    # 12:45 UTC = 5:45 AM America/Phoenix year-round.
-    - cron: "45 12 * * *"
+    # GitHub cron uses UTC. Check both UTC offsets used by New York,
+    # then send only when the local hour is 3 AM.
+    - cron: "0 7 * * *"
+    - cron: "0 8 * * *"
   workflow_dispatch:
 
 concurrency:
@@ -17,18 +19,31 @@ jobs:
     permissions:
       contents: read
     steps:
+      - name: Check New York delivery time
+        id: delivery_time
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" || "$(TZ=America/New_York date +%H)" == "03" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v5
+        if: steps.delivery_time.outputs.should_run == 'true'
       - uses: actions/setup-python@v6
+        if: steps.delivery_time.outputs.should_run == 'true'
         with:
           python-version: "3.12"
           cache: pip
       - run: pip install .
+        if: steps.delivery_time.outputs.should_run == 'true'
       - name: Generate and send
+        if: steps.delivery_time.outputs.should_run == 'true'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           BRIEF_TO_EMAIL: ${{ secrets.BRIEF_TO_EMAIL }}
           BRIEF_FROM_EMAIL: ${{ secrets.BRIEF_FROM_EMAIL }}
-          BRIEF_TIMEZONE: America/Phoenix
+          BRIEF_TIMEZONE: America/New_York
         run: python -m briefing --send
