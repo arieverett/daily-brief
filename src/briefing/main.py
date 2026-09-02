@@ -7,11 +7,11 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
-from .collect import add_article_images, collect_candidates
+from .collect import add_article_images, add_indonesia_article_images, collect_candidates
 from .config import DEFAULT_OUT_DIR, DEFAULT_SOURCES_PATH, Settings
-from .editor import create_edition
+from .editor import create_edition, create_indonesia_edition
 from .models import edition_from_dict
-from .render import render_html, render_text
+from .render import render_html, render_indonesia_html, render_indonesia_text, render_text
 from .send import send_email
 
 
@@ -31,6 +31,12 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate Daily Brief")
     parser.add_argument("--send", action="store_true", help="Send through Resend after generation")
     parser.add_argument(
+        "--edition",
+        choices=("standard", "indonesia"),
+        default="standard",
+        help="Newsletter edition to generate",
+    )
+    parser.add_argument(
         "--sample", action="store_true", help="Render bundled sample without network or API keys"
     )
     parser.add_argument("--sources", type=Path, default=DEFAULT_SOURCES_PATH)
@@ -43,19 +49,26 @@ def load_sample():
     return edition_from_dict(json.loads(sample_path.read_text(encoding="utf-8")))
 
 
-def write_outputs(edition, out_dir: Path) -> tuple[Path, str, str]:
-    html = render_html(edition)
-    text = render_text(edition)
+def write_outputs(edition, out_dir: Path, edition_name: str = "standard") -> tuple[Path, str, str]:
+    if edition_name == "indonesia":
+        html = render_indonesia_html(edition)
+        text = render_indonesia_text(edition)
+    else:
+        html = render_html(edition)
+        text = render_text(edition)
     out_dir.mkdir(parents=True, exist_ok=True)
-    html_path = out_dir / f"{edition.edition_date}.html"
+    prefix = "indonesia-" if edition_name == "indonesia" else ""
+    html_path = out_dir / f"{prefix}{edition.edition_date}.html"
     html_path.write_text(html, encoding="utf-8")
-    (out_dir / f"{edition.edition_date}.txt").write_text(text, encoding="utf-8")
+    (out_dir / f"{prefix}{edition.edition_date}.txt").write_text(text, encoding="utf-8")
     return html_path, html, text
 
 
 def main() -> None:
     args = parse_args()
     if args.sample:
+        if args.edition == "indonesia":
+            raise SystemExit("The Indonesia sample is available as the approved HTML mockup")
         edition = load_sample()
         settings = None
     else:
@@ -66,16 +79,27 @@ def main() -> None:
             )
         print(f"  Found {len(candidates)} usable stories", flush=True)
         with stage("Writing the edition with OpenAI"):
-            edition = create_edition(
-                candidates,
-                settings.openai_api_key,
-                settings.openai_model,
-                settings.timezone,
-            )
+            if args.edition == "indonesia":
+                edition = create_indonesia_edition(
+                    candidates,
+                    settings.openai_api_key,
+                    settings.openai_model,
+                    settings.timezone,
+                )
+            else:
+                edition = create_edition(
+                    candidates,
+                    settings.openai_api_key,
+                    settings.openai_model,
+                    settings.timezone,
+                )
         with stage("Fetching publisher images"):
-            edition = asyncio.run(add_article_images(edition, candidates))
+            if args.edition == "indonesia":
+                edition = asyncio.run(add_indonesia_article_images(edition, candidates))
+            else:
+                edition = asyncio.run(add_article_images(edition, candidates))
     with stage("Rendering the email"):
-        html_path, html, text = write_outputs(edition, args.out)
+        html_path, html, text = write_outputs(edition, args.out, args.edition)
     print(f"  Saved {html_path}", flush=True)
     if args.send:
         assert settings is not None

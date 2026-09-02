@@ -18,7 +18,7 @@ import httpx
 import yaml
 from dateutil import parser as date_parser
 
-from .models import Candidate, Edition
+from .models import Candidate, Edition, IndonesiaEdition
 
 TAG_RE = re.compile(r"<[^>]+>")
 SPACE_RE = re.compile(r"\s+")
@@ -367,6 +367,53 @@ async def add_article_images(
             lead=decorate(edition.sweden.lead),
             stories=[decorate(story) for story in edition.sweden.stories],
         ),
+        indonesia=replace(
+            edition.indonesia,
+            lead=decorate(edition.indonesia.lead),
+            stories=[decorate(story) for story in edition.indonesia.stories],
+        ),
+    )
+
+
+async def add_indonesia_article_images(
+    edition: IndonesiaEdition, candidates: list[Candidate], limit: int = 4
+) -> IndonesiaEdition:
+    fallback_by_url = {
+        item.url: item.image_url
+        for item in candidates
+        if item.image_url and not is_placeholder_image(item.image_url)
+    }
+    targets = [edition.indonesia.lead, *edition.indonesia.stories]
+    timeout = httpx.Timeout(10.0, connect=5.0)
+    semaphore = asyncio.Semaphore(4)
+
+    async def fetch_image(story) -> str:
+        fallback = fallback_by_url.get(story.url, "")
+        try:
+            async with semaphore:
+                article_url = await resolve_google_news_url(client, story.url)
+                if google_news_article_id(article_url):
+                    return fallback
+                response = await client.get(article_url)
+                response.raise_for_status()
+            return extract_article_image(response.text) or fallback
+        except (httpx.HTTPError, UnicodeError, ValueError):
+            return fallback
+
+    async with httpx.AsyncClient(
+        headers=BROWSER_HEADERS, timeout=timeout, follow_redirects=True
+    ) as client:
+        images = await asyncio.gather(*(fetch_image(story) for story in targets))
+    image_by_url: dict[str, str] = {}
+    for story, image in zip(targets, images, strict=True):
+        if image and len(image_by_url) < limit:
+            image_by_url[story.url] = image
+
+    def decorate(story):
+        return replace(story, image_url=image_by_url.get(story.url, ""))
+
+    return replace(
+        edition,
         indonesia=replace(
             edition.indonesia,
             lead=decorate(edition.indonesia.lead),

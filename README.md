@@ -1,8 +1,8 @@
 # Daily Brief
 
-A personal, five-minute Sweden + Indonesia morning newsletter. It collects recent reporting,
-deduplicates overlapping headlines, asks an AI editor to prioritize the news, renders a polished
-HTML and plain-text edition, and sends it through Resend.
+Two personal morning newsletters: an English Sweden + Indonesia edition and a Bahasa Indonesia
+edition for Ari's mom. They collect recent reporting, deduplicate overlapping headlines, ask an AI
+editor to prioritize the news, render polished HTML and plain-text editions, and send via Resend.
 
 ## What ships in V1
 
@@ -24,14 +24,14 @@ The scheduled workflow needs four repository secrets:
 | `OPENAI_API_KEY` | OpenAI API key with billing enabled |
 | `RESEND_API_KEY` | Resend sending API key |
 | `BRIEF_TO_EMAIL` | Ari's destination email address |
+| `INDONESIA_BRIEF_TO_EMAIL` | Recipient for Nusantara Daily |
 | `BRIEF_FROM_EMAIL` | Verified sender, e.g. `Daily Brief <brief@yourdomain.com>` |
 
 For the quickest first send, Resend's test sender can deliver only to the email attached to the
 Resend account. A verified domain is the durable production setup.
 
-After adding the secrets, open **Actions → Send daily brief → Run workflow** once. Confirm the test
-email and leave the schedule enabled. GitHub cron uses UTC; `12:45 UTC` is always `5:45 AM` in
-Phoenix because Arizona does not observe daylight saving time.
+After adding the secrets, manually run both **Send daily brief** and **Send Indonesia brief** once.
+Both editions are scheduled for 3:00 AM America/New_York and account for daylight saving time.
 
 ## Run locally
 
@@ -53,6 +53,9 @@ python -m briefing
 
 # Generate and send
 python -m briefing --send
+
+# Generate and send Nusantara Daily
+python -m briefing --edition indonesia --sources config/indonesia_sources.yml --send
 ```
 
 Generated HTML and text files are written to `out/`.
@@ -70,6 +73,7 @@ Generated HTML and text files are written to `out/`.
 ## V1 operating notes
 
 - Sources are editable in `config/sources.yml` without touching the application code.
+- Nusantara Daily sources are isolated in `config/indonesia_sources.yml`.
 - The model is configurable with `OPENAI_MODEL`; the default is `gpt-5-mini`.
 - Feed failure is tolerated, but the minimum-story safety check prevents thin editions.
 - The workflow can be run manually at any time from GitHub Actions.

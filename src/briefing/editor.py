@@ -10,7 +10,15 @@ from zoneinfo import ZoneInfo
 from openai import OpenAI
 
 from .collect import normalized_title
-from .models import Candidate, CountrySection, Edition, Story, edition_from_dict
+from .models import (
+    Candidate,
+    CountrySection,
+    Edition,
+    IndonesiaEdition,
+    Story,
+    edition_from_dict,
+    indonesia_edition_from_dict,
+)
 
 STORY_SCHEMA = {
     "type": "object",
@@ -62,6 +70,29 @@ EDITION_SCHEMA = {
     ],
 }
 
+INDONESIA_EDITION_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "edition_date": {"type": "string"},
+        "date_label": {"type": "string"},
+        "subject": {"type": "string"},
+        "preview_text": {"type": "string"},
+        "front_page": {"type": "array", "items": STORY_SCHEMA, "minItems": 3, "maxItems": 3},
+        "indonesia": COUNTRY_SCHEMA,
+        "bottom_line": {"type": "string"},
+    },
+    "required": [
+        "edition_date",
+        "date_label",
+        "subject",
+        "preview_text",
+        "front_page",
+        "indonesia",
+        "bottom_line",
+    ],
+}
+
 SYSTEM_PROMPT = """You are the editor of a concise personal daily briefing covering Sweden and Indonesia.
 Your reader likes the front two pages of the Wall Street Journal and Morning Brew: high-signal, fast,
 smart, conversational, and never breathless. Select significance over novelty or virality.
@@ -84,6 +115,35 @@ Rules:
 - Never use em dashes. Use commas, colons, periods, or parentheses instead.
 """
 
+INDONESIA_SYSTEM_PROMPT = """Anda adalah editor Nusantara Daily, ringkasan berita harian pribadi
+tentang Indonesia. Tulis seluruh keluaran dalam Bahasa Indonesia yang alami, jelas, dan mudah dibaca.
+Gaya tulisan seperti Morning Brew: ringkas, cerdas, santai, dan sedikit jenaka. Gunakan beberapa
+permainan kata yang enak dibaca, terutama pada judul atau transisi, tetapi jangan memaksakannya,
+mengurangi akurasi, atau bercanda tentang tragedi dan berita serius.
+
+Aturan:
+- Gunakan hanya fakta dalam metadata kandidat. Jangan mengarang angka, kutipan, dampak, atau peristiwa.
+- Pertahankan URL dan sumber kandidat secara persis untuk setiap berita terpilih.
+- Utamakan berita penting daripada viralitas. Pilih Reuters/AP, lembaga resmi, media nasional tepercaya,
+  dan media lokal dengan peliputan yang kuat.
+- Front page harus berisi tepat tiga berita berbeda yang menggambarkan situasi Indonesia hari ini.
+- Bagian Indonesia berisi satu berita utama, 2-4 berita tambahan, dan tepat 5 speed reads.
+- Jangan mengulang berita di dalam bagian Indonesia.
+- Sertakan 1-3 berita selebritas atau budaya pop setiap hari. Berita tersebut hanya masuk front page
+  atau menjadi berita utama jika memang cukup penting; jika tidak, tempatkan sebagai berita tambahan
+  atau speed read.
+- Prioritaskan berita Bandung ketika relevan dan layak secara editorial, tetapi jangan memaksakannya.
+  Maksimal satu berita Bandung per edisi.
+- Label harus singkat dan memakai huruf kapital, misalnya POLITIK, EKONOMI, JAKARTA, BANDUNG,
+  SELEBRITAS, MUSIK, FILM, atau BUDAYA.
+- Judul harus menarik namun akurat. Ringkasan 1-2 kalimat. Mengapa penting: satu kalimat tajam.
+- Ringkasan speed read dan kolom mengapa penting masing-masing hanya satu kalimat pendek.
+- Jelaskan lembaga atau singkatan yang mungkin kurang dikenal secara singkat.
+- Subject maksimal 70 karakter dan preview_text maksimal 140 karakter.
+- Bottom line berisi 2-3 kalimat yang menghubungkan perkembangan terpenting tanpa memaksakan tema.
+- Jangan gunakan em dash.
+"""
+
 
 def build_prompt(candidates: list[Candidate], timezone_name: str) -> str:
     local_now = datetime.now(ZoneInfo(timezone_name))
@@ -98,7 +158,6 @@ TRACKING_PARAMS = {"oc", "ref", "smid", "partner", "cmpid", "srnd", "hl", "gl", 
 
 
 def canonical_url_key(url: str) -> str:
-    """A forgiving identity for a URL, so cosmetic edits still match a candidate."""
     parsed = urlparse(url.strip())
     host = (parsed.hostname or "").casefold().removeprefix("www.")
     path = parsed.path.rstrip("/")
@@ -106,13 +165,16 @@ def canonical_url_key(url: str) -> str:
         sorted(
             f"{key}={value}"
             for key, value in parse_qsl(parsed.query)
-            if key.casefold() not in TRACKING_PARAMS and not key.casefold().startswith("utm_")
+            if key.casefold() not in TRACKING_PARAMS
+            and not key.casefold().startswith("utm_")
         )
     )
     return f"{host}{path}?{query}" if query else f"{host}{path}"
 
 
-def build_link_index(candidates: list[Candidate]) -> tuple[dict[str, Candidate], dict[str, Candidate]]:
+def build_link_index(
+    candidates: list[Candidate],
+) -> tuple[dict[str, Candidate], dict[str, Candidate]]:
     by_url: dict[str, Candidate] = {}
     by_title: dict[str, Candidate] = {}
     for candidate in candidates:
@@ -134,7 +196,6 @@ def match_candidate(
     ):
         if key in by_url:
             return by_url[key]
-    # Last resort: the editor kept the story but mangled the link. Recover it by headline.
     headline_key = normalized_title(story.headline)
     if headline_key in by_title:
         return by_title[headline_key]
@@ -146,12 +207,9 @@ def match_candidate(
     return best if best_score >= 0.75 else None
 
 
-def repair_links(edition: Edition, candidates: list[Candidate]) -> Edition:
-    """Snap every story's link back onto a real candidate, dropping any that cannot be matched.
-
-    The editor occasionally rewrites a URL (trailing slash, dropped query string) or
-    hallucinates one outright. Losing one quick hit is fine; losing the whole edition is not.
-    """
+def repair_links(
+    edition: Edition | IndonesiaEdition, candidates: list[Candidate]
+) -> Edition | IndonesiaEdition:
     by_url, by_title = build_link_index(candidates)
     dropped = 0
 
@@ -161,9 +219,7 @@ def repair_links(edition: Edition, candidates: list[Candidate]) -> Edition:
         if candidate is None:
             dropped += 1
             return None
-        if story.url == candidate.url and story.source == candidate.source:
-            return story
-        return replace(story, url=candidate.url, source=candidate.source or story.source)
+        return replace(story, url=candidate.url, source=candidate.source)
 
     def fix_list(stories: list[Story]) -> list[Story]:
         return [fixed for fixed in (fix(story) for story in stories) if fixed is not None]
@@ -173,7 +229,6 @@ def repair_links(edition: Edition, candidates: list[Candidate]) -> Edition:
         stories = fix_list(section.stories)
         quick_hits = fix_list(section.quick_hits)
         if lead is None:
-            # Promote the strongest surviving story rather than shipping a headless section.
             if stories:
                 lead, stories = stories[0], stories[1:]
             elif quick_hits:
@@ -182,20 +237,23 @@ def repair_links(edition: Edition, candidates: list[Candidate]) -> Edition:
                 raise ValueError("A country section lost every story during link repair")
         return replace(section, lead=lead, stories=stories, quick_hits=quick_hits)
 
-    repaired = replace(
-        edition,
-        front_page=fix_list(edition.front_page),
-        sweden=fix_section(edition.sweden),
-        indonesia=fix_section(edition.indonesia),
-    )
+    changes = {
+        "front_page": fix_list(edition.front_page),
+        "indonesia": fix_section(edition.indonesia),
+    }
+    if isinstance(edition, Edition):
+        changes["sweden"] = fix_section(edition.sweden)
+    repaired = replace(edition, **changes)
     if not repaired.front_page:
         raise ValueError("Editor returned no usable front page links")
     if dropped:
-        print(f"  Dropped {dropped} story link(s) the editor invented")
+        print(f"  Dropped {dropped} story link(s) the editor invented", flush=True)
     return repaired
 
 
-def validate_links(edition: Edition, candidates: list[Candidate]) -> Edition:
+def validate_links(
+    edition: Edition | IndonesiaEdition, candidates: list[Candidate]
+) -> Edition | IndonesiaEdition:
     return repair_links(edition, candidates)
 
 
@@ -208,7 +266,8 @@ def create_edition(
     }
     if min(counts.values()) < 9:
         raise RuntimeError(f"Not enough fresh stories to publish safely: {counts}")
-    client = OpenAI(api_key=api_key, timeout=900.0, max_retries=4)
+    # Avoid the SDK's long default timeout/retry cycle hiding a stalled workflow.
+    client = OpenAI(api_key=api_key, timeout=120.0, max_retries=1)
     request_kwargs = {
         "model": model,
         "instructions": SYSTEM_PROMPT,
@@ -223,8 +282,58 @@ def create_edition(
         },
     }
     if model.startswith(("gpt-5", "o")):
-        # Reasoning models: cap deliberation so the edition renders in minutes, not tens.
         request_kwargs["reasoning"] = {"effort": "low"}
     response = client.responses.create(**request_kwargs)
     edition = edition_from_dict(json.loads(response.output_text))
     return validate_links(edition, candidates)
+
+
+def create_indonesia_edition(
+    candidates: list[Candidate], api_key: str, model: str, timezone_name: str
+) -> IndonesiaEdition:
+    indonesia_candidates = [item for item in candidates if item.country == "Indonesia"]
+    if len(indonesia_candidates) < 9:
+        raise RuntimeError(
+            f"Not enough fresh Indonesia stories to publish safely: {len(indonesia_candidates)}"
+        )
+    client = OpenAI(api_key=api_key, timeout=120.0, max_retries=1)
+    local_now = datetime.now(ZoneInfo(timezone_name))
+    days = ("Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu")
+    months = (
+        "Januari",
+        "Februari",
+        "Maret",
+        "April",
+        "Mei",
+        "Juni",
+        "Juli",
+        "Agustus",
+        "September",
+        "Oktober",
+        "November",
+        "Desember",
+    )
+    date_label = f"{days[local_now.weekday()]}, {local_now.day} {months[local_now.month - 1]}"
+    input_prompt = (
+        f"Buat edisi untuk {local_now:%Y-%m-%d}. Gunakan date_label '{date_label}'. "
+        "Berikut kandidat berita dalam JSON.\n\n"
+        + json.dumps([item.prompt_dict() for item in indonesia_candidates], ensure_ascii=False)
+    )
+    request_kwargs = {
+        "model": model,
+        "instructions": INDONESIA_SYSTEM_PROMPT,
+        "input": input_prompt,
+        "text": {
+            "format": {
+                "type": "json_schema",
+                "name": "indonesia_daily_brief",
+                "schema": INDONESIA_EDITION_SCHEMA,
+                "strict": True,
+            }
+        },
+    }
+    if model.startswith(("gpt-5", "o")):
+        request_kwargs["reasoning"] = {"effort": "low"}
+    response = client.responses.create(**request_kwargs)
+    edition = indonesia_edition_from_dict(json.loads(response.output_text))
+    return validate_links(edition, indonesia_candidates)

@@ -1,0 +1,56 @@
+feeds:
+  - name: Google News — Indonesia
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=Indonesia%20when%3A2d&hl=id&gl=ID&ceid=ID%3Aid"
+    allowed_sources: &trusted_sources
+      - ANTARA News
+      - ANTARA
+      - Reuters
+      - AP News
+      - BBC News Indonesia
+      - Kompas.com
+      - detikcom
+      - detikJabar
+      - CNN Indonesia
+      - Tempo.co
+      - The Jakarta Post
+      - Jakarta Globe
+      - CNBC Indonesia
+      - Bisnis.com
+      - Kontan
+      - Liputan6.com
+      - kumparan
+      - Pikiran Rakyat
+      - Pikiran-Rakyat.com
+      - Tribun Jabar
+      - IDN Times
+
+  - name: Google News — Indonesia politics
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=%28politik%20OR%20pemerintah%20OR%20DPR%29%20Indonesia%20when%3A2d&hl=id&gl=ID&ceid=ID%3Aid"
+    allowed_sources: *trusted_sources
+
+  - name: Google News — Indonesia economy
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=%28ekonomi%20OR%20bisnis%20OR%20rupiah%20OR%20Bank%20Indonesia%29%20when%3A2d&hl=id&gl=ID&ceid=ID%3Aid"
+    allowed_sources: *trusted_sources
+
+  - name: Google News — Jakarta
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=Jakarta%20when%3A2d&hl=id&gl=ID&ceid=ID%3Aid"
+    allowed_sources: *trusted_sources
+
+  - name: Google News — Bandung
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=Bandung%20when%3A2d&hl=id&gl=ID&ceid=ID%3Aid"
+    allowed_sources: *trusted_sources
+
+  - name: Google News — Indonesia culture
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=%28film%20OR%20musik%20OR%20budaya%20OR%20kuliner%20OR%20gaya%20hidup%29%20Indonesia%20when%3A3d&hl=id&gl=ID&ceid=ID%3Aid"
+    allowed_sources: *trusted_sources
+
+  - name: Google News — Indonesia celebrity
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=%28selebritas%20OR%20artis%20OR%20penyanyi%20OR%20aktor%20OR%20aktris%29%20Indonesia%20when%3A3d&hl=id&gl=ID&ceid=ID%3Aid"
+    allowed_sources: *trusted_sources

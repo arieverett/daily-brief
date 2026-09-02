@@ -4,7 +4,7 @@ from importlib.resources import files
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from .models import Edition, Story
+from .models import Edition, IndonesiaEdition, Story
 
 
 def _template_env() -> Environment:
@@ -18,6 +18,10 @@ def _template_env() -> Environment:
 
 
 def render_html(edition: Edition) -> str:
+    return _template_env().get_template("newsletter.html").render(edition=edition)
+
+
+def render_indonesia_html(edition: IndonesiaEdition) -> str:
     return _template_env().get_template("newsletter.html").render(edition=edition)
 
 
@@ -45,4 +49,33 @@ def render_text(edition: Edition) -> str:
         blocks.extend(_story_text(story) for story in section.stories)
         blocks.append("QUICK HITS")
         blocks.extend(_story_text(story, include_why=False) for story in section.quick_hits)
+    return "\n\n".join(blocks)
+
+
+def render_indonesia_text(edition: IndonesiaEdition) -> str:
+    section = edition.indonesia
+
+    def indonesia_story_text(story: Story, *, include_why: bool = True) -> str:
+        lines = [f"{story.label}: {story.headline}", story.summary]
+        if include_why:
+            lines.append(f"Mengapa penting: {story.why_it_matters}")
+        lines.append(f"Sumber: {story.source}: {story.url}")
+        return "\n".join(lines)
+
+    blocks = [
+        "NUSANTARA DAILY",
+        edition.date_label,
+        "",
+        "DALAM EDISI HARI INI",
+        edition.bottom_line,
+        "",
+        "BERITA UTAMA",
+        *(indonesia_story_text(story, include_why=False) for story in edition.front_page),
+        "",
+        "INDONESIA",
+        indonesia_story_text(section.lead),
+        *(indonesia_story_text(story) for story in section.stories),
+        "BACA KILAT",
+        *(indonesia_story_text(story, include_why=False) for story in section.quick_hits),
+    ]
     return "\n\n".join(blocks)

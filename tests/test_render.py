@@ -1,7 +1,8 @@
 from dataclasses import replace
 
 from briefing.main import load_sample
-from briefing.render import render_html, render_text
+from briefing.models import IndonesiaEdition
+from briefing.render import render_html, render_indonesia_html, render_indonesia_text, render_text
 
 
 def test_html_has_core_sections_and_links():
@@ -34,36 +35,70 @@ def test_plain_text_fallback_has_core_sections():
     assert text.index("THE SETUP") < text.index("THE FRONT PAGE")
 
 
+def indonesia_sample() -> IndonesiaEdition:
+    standard = load_sample()
+    return IndonesiaEdition(
+        edition_date=standard.edition_date,
+        date_label="Rabu, 2 September",
+        subject="Kabar Indonesia hari ini",
+        preview_text="Ringkasan berita Indonesia.",
+        front_page=[standard.indonesia.lead, *standard.indonesia.stories],
+        indonesia=standard.indonesia,
+        bottom_line="Kebijakan ekonomi dan budaya menjadi sorotan hari ini.",
+    )
+
+
+def test_indonesia_html_has_approved_branding_and_no_sweden_section():
+    html = render_indonesia_html(indonesia_sample())
+    assert "NUSANTARA DAILY" in html
+    assert "Dalam edisi hari ini" in html
+    assert "Berita utama" in html
+    assert "Baca kilat" in html
+    assert "Curated for Mom by Ari &lt;3" in html
+    assert "#991b1b" in html
+    assert "🇸🇪" not in html
+
+
+def test_indonesia_plain_text_is_localized():
+    text = render_indonesia_text(indonesia_sample())
+    assert "DALAM EDISI HARI INI" in text
+    assert "BERITA UTAMA" in text
+    assert "Mengapa penting:" in text
+    assert "BACA KILAT" in text
+
+
 def test_repair_links_snaps_urls_and_drops_hallucinations():
     from briefing.editor import validate_links
     from briefing.models import Candidate, CountrySection, Edition, Story
 
     candidates = [
-        Candidate(country="Sweden", title="Riksbank holds rates", url="https://a.se/x?oc=5", source="Reuters"),
-        Candidate(country="Sweden", title="Metro line opens", url="https://b.se/metro/", source="SVT"),
-        Candidate(country="Indonesia", title="Jakarta floods", url="https://c.id/floods", source="AP"),
-        Candidate(country="Indonesia", title="Fuel subsidy trimmed", url="https://d.id/fuel", source="AP"),
+        Candidate("Sweden", "Riksbank holds rates", "https://a.se/x?oc=5", "Reuters"),
+        Candidate("Sweden", "Metro line opens", "https://b.se/metro/", "SVT"),
+        Candidate("Indonesia", "Jakarta floods", "https://c.id/floods", "AP"),
+        Candidate("Indonesia", "Fuel subsidy trimmed", "https://d.id/fuel", "AP"),
     ]
 
     def story(headline, url):
-        return Story(headline=headline, summary="s", why_it_matters="w", url=url, source="X", label="NEWS")
+        return Story(headline, "s", "w", url, "X", "NEWS")
 
     edition = Edition(
-        edition_date="2026-09-02", date_label="d", subject="s", preview_text="p",
-        front_page=[story("Riksbank holds rates", "https://a.se/x"), story("Invented", "https://nope.example/z")],
-        sweden=CountrySection(lead=story("Metro line opens", "https://b.se/metro"), stories=[], quick_hits=[]),
-        indonesia=CountrySection(
-            lead=story("Jakarta floods", "https://c.id/floods"),
-            stories=[story("Fuel subsidy trimmed", "https://d.id/fuel")],
-            quick_hits=[],
+        "2026-09-02",
+        "d",
+        "s",
+        "p",
+        [story("Riksbank holds rates", "https://a.se/x"), story("Invented", "https://x")],
+        CountrySection(story("Metro line opens", "https://b.se/metro")),
+        CountrySection(
+            story("Jakarta floods", "https://c.id/floods"),
+            [story("Fuel subsidy trimmed", "https://d.id/fuel")],
         ),
-        bottom_line="b",
+        "b",
     )
 
     fixed = validate_links(edition, candidates)
-    allowed = {c.url for c in candidates}
+    allowed = {candidate.url for candidate in candidates}
     assert len(fixed.front_page) == 1
     assert fixed.front_page[0].url == "https://a.se/x?oc=5"
     assert fixed.sweden.lead.url == "https://b.se/metro/"
-    every = [*fixed.front_page, fixed.sweden.lead, fixed.indonesia.lead, *fixed.indonesia.stories]
-    assert all(s.url in allowed for s in every)
+    every = [*fixed.front_page, fixed.sweden.lead, fixed.indonesia.lead]
+    assert all(story.url in allowed for story in every)

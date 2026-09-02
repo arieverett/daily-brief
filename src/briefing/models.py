@@ -59,6 +59,20 @@ class Edition:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class IndonesiaEdition:
+    edition_date: str
+    date_label: str
+    subject: str
+    preview_text: str
+    front_page: list[Story]
+    indonesia: CountrySection
+    bottom_line: str
+
+    def asdict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
 def story_from_dict(value: dict[str, Any]) -> Story:
     return Story(**value)
 
@@ -79,6 +93,18 @@ def edition_from_dict(value: dict[str, Any]) -> Edition:
         preview_text=value["preview_text"],
         front_page=[story_from_dict(item) for item in value["front_page"]],
         sweden=country_from_dict(value["sweden"]),
+        indonesia=country_from_dict(value["indonesia"]),
+        bottom_line=value["bottom_line"],
+    )
+
+
+def indonesia_edition_from_dict(value: dict[str, Any]) -> IndonesiaEdition:
+    return IndonesiaEdition(
+        edition_date=value["edition_date"],
+        date_label=value["date_label"],
+        subject=value["subject"],
+        preview_text=value["preview_text"],
+        front_page=[story_from_dict(item) for item in value["front_page"]],
         indonesia=country_from_dict(value["indonesia"]),
         bottom_line=value["bottom_line"],
     )
