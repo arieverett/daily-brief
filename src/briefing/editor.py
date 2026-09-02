@@ -109,13 +109,12 @@ def create_edition(
     }
     if min(counts.values()) < 9:
         raise RuntimeError(f"Not enough fresh stories to publish safely: {counts}")
-    # Avoid the SDK's long default timeout/retry cycle hiding a stalled workflow.
-    client = OpenAI(api_key=api_key, timeout=120.0, max_retries=1)
-    response = client.responses.create(
-        model=model,
-        instructions=SYSTEM_PROMPT,
-        input=build_prompt(candidates, timezone_name),
-        text={
+    client = OpenAI(api_key=api_key, timeout=900.0, max_retries=4)
+    request_kwargs = {
+        "model": model,
+        "instructions": SYSTEM_PROMPT,
+        "input": build_prompt(candidates, timezone_name),
+        "text": {
             "format": {
                 "type": "json_schema",
                 "name": "daily_brief",
@@ -123,7 +122,11 @@ def create_edition(
                 "strict": True,
             }
         },
-    )
+    }
+    if model.startswith(("gpt-5", "o")):
+        # Reasoning models: cap deliberation so the edition renders in minutes, not tens.
+        request_kwargs["reasoning"] = {"effort": "low"}
+    response = client.responses.create(**request_kwargs)
     edition = edition_from_dict(json.loads(response.output_text))
     validate_links(edition, candidates)
     return edition
