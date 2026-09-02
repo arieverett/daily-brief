@@ -109,7 +109,8 @@ def create_edition(
     }
     if min(counts.values()) < 9:
         raise RuntimeError(f"Not enough fresh stories to publish safely: {counts}")
-    client = OpenAI(api_key=api_key)
+    # Avoid the SDK's long default timeout/retry cycle hiding a stalled workflow.
+    client = OpenAI(api_key=api_key, timeout=120.0, max_retries=1)
     response = client.responses.create(
         model=model,
         instructions=SYSTEM_PROMPT,

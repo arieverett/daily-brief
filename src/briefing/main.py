@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import time
+from contextlib import contextmanager
 from pathlib import Path
 
 from .collect import add_article_images, collect_candidates
@@ -11,6 +13,18 @@ from .editor import create_edition
 from .models import edition_from_dict
 from .render import render_html, render_text
 from .send import send_email
+
+
+@contextmanager
+def stage(label: str):
+    started = time.monotonic()
+    print(f"→ {label}...", flush=True)
+    try:
+        yield
+    except Exception:
+        print(f"✗ {label} failed after {time.monotonic() - started:.1f}s", flush=True)
+        raise
+    print(f"✓ {label} ({time.monotonic() - started:.1f}s)", flush=True)
 
 
 def parse_args() -> argparse.Namespace:
@@ -46,30 +60,36 @@ def main() -> None:
         settings = None
     else:
         settings = Settings.from_env(require_delivery=args.send)
-        candidates = asyncio.run(
-            collect_candidates(args.sources, settings.lookback_hours, settings.max_candidates)
-        )
-        edition = create_edition(
-            candidates,
-            settings.openai_api_key,
-            settings.openai_model,
-            settings.timezone,
-        )
-        edition = asyncio.run(add_article_images(edition, candidates))
-    html_path, html, text = write_outputs(edition, args.out)
-    print(f"Rendered {html_path}")
+        with stage("Fetching news feeds"):
+            candidates = asyncio.run(
+                collect_candidates(args.sources, settings.lookback_hours, settings.max_candidates)
+            )
+        print(f"  Found {len(candidates)} usable stories", flush=True)
+        with stage("Writing the edition with OpenAI"):
+            edition = create_edition(
+                candidates,
+                settings.openai_api_key,
+                settings.openai_model,
+                settings.timezone,
+            )
+        with stage("Fetching publisher images"):
+            edition = asyncio.run(add_article_images(edition, candidates))
+    with stage("Rendering the email"):
+        html_path, html, text = write_outputs(edition, args.out)
+    print(f"  Saved {html_path}", flush=True)
     if args.send:
         assert settings is not None
-        message_id = send_email(
-            api_key=settings.resend_api_key,
-            from_email=settings.from_email,
-            to_email=settings.to_email,
-            subject=edition.subject,
-            html=html,
-            text=text,
-            edition_date=edition.edition_date,
-        )
-        print(f"Sent message {message_id}")
+        with stage("Sending through Resend"):
+            message_id = send_email(
+                api_key=settings.resend_api_key,
+                from_email=settings.from_email,
+                to_email=settings.to_email,
+                subject=edition.subject,
+                html=html,
+                text=text,
+                edition_date=edition.edition_date,
+            )
+        print(f"  Sent message {message_id}", flush=True)
 
 
 if __name__ == "__main__":

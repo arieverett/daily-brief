@@ -167,7 +167,7 @@ async def collect_candidates(
     feeds = config.get("feeds", [])
     cutoff = datetime.now(UTC) - timedelta(hours=lookback_hours)
     headers = {"User-Agent": "DailyBrief/0.1 (+personal-newsletter)"}
-    timeout = httpx.Timeout(20.0, connect=10.0)
+    timeout = httpx.Timeout(15.0, connect=5.0)
     async with httpx.AsyncClient(headers=headers, timeout=timeout, follow_redirects=True) as client:
         batches = await asyncio.gather(*(_fetch_one(client, feed, cutoff) for feed in feeds))
     unique = deduplicate([item for batch in batches for item in batch])
@@ -197,7 +197,7 @@ async def add_article_images(
     indonesia_targets = [edition.indonesia.lead, *edition.indonesia.stories]
     targets = [*sweden_targets, *indonesia_targets]
     headers = {"User-Agent": "DailyBrief/0.1 (+personal-newsletter)"}
-    timeout = httpx.Timeout(15.0, connect=8.0)
+    timeout = httpx.Timeout(10.0, connect=5.0)
 
     async def fetch_image(story) -> str:
         try:
