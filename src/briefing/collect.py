@@ -314,7 +314,10 @@ async def collect_candidates(
 
 
 async def add_article_images(
-    edition: Edition, candidates: list[Candidate], limit: int = 4
+    edition: Edition,
+    candidates: list[Candidate],
+    limit: int = 4,
+    image_budget_seconds: float = 30.0,
 ) -> Edition:
     fallback_by_url = {
         item.url: item.image_url
@@ -344,7 +347,18 @@ async def add_article_images(
     async with httpx.AsyncClient(
         headers=BROWSER_HEADERS, timeout=timeout, follow_redirects=True
     ) as client:
-        images = await asyncio.gather(*(fetch_image(story) for story in targets))
+        try:
+            images = await asyncio.wait_for(
+                asyncio.gather(*(fetch_image(story) for story in targets)),
+                timeout=image_budget_seconds,
+            )
+        except TimeoutError:
+            print(
+                f"  Image lookup exceeded {image_budget_seconds:.0f}s, "
+                "sending with RSS images only",
+                flush=True,
+            )
+            images = [fallback_by_url.get(story.url, "") for story in targets]
     discovered = dict(zip((story.url for story in targets), images, strict=True))
     image_by_story_url: dict[str, str] = {}
     for stories, allowance in (
@@ -376,7 +390,10 @@ async def add_article_images(
 
 
 async def add_indonesia_article_images(
-    edition: IndonesiaEdition, candidates: list[Candidate], limit: int = 4
+    edition: IndonesiaEdition,
+    candidates: list[Candidate],
+    limit: int = 4,
+    image_budget_seconds: float = 30.0,
 ) -> IndonesiaEdition:
     fallback_by_url = {
         item.url: item.image_url
@@ -403,7 +420,18 @@ async def add_indonesia_article_images(
     async with httpx.AsyncClient(
         headers=BROWSER_HEADERS, timeout=timeout, follow_redirects=True
     ) as client:
-        images = await asyncio.gather(*(fetch_image(story) for story in targets))
+        try:
+            images = await asyncio.wait_for(
+                asyncio.gather(*(fetch_image(story) for story in targets)),
+                timeout=image_budget_seconds,
+            )
+        except TimeoutError:
+            print(
+                f"  Image lookup exceeded {image_budget_seconds:.0f}s, "
+                "sending with RSS images only",
+                flush=True,
+            )
+            images = [fallback_by_url.get(story.url, "") for story in targets]
     image_by_url: dict[str, str] = {}
     for story, image in zip(targets, images, strict=True):
         if image and len(image_by_url) < limit:

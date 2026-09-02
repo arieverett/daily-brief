@@ -219,7 +219,7 @@ def repair_links(
         if candidate is None:
             dropped += 1
             return None
-        return replace(story, url=candidate.url, source=candidate.source)
+        return replace(story, url=candidate.url, source=candidate.source or story.source)
 
     def fix_list(stories: list[Story]) -> list[Story]:
         return [fixed for fixed in (fix(story) for story in stories) if fixed is not None]
