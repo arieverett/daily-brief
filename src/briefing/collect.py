@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import binascii
 import html
+import json
 import re
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
@@ -27,17 +30,27 @@ IMAGE_RE = re.compile(r'<img[^>]+src=["\']([^"\']+)["\']', re.IGNORECASE)
 class SocialImageParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__()
-        self.image_url = ""
+        self.og_image = ""
+        self.twitter_image = ""
+
+    @property
+    def image_url(self) -> str:
+        return self.og_image or self.twitter_image
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        if tag.casefold() != "meta" or self.image_url:
+        if tag.casefold() != "meta" or self.og_image:
             return
         values = {key.casefold(): value or "" for key, value in attrs}
-        image_key = values.get("property") or values.get("name")
-        if image_key.casefold() in {"og:image", "og:image:url", "twitter:image"}:
-            url = values.get("content", "").strip()
-            if urlparse(url).scheme in {"http", "https"}:
-                self.image_url = html.unescape(url)
+        image_key = (values.get("property") or values.get("name") or "").casefold()
+        if image_key not in {"og:image", "og:image:url", "twitter:image", "twitter:image:src"}:
+            return
+        url = html.unescape(values.get("content", "").strip())
+        if urlparse(url).scheme not in {"http", "https"}:
+            return
+        if image_key.startswith("og:"):
+            self.og_image = url
+        elif not self.twitter_image:
+            self.twitter_image = url
 
 
 def clean_text(value: str) -> str:
@@ -102,8 +115,120 @@ def extract_image_url(entry: dict) -> str:
 
 def extract_article_image(page_html: str) -> str:
     parser = SocialImageParser()
-    parser.feed(page_html)
-    return parser.image_url
+    try:
+        parser.feed(page_html)
+    except Exception:  # noqa: BLE001 - publisher HTML is untrusted and best-effort
+        return ""
+    return "" if is_placeholder_image(parser.image_url) else parser.image_url
+
+
+PLACEHOLDER_IMAGE_HOSTS = {
+    "lh3.googleusercontent.com",
+    "lh4.googleusercontent.com",
+    "lh5.googleusercontent.com",
+    "lh6.googleusercontent.com",
+    "news.google.com",
+    "ssl.gstatic.com",
+    "www.google.com",
+    "www.gstatic.com",
+}
+GOOGLE_SIGNATURE_RE = re.compile(r'data-n-a-sg="([^"]+)"')
+GOOGLE_TIMESTAMP_RE = re.compile(r'data-n-a-ts="([^"]+)"')
+DECODED_URL_RE = re.compile(rb'https?://[^\x00-\x20"\\]+')
+BROWSER_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
+
+def is_placeholder_image(url: str) -> bool:
+    if not url:
+        return True
+    host = (urlparse(url).hostname or "").casefold()
+    return host in PLACEHOLDER_IMAGE_HOSTS or urlparse(url).path.casefold().endswith(".svg")
+
+
+def google_news_article_id(url: str) -> str:
+    parsed = urlparse(url)
+    if (parsed.hostname or "").casefold() != "news.google.com":
+        return ""
+    segments = [part for part in parsed.path.split("/") if part]
+    if len(segments) >= 2 and segments[-2] in {"articles", "read"}:
+        return segments[-1]
+    return ""
+
+
+def decode_legacy_google_news_id(article_id: str) -> str:
+    try:
+        padded = article_id + "=" * (-len(article_id) % 4)
+        decoded = base64.urlsafe_b64decode(padded)
+    except (ValueError, binascii.Error):
+        return ""
+    match = DECODED_URL_RE.search(decoded)
+    if not match:
+        return ""
+    url = match.group(0).decode("utf-8", errors="ignore")
+    return url if urlparse(url).scheme in {"http", "https"} else ""
+
+
+def parse_google_batch_response(payload: str) -> str:
+    """Extract a publisher URL without depending on Google's response line numbers."""
+    for line in payload.splitlines():
+        line = line.strip()
+        if not line.startswith("[["):
+            continue
+        try:
+            batches = json.loads(line)
+            decoded = json.loads(batches[0][2])
+            resolved = decoded[1]
+        except (IndexError, TypeError, json.JSONDecodeError):
+            continue
+        if isinstance(resolved, str) and urlparse(resolved).scheme in {"http", "https"}:
+            return resolved
+    return ""
+
+
+async def resolve_google_news_url(client: httpx.AsyncClient, url: str) -> str:
+    article_id = google_news_article_id(url)
+    if not article_id:
+        return url
+    legacy = decode_legacy_google_news_id(article_id)
+    if legacy:
+        return legacy
+    try:
+        page = await client.get(f"https://news.google.com/rss/articles/{article_id}")
+        page.raise_for_status()
+        signature = GOOGLE_SIGNATURE_RE.search(page.text)
+        timestamp = GOOGLE_TIMESTAMP_RE.search(page.text)
+        if not signature or not timestamp:
+            return url
+        request_payload = (
+            '["garturlreq",[["X","X",["X","X"],null,null,1,1,"US:en",null,1,'
+            'null,null,null,null,null,0,1],"X","X",1,[1,1,1],1,1,null,0,0,null,0],'
+            f'"{article_id}",{timestamp.group(1)},"{signature.group(1)}"]'
+        )
+        request_data = [
+            [
+                [
+                    "Fbv4je",
+                    request_payload,
+                    None,
+                    "generic",
+                ]
+            ]
+        ]
+        response = await client.post(
+            "https://news.google.com/_/DotsSplashUi/data/batchexecute",
+            data={"f.req": json.dumps(request_data)},
+        )
+        response.raise_for_status()
+        return parse_google_batch_response(response.text) or url
+    except (httpx.HTTPError, TypeError, ValueError):
+        return url
 
 
 def parse_feed(payload: bytes, feed: dict, cutoff: datetime) -> list[Candidate]:
@@ -191,23 +316,34 @@ async def collect_candidates(
 async def add_article_images(
     edition: Edition, candidates: list[Candidate], limit: int = 4
 ) -> Edition:
-    fallback_by_url = {item.url: item.image_url for item in candidates if item.image_url}
+    fallback_by_url = {
+        item.url: item.image_url
+        for item in candidates
+        if item.image_url and not is_placeholder_image(item.image_url)
+    }
     per_country = max(1, limit // 2)
     sweden_targets = [edition.sweden.lead, *edition.sweden.stories]
     indonesia_targets = [edition.indonesia.lead, *edition.indonesia.stories]
     targets = [*sweden_targets, *indonesia_targets]
-    headers = {"User-Agent": "DailyBrief/0.1 (+personal-newsletter)"}
     timeout = httpx.Timeout(10.0, connect=5.0)
+    semaphore = asyncio.Semaphore(4)
 
     async def fetch_image(story) -> str:
+        fallback = fallback_by_url.get(story.url, "")
         try:
-            response = await client.get(story.url)
-            response.raise_for_status()
-            return extract_article_image(response.text) or fallback_by_url.get(story.url, "")
-        except (httpx.HTTPError, UnicodeError):
-            return fallback_by_url.get(story.url, "")
+            async with semaphore:
+                article_url = await resolve_google_news_url(client, story.url)
+                if google_news_article_id(article_url):
+                    return fallback
+                response = await client.get(article_url)
+                response.raise_for_status()
+            return extract_article_image(response.text) or fallback
+        except (httpx.HTTPError, UnicodeError, ValueError):
+            return fallback
 
-    async with httpx.AsyncClient(headers=headers, timeout=timeout, follow_redirects=True) as client:
+    async with httpx.AsyncClient(
+        headers=BROWSER_HEADERS, timeout=timeout, follow_redirects=True
+    ) as client:
         images = await asyncio.gather(*(fetch_image(story) for story in targets))
     discovered = dict(zip((story.url for story in targets), images, strict=True))
     image_by_story_url: dict[str, str] = {}
