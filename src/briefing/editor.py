@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from datetime import datetime
+from difflib import SequenceMatcher
+from urllib.parse import parse_qsl, urlparse
 from zoneinfo import ZoneInfo
 
 from openai import OpenAI
 
-from .models import Candidate, Edition, edition_from_dict
+from .collect import normalized_title
+from .models import Candidate, CountrySection, Edition, Story, edition_from_dict
 
 STORY_SCHEMA = {
     "type": "object",
@@ -90,14 +94,109 @@ def build_prompt(candidates: list[Candidate], timezone_name: str) -> str:
     )
 
 
-def validate_links(edition: Edition, candidates: list[Candidate]) -> None:
-    allowed_urls = {item.url for item in candidates}
-    stories = [*edition.front_page]
-    for section in (edition.sweden, edition.indonesia):
-        stories.extend([section.lead, *section.stories, *section.quick_hits])
-    invalid = [story.url for story in stories if story.url not in allowed_urls]
-    if invalid:
-        raise ValueError(f"Editor returned {len(invalid)} links not present in candidates")
+TRACKING_PARAMS = {"oc", "ref", "smid", "partner", "cmpid", "srnd", "hl", "gl", "ceid"}
+
+
+def canonical_url_key(url: str) -> str:
+    """A forgiving identity for a URL, so cosmetic edits still match a candidate."""
+    parsed = urlparse(url.strip())
+    host = (parsed.hostname or "").casefold().removeprefix("www.")
+    path = parsed.path.rstrip("/")
+    query = "&".join(
+        sorted(
+            f"{key}={value}"
+            for key, value in parse_qsl(parsed.query)
+            if key.casefold() not in TRACKING_PARAMS and not key.casefold().startswith("utm_")
+        )
+    )
+    return f"{host}{path}?{query}" if query else f"{host}{path}"
+
+
+def build_link_index(candidates: list[Candidate]) -> tuple[dict[str, Candidate], dict[str, Candidate]]:
+    by_url: dict[str, Candidate] = {}
+    by_title: dict[str, Candidate] = {}
+    for candidate in candidates:
+        by_url.setdefault(candidate.url, candidate)
+        by_url.setdefault(canonical_url_key(candidate.url), candidate)
+        by_url.setdefault(canonical_url_key(candidate.url).split("?")[0], candidate)
+        by_title.setdefault(normalized_title(candidate.title), candidate)
+    return by_url, by_title
+
+
+def match_candidate(
+    story: Story, by_url: dict[str, Candidate], by_title: dict[str, Candidate]
+) -> Candidate | None:
+    for key in (
+        story.url,
+        story.url.strip(),
+        canonical_url_key(story.url),
+        canonical_url_key(story.url).split("?")[0],
+    ):
+        if key in by_url:
+            return by_url[key]
+    # Last resort: the editor kept the story but mangled the link. Recover it by headline.
+    headline_key = normalized_title(story.headline)
+    if headline_key in by_title:
+        return by_title[headline_key]
+    best_score, best = 0.0, None
+    for title_key, candidate in by_title.items():
+        score = SequenceMatcher(None, headline_key, title_key).ratio()
+        if score > best_score:
+            best_score, best = score, candidate
+    return best if best_score >= 0.75 else None
+
+
+def repair_links(edition: Edition, candidates: list[Candidate]) -> Edition:
+    """Snap every story's link back onto a real candidate, dropping any that cannot be matched.
+
+    The editor occasionally rewrites a URL (trailing slash, dropped query string) or
+    hallucinates one outright. Losing one quick hit is fine; losing the whole edition is not.
+    """
+    by_url, by_title = build_link_index(candidates)
+    dropped = 0
+
+    def fix(story: Story) -> Story | None:
+        nonlocal dropped
+        candidate = match_candidate(story, by_url, by_title)
+        if candidate is None:
+            dropped += 1
+            return None
+        if story.url == candidate.url and story.source == candidate.source:
+            return story
+        return replace(story, url=candidate.url, source=candidate.source or story.source)
+
+    def fix_list(stories: list[Story]) -> list[Story]:
+        return [fixed for fixed in (fix(story) for story in stories) if fixed is not None]
+
+    def fix_section(section: CountrySection) -> CountrySection:
+        lead = fix(section.lead)
+        stories = fix_list(section.stories)
+        quick_hits = fix_list(section.quick_hits)
+        if lead is None:
+            # Promote the strongest surviving story rather than shipping a headless section.
+            if stories:
+                lead, stories = stories[0], stories[1:]
+            elif quick_hits:
+                lead, quick_hits = quick_hits[0], quick_hits[1:]
+            else:
+                raise ValueError("A country section lost every story during link repair")
+        return replace(section, lead=lead, stories=stories, quick_hits=quick_hits)
+
+    repaired = replace(
+        edition,
+        front_page=fix_list(edition.front_page),
+        sweden=fix_section(edition.sweden),
+        indonesia=fix_section(edition.indonesia),
+    )
+    if not repaired.front_page:
+        raise ValueError("Editor returned no usable front page links")
+    if dropped:
+        print(f"  Dropped {dropped} story link(s) the editor invented")
+    return repaired
+
+
+def validate_links(edition: Edition, candidates: list[Candidate]) -> Edition:
+    return repair_links(edition, candidates)
 
 
 def create_edition(
@@ -128,5 +227,4 @@ def create_edition(
         request_kwargs["reasoning"] = {"effort": "low"}
     response = client.responses.create(**request_kwargs)
     edition = edition_from_dict(json.loads(response.output_text))
-    validate_links(edition, candidates)
-    return edition
+    return validate_links(edition, candidates)
