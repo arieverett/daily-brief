@@ -145,6 +145,12 @@ Aturan:
 """
 
 
+def prefix_indonesia_subject(subject: str) -> str:
+    if not subject.casefold().startswith("nusantara daily:"):
+        subject = f"Nusantara Daily: {subject}"
+    return subject[:70]
+
+
 def build_prompt(candidates: list[Candidate], timezone_name: str) -> str:
     local_now = datetime.now(ZoneInfo(timezone_name))
     payload = [candidate.prompt_dict() for candidate in candidates]
@@ -337,4 +343,5 @@ def create_indonesia_edition(
         request_kwargs["reasoning"] = {"effort": "low"}
     response = client.responses.create(**request_kwargs)
     edition = indonesia_edition_from_dict(json.loads(response.output_text))
+    edition = replace(edition, subject=prefix_indonesia_subject(edition.subject))
     return validate_links(edition, indonesia_candidates)

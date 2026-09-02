@@ -67,6 +67,14 @@ def test_indonesia_plain_text_is_localized():
     assert "BACA KILAT" in text
 
 
+def test_indonesia_subject_has_stable_forwarding_prefix():
+    from briefing.editor import prefix_indonesia_subject
+
+    assert prefix_indonesia_subject("Kabar pagi") == "Nusantara Daily: Kabar pagi"
+    assert prefix_indonesia_subject("Nusantara Daily: Kabar pagi").count("Nusantara Daily:") == 1
+    assert len(prefix_indonesia_subject("x" * 100)) == 70
+
+
 def test_repair_links_snaps_urls_and_drops_hallucinations():
     from briefing.editor import validate_links
     from briefing.models import Candidate, CountrySection, Edition, Story
