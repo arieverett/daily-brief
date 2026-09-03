@@ -303,7 +303,7 @@ def create_indonesia_edition(
         raise RuntimeError(
             f"Not enough fresh Indonesia stories to publish safely: {len(indonesia_candidates)}"
         )
-    client = OpenAI(api_key=api_key, timeout=180.0, max_retries=0)
+    client = OpenAI(api_key=api_key, timeout=300.0, max_retries=1)
     local_now = datetime.now(ZoneInfo(timezone_name))
     days = ("Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu")
     months = (
