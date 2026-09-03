@@ -11,6 +11,7 @@ on:
   push:
     paths:
       - ".github/run-briefs-now"
+      - ".github/run-indonesia-now"
 
 concurrency:
   group: indonesia-daily-brief
