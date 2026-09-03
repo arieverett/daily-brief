@@ -26,12 +26,13 @@ STORY_SCHEMA = {
     "properties": {
         "headline": {"type": "string"},
         "summary": {"type": "string"},
+        "highlights": {"type": "array", "items": {"type": "string"}, "minItems": 3, "maxItems": 5},
         "why_it_matters": {"type": "string"},
         "url": {"type": "string"},
         "source": {"type": "string"},
         "label": {"type": "string"},
     },
-    "required": ["headline", "summary", "why_it_matters", "url", "source", "label"],
+    "required": ["headline", "summary", "highlights", "why_it_matters", "url", "source", "label"],
 }
 
 COUNTRY_SCHEMA = {
@@ -102,13 +103,14 @@ Rules:
 - Preserve the exact candidate URL and source for every selected story.
 - Combine duplicate coverage into one story and prefer Reuters/AP, official institutions, public broadcasters,
   established national outlets, and well-sourced local outlets.
-- Front page: exactly three distinct stories that convey the day's overall picture.
+- Front page data is retained for compatibility but is not rendered in the newsletter. Do not reuse its copy verbatim in country sections.
 - Each country: one lead, 2-4 secondary stories, and exactly 5 quick hits. Do not repeat an item within a country.
 - Include at least one culture story for each country daily. Culture includes pop culture, internet culture,
   music, film, television, books, arts, food, fashion, travel, and lifestyle.
 - Labels should be short uppercase categories such as POLITICS, MONEY, STOCKHOLM, JAKARTA, SOCIETY, or WATCH.
-- Headline: punchy but accurate, no clickbait. Summary: 1-2 sentences. Why it matters: one crisp sentence.
-- Quick-hit summaries and why-it-matters fields should each be a single short sentence.
+- Headline: punchy but accurate, no clickbait. For the lead and secondary stories, summary must be a self-contained 3-5 sentence recap with the key facts and context. Add 3-5 concise factual highlights in the highlights array. Set why_it_matters to an empty string; it is retained only for compatibility and is never displayed.
+- Quick-hit summaries should be a single self-contained highlight sentence. Highlights may repeat the quick-hit fact as 3 short factual fragments for schema compatibility.
+- Write every recap as direct newsletter prose. Never use attribution crutches such as "per Sveriges Radio", "according to Reuters", "Reuters reports", "menurut Kompas", or similar source-name narration. The source is shown separately by the newsletter. Attribute only when the underlying fact itself requires attribution, such as a statement, allegation, estimate, poll, or forecast, and attribute it to the actual person or institution, not the publication.
 - Explain unfamiliar institutions or acronyms inline. Use clear American English.
 - Subject should be under 70 characters and preview_text under 140 characters.
 - The bottom line is 2-3 sentences connecting the day's highest-impact developments without forcing a theme.
@@ -126,7 +128,7 @@ Aturan:
 - Pertahankan URL dan sumber kandidat secara persis untuk setiap berita terpilih.
 - Utamakan berita penting daripada viralitas. Pilih Reuters/AP, lembaga resmi, media nasional tepercaya,
   dan media lokal dengan peliputan yang kuat.
-- Front page harus berisi tepat tiga berita berbeda yang menggambarkan situasi Indonesia hari ini.
+- Data front page dipertahankan hanya untuk kompatibilitas dan tidak ditampilkan di newsletter.
 - Bagian Indonesia berisi satu berita utama, 2-4 berita tambahan, dan tepat 5 speed reads.
 - Jangan mengulang berita di dalam bagian Indonesia.
 - Sertakan 1-3 berita selebritas atau budaya pop setiap hari. Berita tersebut hanya masuk front page
@@ -136,8 +138,9 @@ Aturan:
   Maksimal satu berita Bandung per edisi.
 - Label harus singkat dan memakai huruf kapital, misalnya POLITIK, EKONOMI, JAKARTA, BANDUNG,
   SELEBRITAS, MUSIK, FILM, atau BUDAYA.
-- Judul harus menarik namun akurat. Ringkasan 1-2 kalimat. Mengapa penting: satu kalimat tajam.
-- Ringkasan speed read dan kolom mengapa penting masing-masing hanya satu kalimat pendek.
+- Judul harus menarik namun akurat. Untuk berita utama dan berita tambahan, ringkasan harus berupa 3-5 kalimat yang mandiri, berisi fakta dan konteks utama. Tambahkan 3-5 poin fakta ringkas pada array highlights. Isi why_it_matters dengan string kosong; kolom ini hanya dipertahankan untuk kompatibilitas dan tidak ditampilkan.
+- Ringkasan speed read harus satu kalimat highlight yang mandiri. Highlights boleh mengulang fakta speed read sebagai 3 fragmen fakta pendek demi kompatibilitas skema.
+- Tulis semua ringkasan langsung sebagai suara newsletter. Jangan gunakan frasa seperti "menurut Kompas", "dilansir Reuters", "berdasarkan laporan Sveriges Radio", atau penyebutan media sebagai narator. Nama sumber sudah ditampilkan terpisah. Jika fakta memang memerlukan atribusi, misalnya pernyataan, tuduhan, estimasi, survei, atau proyeksi, atribusikan kepada orang atau lembaga yang membuat klaim, bukan kepada media yang memberitakannya.
 - Jelaskan lembaga atau singkatan yang mungkin kurang dikenal secara singkat.
 - Subject maksimal 70 karakter dan preview_text maksimal 140 karakter.
 - Bottom line berisi 2-3 kalimat yang menghubungkan perkembangan terpenting tanpa memaksakan tema.
