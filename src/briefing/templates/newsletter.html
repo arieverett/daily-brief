@@ -47,8 +47,8 @@
     .story-card h2 { margin: 0 0 10px; font-family: 'Source Serif 4', Georgia, serif; font-size: 29px; line-height: 34px; font-weight: 900; letter-spacing: -0.8px; }
     .story-card h3 { margin: 0 0 9px; font-family: 'Source Serif 4', Georgia, serif; font-size: 23px; line-height: 28px; font-weight: 900; letter-spacing: -0.45px; }
     .story-copy { margin: 0 0 13px; font-size: 17px; line-height: 26px; }
-    .why { margin: 0 0 15px; font-size: 16px; line-height: 24px; color: #111111; }
-    .why strong { color: {{ accent }}; }
+    .story-highlights { margin: 0 0 15px; padding-left: 21px; font-size: 16px; line-height: 24px; color: #111111; }
+    .story-highlights li { margin: 0 0 6px; }
     .source { font-size: 11px; line-height: 14px; font-weight: 800; letter-spacing: 0.8px; color: #111111; text-transform: uppercase; }
     .source a { color: {{ accent }}; }
     .speed-title { padding: 15px 19px 13px; background: #ffffff; border-bottom: 1px solid #b6b6b6; font-family: 'Libre Franklin', Arial Black, Arial, sans-serif; font-size: 14px; font-weight: 900; letter-spacing: 1.3px; text-transform: uppercase; }
@@ -91,22 +91,6 @@
           </table>
         </td></tr>
 
-        <tr><td class="inset section-wrap">
-          <h2 class="section-heading"><span class="underline">{{ 'Berita utama' if indonesia_only else 'The front page' }}</span></h2>
-          <table role="presentation" class="module" width="100%">
-            {% for story in edition.front_page %}
-            <tr class="module-row">
-              <td class="front-index"><span>•</span></td>
-              <td>
-                <div class="front-label">{{ story.label }}</div>
-                <h3 class="front-headline"><a href="{{ story.url }}">{{ story.headline }}</a></h3>
-                <p class="front-copy">{{ story.summary }}</p>
-              </td>
-            </tr>
-            {% endfor %}
-          </table>
-        </td></tr>
-
         {% set newsletter_sections = [('Indonesia', 'country-indonesia', edition.indonesia)] if indonesia_only else [
           ('Sweden', 'country-sweden', edition.sweden),
           ('Indonesia', 'country-indonesia', edition.indonesia)
@@ -123,7 +107,7 @@
             {% if section.lead.image_url %}<tr><td><img class="story-image" src="{{ section.lead.image_url }}" width="604" alt=""></td></tr>{% endif %}
             <tr><td class="story-body story-details">
               <p class="story-copy">{{ section.lead.summary }}</p>
-              <p class="why"><strong>{{ 'Mengapa penting:' if indonesia_only else 'Why it matters:' }}</strong> {{ section.lead.why_it_matters }}</p>
+              {% if section.lead.highlights %}<ul class="story-highlights">{% for item in section.lead.highlights %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}
               <div class="source">{{ 'Baca selengkapnya' if indonesia_only else 'Read more' }} · <a href="{{ section.lead.url }}">{{ section.lead.source }}</a></div>
             </td></tr>
           </table>
@@ -137,7 +121,7 @@
             {% if story.image_url %}<tr><td><img class="story-image" src="{{ story.image_url }}" width="604" alt=""></td></tr>{% endif %}
             <tr><td class="story-body story-details">
               <p class="story-copy">{{ story.summary }}</p>
-              <p class="why"><strong>{{ 'Mengapa penting:' if indonesia_only else 'Why it matters:' }}</strong> {{ story.why_it_matters }}</p>
+              {% if story.highlights %}<ul class="story-highlights">{% for item in story.highlights %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}
               <div class="source">{{ 'Baca selengkapnya' if indonesia_only else 'Read more' }} · <a href="{{ story.url }}">{{ story.source }}</a></div>
             </td></tr>
           </table>
@@ -146,7 +130,7 @@
           <table role="presentation" class="module" width="100%">
             <tr><td class="speed-title">⚡ {{ 'Baca kilat' if indonesia_only else 'Speed read' }}</td></tr>
             {% for story in section.quick_hits %}
-            <tr class="speed-row"><td><strong>{{ story.label }}:</strong> <a href="{{ story.url }}">{{ story.headline }}</a>. {{ story.summary }}</td></tr>
+            <tr class="speed-row"><td><strong>{{ story.label }}:</strong> {{ story.summary }} <a href="{{ story.url }}">{{ 'Baca artikel' if indonesia_only else 'Read article' }} →</a></td></tr>
             {% endfor %}
           </table>
         </td></tr>
