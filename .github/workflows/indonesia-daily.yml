@@ -8,6 +8,9 @@ on:
     - cron: "0 7 * * *"
     - cron: "0 8 * * *"
   workflow_dispatch:
+  push:
+    paths:
+      - ".github/run-briefs-now"
 
 concurrency:
   group: indonesia-daily-brief
@@ -24,7 +27,7 @@ jobs:
         id: delivery_time
         shell: bash
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          if [[ "${{ github.event_name }}" != "schedule" ]]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
           else
             offset="$(TZ=America/New_York date +%z)"
