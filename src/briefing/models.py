@@ -35,6 +35,7 @@ class Story:
     source: str
     label: str = ""
     image_url: str = ""
+    highlights: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
