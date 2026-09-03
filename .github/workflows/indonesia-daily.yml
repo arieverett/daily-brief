@@ -2,7 +2,9 @@ name: Send Indonesia brief
 
 on:
   schedule:
-    # GitHub cron uses UTC. Check both New York offsets, then send at 3 AM local time.
+    # GitHub cron uses UTC. Run both New York UTC offsets; the guard below
+    # selects the correct one for daylight/standard time without depending
+    # on when GitHub actually starts the runner.
     - cron: "0 7 * * *"
     - cron: "0 8 * * *"
   workflow_dispatch:
@@ -18,14 +20,21 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Check New York delivery time
+      - name: Check New York delivery schedule
         id: delivery_time
         shell: bash
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" || "$(TZ=America/New_York date +%H)" == "03" ]]; then
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
           else
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            offset="$(TZ=America/New_York date +%z)"
+            schedule="${{ github.event.schedule }}"
+            if [[ "$offset" == "-0400" && "$schedule" == "0 7 * * *" ]] || \
+               [[ "$offset" == "-0500" && "$schedule" == "0 8 * * *" ]]; then
+              echo "should_run=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "should_run=false" >> "$GITHUB_OUTPUT"
+            fi
           fi
       - uses: actions/checkout@v5
         if: steps.delivery_time.outputs.should_run == 'true'
