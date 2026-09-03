@@ -27,9 +27,8 @@ def render_indonesia_html(edition: IndonesiaEdition) -> str:
 
 def _story_text(story: Story, *, include_why: bool = True) -> str:
     lines = [f"{story.label}: {story.headline}", story.summary]
-    if include_why:
-        lines.append(f"Why it matters: {story.why_it_matters}")
-    lines.append(f"{story.source}: {story.url}")
+    lines.extend(f"• {item}" for item in story.highlights)
+    lines.append(f"Read article: {story.url}")
     return "\n".join(lines)
 
 
@@ -40,9 +39,6 @@ def render_text(edition: Edition) -> str:
         "",
         "THE SETUP",
         edition.bottom_line,
-        "",
-        "THE FRONT PAGE",
-        *(_story_text(story, include_why=False) for story in edition.front_page),
     ]
     for heading, section in (("SWEDEN", edition.sweden), ("INDONESIA", edition.indonesia)):
         blocks += ["", heading, _story_text(section.lead)]
@@ -57,9 +53,8 @@ def render_indonesia_text(edition: IndonesiaEdition) -> str:
 
     def indonesia_story_text(story: Story, *, include_why: bool = True) -> str:
         lines = [f"{story.label}: {story.headline}", story.summary]
-        if include_why:
-            lines.append(f"Mengapa penting: {story.why_it_matters}")
-        lines.append(f"Sumber: {story.source}: {story.url}")
+        lines.extend(f"• {item}" for item in story.highlights)
+        lines.append(f"Baca artikel: {story.url}")
         return "\n".join(lines)
 
     blocks = [
@@ -68,9 +63,6 @@ def render_indonesia_text(edition: IndonesiaEdition) -> str:
         "",
         "DALAM EDISI HARI INI",
         edition.bottom_line,
-        "",
-        "BERITA UTAMA",
-        *(indonesia_story_text(story, include_why=False) for story in edition.front_page),
         "",
         "INDONESIA",
         indonesia_story_text(section.lead),
