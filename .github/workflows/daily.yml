@@ -11,6 +11,7 @@ on:
   push:
     paths:
       - ".github/run-briefs-now"
+      - ".github/run-standard-now"
 
 concurrency:
   group: daily-brief
