@@ -15,9 +15,11 @@ def test_html_has_core_sections_and_links():
     assert "5-minute read" not in html
     assert "View online" not in html
     assert "Phoenix" not in html
-    assert html.index("The setup") < html.index("Sweden")
+    assert html.index("The setup") < html.index('>🇸🇪 Sweden<')
     assert html.count('class="speed-row"') == 10
     assert "—" not in html
+    assert "Every item links to its source" not in html
+    assert "AI-assisted; verify important details at the source" not in html
 
 
 def test_story_heading_precedes_article_image():
