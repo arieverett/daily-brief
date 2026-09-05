@@ -18,7 +18,11 @@ def _template_env() -> Environment:
 
 
 def render_html(edition: Edition) -> str:
-    return _template_env().get_template("newsletter.html").render(edition=edition)
+    html = _template_env().get_template("newsletter.html").render(edition=edition)
+    return html.replace(
+        "Curated for Ari from reporting published in the previous 24–36 hours.<br>\n          Every item links to its source. AI-assisted; verify important details at the source.",
+        "Curated for Ari from reporting published in the previous 24–36 hours.",
+    )
 
 
 def render_indonesia_html(edition: IndonesiaEdition) -> str:
