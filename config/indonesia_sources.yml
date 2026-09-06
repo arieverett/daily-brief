@@ -24,6 +24,10 @@ feeds:
       - Pikiran-Rakyat.com
       - Tribun Jabar
       - IDN Times
+      - The Bali Sun
+      - Tatler Asia
+      - Harper's Bazaar Indonesia
+      - Cosmopolitan Indonesia
 
   - name: Google News — Indonesia politics
     country: Indonesia
@@ -47,7 +51,12 @@ feeds:
 
   - name: Google News — Indonesia culture
     country: Indonesia
-    url: "https://news.google.com/rss/search?q=%28film%20OR%20musik%20OR%20budaya%20OR%20kuliner%20OR%20gaya%20hidup%29%20Indonesia%20when%3A3d&hl=id&gl=ID&ceid=ID%3Aid"
+    url: "https://news.google.com/rss/search?q=%28film%20OR%20musik%20OR%20budaya%20OR%20kuliner%20OR%20seni%29%20Indonesia%20when%3A3d&hl=id&gl=ID&ceid=ID%3Aid"
+    allowed_sources: *trusted_sources
+
+  - name: Google News — Indonesia lifestyle fashion
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=%28mode%20OR%20fashion%20OR%20gaya%20hidup%20OR%20desain%20OR%20restoran%20OR%20wisata%29%20Indonesia%20when%3A3d&hl=id&gl=ID&ceid=ID%3Aid"
     allowed_sources: *trusted_sources
 
   - name: Google News — Indonesia celebrity
