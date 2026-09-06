@@ -18,21 +18,23 @@ def _template_env() -> Environment:
 
 
 def render_html(edition: Edition) -> str:
-    html = _template_env().get_template("newsletter.html").render(edition=edition)
-    return html.replace(
-        "Curated for Ari from reporting published in the previous 24–36 hours.<br>\n          Every item links to its source. AI-assisted; verify important details at the source.",
-        "Curated for Ari from reporting published in the previous 24–36 hours.",
-    )
+    return _template_env().get_template("newsletter.html").render(edition=edition)
 
 
 def render_indonesia_html(edition: IndonesiaEdition) -> str:
     return _template_env().get_template("newsletter.html").render(edition=edition)
 
 
+def _source_lines(story: Story, prefix: str) -> list[str]:
+    if story.source_links:
+        return [f"{prefix}: {link.source} — {link.url}" for link in story.source_links]
+    return [f"{prefix}: {story.source} — {story.url}"]
+
+
 def _story_text(story: Story, *, include_why: bool = True) -> str:
     lines = [f"{story.label}: {story.headline}", story.summary]
     lines.extend(f"• {item}" for item in story.highlights)
-    lines.append(f"Read article: {story.url}")
+    lines.extend(_source_lines(story, "Read article"))
     return "\n".join(lines)
 
 
@@ -58,7 +60,7 @@ def render_indonesia_text(edition: IndonesiaEdition) -> str:
     def indonesia_story_text(story: Story, *, include_why: bool = True) -> str:
         lines = [f"{story.label}: {story.headline}", story.summary]
         lines.extend(f"• {item}" for item in story.highlights)
-        lines.append(f"Baca artikel: {story.url}")
+        lines.extend(_source_lines(story, "Baca artikel"))
         return "\n".join(lines)
 
     blocks = [
