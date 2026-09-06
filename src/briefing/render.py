@@ -27,8 +27,8 @@ def render_indonesia_html(edition: IndonesiaEdition) -> str:
 
 def _source_lines(story: Story, prefix: str) -> list[str]:
     if story.source_links:
-        return [f"{prefix}: {link.source} — {link.url}" for link in story.source_links]
-    return [f"{prefix}: {story.source} — {story.url}"]
+        return [f"{prefix}: {link.source} | {link.url}" for link in story.source_links]
+    return [f"{prefix}: {story.source} | {story.url}"]
 
 
 def _story_text(story: Story, *, include_why: bool = True) -> str:
