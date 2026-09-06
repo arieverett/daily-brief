@@ -49,7 +49,7 @@
     .story-copy { margin: 0 0 13px; font-size: 17px; line-height: 26px; }
     .story-highlights { margin: 0 0 15px; padding-left: 21px; font-size: 16px; line-height: 24px; color: #111111; }
     .story-highlights li { margin: 0 0 6px; }
-    .source { font-size: 11px; line-height: 14px; font-weight: 800; letter-spacing: 0.8px; color: #111111; text-transform: uppercase; }
+    .source { font-size: 11px; line-height: 17px; font-weight: 800; letter-spacing: 0.8px; color: #111111; text-transform: uppercase; }
     .source a { color: {{ accent }}; }
     .speed-title { padding: 15px 19px 13px; background: #ffffff; border-bottom: 1px solid #b6b6b6; font-family: 'Libre Franklin', Arial Black, Arial, sans-serif; font-size: 14px; font-weight: 900; letter-spacing: 1.3px; text-transform: uppercase; }
     .country-indonesia .speed-title { background: #ffffff; }
@@ -108,7 +108,11 @@
             <tr><td class="story-body story-details">
               <p class="story-copy">{{ section.lead.summary }}</p>
               {% if section.lead.highlights %}<ul class="story-highlights">{% for item in section.lead.highlights %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}
-              <div class="source">{{ 'Baca selengkapnya' if indonesia_only else 'Read more' }} · <a href="{{ section.lead.url }}">{{ section.lead.source }}</a></div>
+              <div class="source">{{ 'Baca selengkapnya' if indonesia_only else 'Read more' }} ·
+                {% if section.lead.source_links %}
+                  {% for link in section.lead.source_links %}<a href="{{ link.url }}">{{ link.source }}</a>{% if not loop.last %} · {% endif %}{% endfor %}
+                {% else %}<a href="{{ section.lead.url }}">{{ section.lead.source }}</a>{% endif %}
+              </div>
             </td></tr>
           </table>
 
@@ -122,7 +126,11 @@
             <tr><td class="story-body story-details">
               <p class="story-copy">{{ story.summary }}</p>
               {% if story.highlights %}<ul class="story-highlights">{% for item in story.highlights %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}
-              <div class="source">{{ 'Baca selengkapnya' if indonesia_only else 'Read more' }} · <a href="{{ story.url }}">{{ story.source }}</a></div>
+              <div class="source">{{ 'Baca selengkapnya' if indonesia_only else 'Read more' }} ·
+                {% if story.source_links %}
+                  {% for link in story.source_links %}<a href="{{ link.url }}">{{ link.source }}</a>{% if not loop.last %} · {% endif %}{% endfor %}
+                {% else %}<a href="{{ story.url }}">{{ story.source }}</a>{% endif %}
+              </div>
             </td></tr>
           </table>
           {% endfor %}
@@ -137,8 +145,7 @@
         {% endfor %}
 
         <tr><td class="inset footer">
-          {% if indonesia_only %}Curated for Mom by Ari &lt;3{% else %}Curated for Ari from reporting published in the previous 24–36 hours.<br>
-          Every item links to its source. AI-assisted; verify important details at the source.{% endif %}
+          {% if indonesia_only %}Curated for Mom by Ari &lt;3{% else %}Curated for Ari from reporting published in the previous 24–36 hours.{% endif %}
         </td></tr>
       </table>
     </td></tr>
