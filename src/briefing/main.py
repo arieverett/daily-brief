@@ -97,7 +97,7 @@ def backfill_candidates(sources: Path, candidates, settings: Settings, edition_n
     for hours in (168, 720):
         print(f"  Expanding candidate lookback to {hours // 24} days", flush=True)
         candidates = asyncio.run(
-            collect_candidates(args_sources := sources, hours, max(settings.max_candidates, 60))
+            collect_candidates(sources, hours, max(settings.max_candidates, 60))
         )
         if not candidate_pool_is_thin(candidates, edition_name):
             break
