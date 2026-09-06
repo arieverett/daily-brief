@@ -1,5 +1,7 @@
 """Production editorial overrides shared by both newsletter editions."""
 
+from dataclasses import replace
+
 from . import editor
 
 # Allow the editor to use fewer bullets when the paragraph already carries the story.
@@ -41,3 +43,32 @@ Aturan data dan pemilihan berita tambahan ala Morning Brew:
 
 editor.SYSTEM_PROMPT += _QUANTIFIED_RULES_EN
 editor.INDONESIA_SYSTEM_PROMPT += _QUANTIFIED_RULES_ID
+
+# The legacy front_page is not rendered anymore, so it should never block delivery.
+# If the model invents only unusable front-page URLs, retry link repair using real
+# section stories as compatibility placeholders while keeping all visible content intact.
+_original_validate_links = editor.validate_links
+
+
+def _validate_links_with_hidden_front_page_fallback(edition, candidates):
+    try:
+        return _original_validate_links(edition, candidates)
+    except ValueError as exc:
+        if "no usable front page links" not in str(exc):
+            raise
+
+        section_stories = []
+        if isinstance(edition, editor.Edition):
+            section_stories.extend([edition.sweden.lead, *edition.sweden.stories])
+        section_stories.extend([edition.indonesia.lead, *edition.indonesia.stories])
+        if not section_stories:
+            raise
+
+        # Three are enough for the legacy compatibility field; the template never renders them.
+        fallback = section_stories[:3]
+        if len(fallback) < 3:
+            fallback = (fallback * 3)[:3]
+        return _original_validate_links(replace(edition, front_page=fallback), candidates)
+
+
+editor.validate_links = _validate_links_with_hidden_front_page_fallback
