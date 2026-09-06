@@ -74,8 +74,8 @@ def country_counts(candidates) -> dict[str, int]:
 def candidate_pool_is_thin(candidates, edition_name: str) -> bool:
     counts = country_counts(candidates)
     if edition_name == "indonesia":
-        return counts["Indonesia"] < 9
-    return min(counts.values()) < 6
+        return counts["Indonesia"] < 12
+    return min(counts.values()) < 12
 
 
 def backfill_candidates(sources: Path, candidates, settings: Settings, edition_name: str):
@@ -139,9 +139,23 @@ def main() -> None:
                 )
         with stage("Fetching publisher images"):
             if args.edition == "indonesia":
-                edition = asyncio.run(add_indonesia_article_images(edition, candidates))
+                edition = asyncio.run(
+                    add_indonesia_article_images(
+                        edition,
+                        candidates,
+                        limit=6,
+                        image_budget_seconds=45.0,
+                    )
+                )
             else:
-                edition = asyncio.run(add_article_images(edition, candidates))
+                edition = asyncio.run(
+                    add_article_images(
+                        edition,
+                        candidates,
+                        limit=10,
+                        image_budget_seconds=45.0,
+                    )
+                )
     with stage("Rendering the email"):
         html_path, html, text = write_outputs(edition, args.out, args.edition)
     print(f"  Saved {html_path}", flush=True)
