@@ -41,7 +41,7 @@ COUNTRY_SCHEMA = {
     "properties": {
         "lead": STORY_SCHEMA,
         "stories": {"type": "array", "items": STORY_SCHEMA, "minItems": 2, "maxItems": 4},
-        "quick_hits": {"type": "array", "items": STORY_SCHEMA, "minItems": 5, "maxItems": 5},
+        "quick_hits": {"type": "array", "items": STORY_SCHEMA, "minItems": 3, "maxItems": 5},
     },
     "required": ["lead", "stories", "quick_hits"],
 }
@@ -104,7 +104,7 @@ Rules:
 - Combine duplicate coverage into one story and prefer Reuters/AP, official institutions, public broadcasters,
   established national outlets, and well-sourced local outlets.
 - Front page data is retained for compatibility but is not rendered in the newsletter. Do not reuse its copy verbatim in country sections.
-- Each country: one lead, 2-4 secondary stories, and exactly 5 quick hits. Do not repeat an item within a country.
+- Each country: one lead, 2-4 secondary stories, and 3-5 quick hits depending on how many fresh stories are available. Do not repeat an item within a country.
 - Include at least one culture story for each country daily. Culture includes pop culture, internet culture,
   music, film, television, books, arts, food, fashion, travel, and lifestyle.
 - Labels should be short uppercase categories such as POLITICS, MONEY, STOCKHOLM, JAKARTA, SOCIETY, or WATCH.
@@ -273,7 +273,7 @@ def create_edition(
         country: sum(1 for item in candidates if item.country == country)
         for country in ("Sweden", "Indonesia")
     }
-    if min(counts.values()) < 9:
+    if min(counts.values()) < 6:
         raise RuntimeError(f"Not enough fresh stories to publish safely: {counts}")
     # The two-country schema is large. Give one request enough time to finish
     # instead of repeating the full generation after a short timeout.
