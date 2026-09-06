@@ -74,7 +74,7 @@ def country_counts(candidates) -> dict[str, int]:
 def candidate_pool_is_thin(candidates, edition_name: str) -> bool:
     counts = country_counts(candidates)
     if edition_name == "indonesia":
-        return counts["Indonesia"] < 6
+        return counts["Indonesia"] < 9
     return min(counts.values()) < 6
 
 
