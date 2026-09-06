@@ -29,6 +29,24 @@ def test_story_heading_precedes_article_image():
     assert html.index(lead.headline) < html.index("https://example.com/article-main.jpg")
 
 
+def test_story_can_render_multiple_sources():
+    from briefing.models import SourceLink
+
+    edition = load_sample()
+    lead = replace(
+        edition.indonesia.lead,
+        source_links=[
+            SourceLink("Reuters", "https://example.com/reuters-story"),
+            SourceLink("AP", "https://example.com/ap-story"),
+        ],
+    )
+    html = render_html(replace(edition, indonesia=replace(edition.indonesia, lead=lead)))
+    assert "https://example.com/reuters-story" in html
+    assert "https://example.com/ap-story" in html
+    assert ">Reuters</a>" in html
+    assert ">AP</a>" in html
+
+
 def test_plain_text_fallback_has_core_sections():
     text = render_text(load_sample())
     assert "THE FRONT PAGE" not in text
@@ -75,6 +93,28 @@ def test_indonesia_subject_has_stable_forwarding_prefix():
     assert prefix_indonesia_subject("Kabar pagi") == "Nusantara Daily: Kabar pagi"
     assert prefix_indonesia_subject("Nusantara Daily: Kabar pagi").count("Nusantara Daily:") == 1
     assert len(prefix_indonesia_subject("x" * 100)) == 70
+
+
+def test_editorial_cleanup_drops_fragments_and_summary_repeats():
+    from briefing.editorial_rules import _clean_highlights
+    from briefing.models import Story
+
+    story = Story(
+        headline="Volcano disrupts travel",
+        summary="Authorities closed 8 airports because ash spread across western Indonesia.",
+        why_it_matters="",
+        url="https://example.com/a",
+        source="Example",
+        label="TRANSPORT",
+        highlights=[
+            "8 airports closed",
+            "Authorities closed 8 airports because ash spread across western Indonesia.",
+            "Rail operator KAI added an extra train between Semarang and Jakarta.",
+        ],
+    )
+    assert _clean_highlights(story) == [
+        "Rail operator KAI added an extra train between Semarang and Jakarta."
+    ]
 
 
 def test_repair_links_snaps_urls_and_drops_hallucinations():
