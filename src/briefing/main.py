@@ -64,6 +64,46 @@ def write_outputs(edition, out_dir: Path, edition_name: str = "standard") -> tup
     return html_path, html, text
 
 
+def country_counts(candidates) -> dict[str, int]:
+    return {
+        country: sum(1 for item in candidates if item.country == country)
+        for country in ("Sweden", "Indonesia")
+    }
+
+
+def candidate_pool_is_thin(candidates, edition_name: str) -> bool:
+    counts = country_counts(candidates)
+    if edition_name == "indonesia":
+        return counts["Indonesia"] < 6
+    return min(counts.values()) < 6
+
+
+def backfill_candidates(sources: Path, candidates, settings: Settings, edition_name: str):
+    fresh_counts = country_counts(candidates)
+    if edition_name == "indonesia":
+        fresh_floor_missed = fresh_counts["Indonesia"] < 3
+    else:
+        fresh_floor_missed = min(fresh_counts.values()) < 3
+
+    if fresh_floor_missed:
+        print(
+            f"  Fresh-story floor below 3, activating older-story fallback: {fresh_counts}",
+            flush=True,
+        )
+
+    if not candidate_pool_is_thin(candidates, edition_name):
+        return candidates
+
+    for hours in (168, 720):
+        print(f"  Expanding candidate lookback to {hours // 24} days", flush=True)
+        candidates = asyncio.run(
+            collect_candidates(args_sources := sources, hours, max(settings.max_candidates, 60))
+        )
+        if not candidate_pool_is_thin(candidates, edition_name):
+            break
+    return candidates
+
+
 def main() -> None:
     args = parse_args()
     if args.sample:
@@ -77,7 +117,11 @@ def main() -> None:
             candidates = asyncio.run(
                 collect_candidates(args.sources, settings.lookback_hours, settings.max_candidates)
             )
-        print(f"  Found {len(candidates)} usable stories", flush=True)
+        fresh_counts = country_counts(candidates)
+        print(f"  Found {len(candidates)} usable fresh stories: {fresh_counts}", flush=True)
+        candidates = backfill_candidates(args.sources, candidates, settings, args.edition)
+        final_counts = country_counts(candidates)
+        print(f"  Publishing candidate pool: {final_counts}", flush=True)
         with stage("Writing the edition with OpenAI"):
             if args.edition == "indonesia":
                 edition = create_indonesia_edition(
