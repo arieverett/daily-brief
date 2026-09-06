@@ -6,11 +6,16 @@ import re
 from dataclasses import replace
 
 from . import editor
-from .models import CountrySection, Edition, IndonesiaEdition, SourceLink, Story
+from .models import Candidate, CountrySection, Edition, IndonesiaEdition, SourceLink, Story
 
 # Story bullets are optional. Empty is better than filler or repeated copy.
 editor.STORY_SCHEMA["properties"]["highlights"]["minItems"] = 0
 editor.STORY_SCHEMA["properties"]["highlights"]["maxItems"] = 3
+
+# Ask the editor for five speed reads so post-generation topic dedupe still has room
+# to leave at least three genuinely distinct items.
+editor.COUNTRY_SCHEMA["properties"]["quick_hits"]["minItems"] = 5
+editor.COUNTRY_SCHEMA["properties"]["quick_hits"]["maxItems"] = 5
 
 # A story may synthesize several articles about one underlying event. Keep the
 # original primary url/source fields for headline linking and add validated
@@ -44,7 +49,8 @@ Additional Morning Brew-style sourcing, bullet, and story-selection rules:
 - If multiple candidates contribute facts to one story, synthesize their strongest non-overlapping facts. Put every candidate actually used in source_links using its EXACT source and EXACT URL from the candidate metadata. url/source remain the primary source and must also appear in source_links.
 - The newsletter template will render every source_links item under Read more. Do not list a source unless its candidate contributed a fact to the story.
 - A lead/secondary topic may not appear again as another main story or as a Speed read. Speed reads must add genuinely different topics.
-- Quick-hit labels describe the SUBJECT CATEGORY, never merely geography. Use labels such as SPORTS, SOCCER, POLITICS, MONEY, BUSINESS, TECH, CULTURE, MUSIC, FILM, FOOD, TRAVEL, TRANSPORT, SOCIETY, CRIME, WEATHER, or HEALTH. Use SOCCER for football fixtures/league news. Do not use STOCKHOLM, JAKARTA, MALMO, BANDUNG, or another place name merely because the story occurs there.
+- Return exactly 5 Speed reads from 5 distinct topics. Reserve enough unused candidate topics for this section before filling optional secondary-story slots. Culture, music, arts, food, fashion, lifestyle, film, travel, and sports are good Speed-read material when they are timely and credible.
+- Quick-hit labels describe the SUBJECT CATEGORY, never merely geography. Use labels such as SPORTS, SOCCER, POLITICS, MONEY, BUSINESS, TECH, CULTURE, MUSIC, FILM, FOOD, FASHION, LIFESTYLE, TRAVEL, TRANSPORT, SOCIETY, CRIME, WEATHER, or HEALTH. Use SOCCER for football fixtures/league news. Do not use STOCKHOLM, JAKARTA, MALMO, BANDUNG, or another place name merely because the story occurs there.
 - For lead and secondary stories, the summary and bullets must be complementary. Never repeat, paraphrase, or shorten a fact from the summary into a bullet.
 - Every bullet must be a complete grammatical sentence and a complete thought, with normal sentence punctuation. Never output fragments such as "8 airports closed", "Industry voice", "Exit threat", "Air quality under watch", or category-like notes.
 - Use 0-3 bullets. A bullet exists only when the candidate metadata contains an important additional fact that is NOT already communicated in the summary. If there is no such fact, return an empty highlights array.
@@ -62,7 +68,8 @@ Aturan tambahan ala Morning Brew untuk sumber, bullet, dan pemilihan berita:
 - Jika beberapa kandidat menyumbang fakta untuk satu berita, gabungkan fakta terkuat yang tidak tumpang tindih. Masukkan setiap kandidat yang benar-benar digunakan ke source_links dengan source dan URL PERSIS dari metadata kandidat. url/source utama juga wajib ada di source_links.
 - Template akan menampilkan semua source_links di bagian Baca selengkapnya. Jangan cantumkan sumber yang tidak menyumbang fakta pada berita tersebut.
 - Topik berita utama/tambahan tidak boleh muncul lagi sebagai berita utama lain atau Baca kilat. Baca kilat harus menambahkan topik yang benar-benar berbeda.
-- Label Baca kilat harus menjelaskan KATEGORI ISI, bukan lokasi. Gunakan OLAHRAGA, SEPAK BOLA, POLITIK, EKONOMI, BISNIS, TEKNOLOGI, BUDAYA, MUSIK, FILM, KULINER, WISATA, TRANSPORTASI, SOSIAL, KRIMINAL, CUACA, atau KESEHATAN. Jangan gunakan JAKARTA, BANDUNG, BALI, atau nama tempat hanya karena berita terjadi di sana.
+- Kembalikan tepat 5 Baca kilat dari 5 topik berbeda. Sisakan cukup kandidat yang belum dipakai sebelum mengisi slot berita tambahan opsional. Budaya, musik, seni, kuliner, mode, gaya hidup, film, wisata, dan olahraga cocok untuk Baca kilat jika berita aktual dan tepercaya.
+- Label Baca kilat harus menjelaskan KATEGORI ISI, bukan lokasi. Gunakan OLAHRAGA, SEPAK BOLA, POLITIK, EKONOMI, BISNIS, TEKNOLOGI, BUDAYA, MUSIK, FILM, KULINER, MODE, GAYA HIDUP, WISATA, TRANSPORTASI, SOSIAL, KRIMINAL, CUACA, atau KESEHATAN. Jangan gunakan JAKARTA, BANDUNG, BALI, atau nama tempat hanya karena berita terjadi di sana.
 - Untuk berita utama dan tambahan, ringkasan dan bullet harus saling melengkapi. Jangan mengulang, memparafrase, atau memendekkan fakta dari ringkasan menjadi bullet.
 - Setiap bullet wajib berupa kalimat lengkap secara tata bahasa dan menyampaikan gagasan lengkap dengan tanda baca kalimat yang normal. Jangan pernah membuat fragmen seperti "8 bandara ditutup", "Ancaman keluar", atau "Kualitas udara dipantau".
 - Gunakan 0-3 bullet. Bullet hanya boleh ada jika metadata kandidat memuat fakta tambahan penting yang BELUM disampaikan dalam ringkasan. Jika tidak ada fakta baru, kembalikan highlights sebagai array kosong.
@@ -144,8 +151,87 @@ def _candidate_from_url(url: str, by_url: dict[str, object]):
     return None
 
 
+def _candidate_same_topic(candidate: Candidate, story: Story) -> bool:
+    candidate_keys = {
+        candidate.url,
+        editor.canonical_url_key(candidate.url),
+        editor.canonical_url_key(candidate.url).split("?")[0],
+    }
+    story_urls = {story.url, *(link.url for link in story.source_links)}
+    story_keys = {
+        key
+        for url in story_urls
+        for key in (
+            url,
+            editor.canonical_url_key(url),
+            editor.canonical_url_key(url).split("?")[0],
+        )
+    }
+    if candidate_keys & story_keys:
+        return True
+
+    candidate_tokens = _tokens(candidate.title)
+    story_tokens = _tokens(f"{story.topic_key} {story.headline}")
+    if not candidate_tokens or not story_tokens:
+        return False
+    overlap = candidate_tokens & story_tokens
+    return len(overlap) >= 2 and len(overlap) / min(
+        len(candidate_tokens), len(story_tokens)
+    ) >= 0.5
+
+
+def _quick_label(candidate: Candidate, localized: bool) -> str:
+    text = f"{candidate.title} {candidate.summary}".casefold()
+    categories = (
+        ({"soccer", "football", "allsvenskan", "hammarby", "malmö ff"}, "SOCCER", "SEPAK BOLA"),
+        ({"sport", "hockey", "shl", "olympic"}, "SPORTS", "OLAHRAGA"),
+        ({"music", "musik", "album", "concert", "konsert", "singer"}, "MUSIC", "MUSIK"),
+        ({"film", "cinema", "movie", "actor", "actress"}, "FILM", "FILM"),
+        ({"fashion", "mode", "designer", "style"}, "FASHION", "MODE"),
+        ({"art", "arts", "konst", "museum", "exhibition"}, "CULTURE", "BUDAYA"),
+        ({"food", "restaurant", "chef", "kuliner", "mat"}, "FOOD", "KULINER"),
+        ({"travel", "tourism", "hotel", "wisata"}, "TRAVEL", "WISATA"),
+        ({"health", "medical", "kesehatan"}, "HEALTH", "KESEHATAN"),
+        ({"tech", "technology", "ai", "digital"}, "TECH", "TEKNOLOGI"),
+        ({"bank", "market", "stock", "tax", "economy", "business"}, "MONEY", "EKONOMI"),
+        ({"election", "government", "parliament", "minister", "politik"}, "POLITICS", "POLITIK"),
+    )
+    for keywords, english, indonesian in categories:
+        if any(keyword in text for keyword in keywords):
+            return indonesian if localized else english
+    return "SOSIAL" if localized else "SOCIETY"
+
+
+def _quick_summary(candidate: Candidate) -> str:
+    text = candidate.summary.strip()
+    title_words = _tokens(candidate.title)
+    summary_words = _tokens(text)
+    if len(summary_words) < 7 or summary_words == title_words:
+        text = candidate.title.strip()
+    if len(text) > 260:
+        sentence = re.split(r"(?<=[.!?])\s+", text, maxsplit=1)[0].strip()
+        text = sentence if len(sentence) >= 40 else text[:257].rstrip() + "..."
+    if text and text[-1] not in ".!?":
+        text += "."
+    return text
+
+
+def _candidate_quick_hit(candidate: Candidate, localized: bool) -> Story:
+    return Story(
+        headline=candidate.title,
+        summary=_quick_summary(candidate),
+        why_it_matters="",
+        url=candidate.url,
+        source=candidate.source,
+        label=_quick_label(candidate, localized),
+        highlights=[],
+        source_links=[SourceLink(source=candidate.source, url=candidate.url)],
+        topic_key=editor.normalized_title(candidate.title),
+    )
+
+
 def _repair_and_clean(
-    edition: Edition | IndonesiaEdition, candidates: list
+    edition: Edition | IndonesiaEdition, candidates: list[Candidate]
 ) -> Edition | IndonesiaEdition:
     """Validate every source link and enforce no-repeat editorial rules after generation."""
     by_url, by_title = editor.build_link_index(candidates)
@@ -190,7 +276,31 @@ def _repair_and_clean(
             kept.append(story)
         return kept
 
-    def fix_section(section: CountrySection) -> CountrySection:
+    def backfill_quick_hits(
+        country: str,
+        lead: Story,
+        stories: list[Story],
+        quick_hits: list[Story],
+        localized: bool,
+    ) -> list[Story]:
+        used = [lead, *stories, *quick_hits]
+        for candidate in candidates:
+            if len(quick_hits) >= 3:
+                break
+            if candidate.country != country:
+                continue
+            if any(_candidate_same_topic(candidate, story) for story in used):
+                continue
+            quick = _candidate_quick_hit(candidate, localized)
+            quick_hits.append(quick)
+            used.append(quick)
+        return quick_hits
+
+    def fix_section(
+        section: CountrySection,
+        country: str,
+        localized: bool,
+    ) -> CountrySection:
         lead = fix(section.lead)
         stories = fix_list(section.stories)
         quick_hits = fix_list(section.quick_hits)
@@ -203,13 +313,15 @@ def _repair_and_clean(
                 raise ValueError("A country section lost every story during link repair")
         stories = dedupe(stories, [lead])
         quick_hits = dedupe(quick_hits, [lead, *stories])
+        quick_hits = backfill_quick_hits(country, lead, stories, quick_hits, localized)
         return replace(section, lead=lead, stories=stories, quick_hits=quick_hits)
 
-    indonesia = fix_section(edition.indonesia)
+    indonesia_only = isinstance(edition, IndonesiaEdition)
+    indonesia = fix_section(edition.indonesia, "Indonesia", indonesia_only)
     changes = {"indonesia": indonesia}
     section_stories = [indonesia.lead, *indonesia.stories, *indonesia.quick_hits]
     if isinstance(edition, Edition):
-        sweden = fix_section(edition.sweden)
+        sweden = fix_section(edition.sweden, "Sweden", False)
         changes["sweden"] = sweden
         section_stories = [
             sweden.lead,
