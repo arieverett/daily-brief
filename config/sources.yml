@@ -18,20 +18,47 @@ feeds:
       - Sveriges Radio
       - Dagens Nyheter
       - Svenska Dagbladet
+      - Aftonbladet
+      - Expressen
+      - Omni
+      - Göteborgs-Posten
+      - Sydsvenskan
+      - Dagens industri
+      - Breakit
+      - TV4 Nyheterna
+      - TT News Agency
+      - Vogue Scandinavia
+      - ELLE
+      - Nöjesguiden
+      - Scandinavian MIND
       - Government Offices of Sweden
       - Sveriges Riksbank
+
   - name: Google News — Stockholm
     country: Sweden
     url: "https://news.google.com/rss/search?q=Stockholm%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
     allowed_sources: *sweden_sources
+
   - name: Google News — Sweden economy
     country: Sweden
     url: "https://news.google.com/rss/search?q=%28Sweden%20economy%20OR%20Swedish%20business%20OR%20Riksbank%29%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
     allowed_sources: *sweden_sources
+
   - name: Google News — Sweden culture
     country: Sweden
-    url: "https://news.google.com/rss/search?q=%28Sweden%20OR%20Stockholm%29%20%28music%20OR%20film%20OR%20art%20OR%20culture%20OR%20food%20OR%20fashion%20OR%20lifestyle%29%20when%3A3d&hl=en-US&gl=US&ceid=US%3Aen"
+    url: "https://news.google.com/rss/search?q=%28Sweden%20OR%20Stockholm%29%20%28music%20OR%20film%20OR%20art%20OR%20culture%20OR%20food%20OR%20fashion%20OR%20lifestyle%20OR%20design%29%20when%3A3d&hl=en-US&gl=US&ceid=US%3Aen"
     allowed_sources: *sweden_sources
+
+  - name: Google News — Sweden culture Swedish
+    country: Sweden
+    url: "https://news.google.com/rss/search?q=%28Sverige%20OR%20Stockholm%29%20%28musik%20OR%20film%20OR%20konst%20OR%20kultur%20OR%20mat%20OR%20mode%20OR%20livsstil%20OR%20design%29%20when%3A3d&hl=sv&gl=SE&ceid=SE%3Asv"
+    allowed_sources: *sweden_sources
+
+  - name: Google News — Sweden sports Swedish
+    country: Sweden
+    url: "https://news.google.com/rss/search?q=%28Allsvenskan%20OR%20SHL%20OR%20landslaget%29%20when%3A2d&hl=sv&gl=SE&ceid=SE%3Asv"
+    allowed_sources: *sweden_sources
+
   - name: Google News — Sweden government
     country: Sweden
     url: "https://news.google.com/rss/search?q=site%3Agovernment.se%20Sweden%20when%3A3d&hl=en-US&gl=US&ceid=US%3Aen"
@@ -39,7 +66,12 @@ feeds:
 
   - name: Google News — Swedish outlets
     country: Sweden
-    url: "https://news.google.com/rss/search?q=Sweden%20%28site%3Asvt.se%20OR%20site%3Asverigesradio.se%20OR%20site%3Athelocal.se%29%20when%3A3d&hl=en-US&gl=US&ceid=US%3Aen"
+    url: "https://news.google.com/rss/search?q=Sweden%20%28site%3Asvt.se%20OR%20site%3Asverigesradio.se%20OR%20site%3Athelocal.se%20OR%20site%3Adn.se%20OR%20site%3Asvd.se%20OR%20site%3Aaftonbladet.se%20OR%20site%3Aexpressen.se%29%20when%3A3d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *sweden_sources
+
+  - name: Google News — Swedish outlets local
+    country: Sweden
+    url: "https://news.google.com/rss/search?q=%28Sverige%20OR%20Stockholm%29%20when%3A2d&hl=sv&gl=SE&ceid=SE%3Asv"
     allowed_sources: *sweden_sources
 
   - name: Google News — Indonesia
@@ -58,23 +90,49 @@ feeds:
       - The Jakarta Post
       - Jakarta Globe
       - Tempo.co English
+      - Tempo.co
       - ANTARA News
+      - ANTARA
+      - Kompas.com
+      - detikcom
+      - CNN Indonesia
+      - CNBC Indonesia
+      - Bisnis.com
+      - Kontan
+      - Liputan6.com
+      - kumparan
+      - IDN Times
+      - The Bali Sun
+      - Tatler Asia
+
   - name: Google News — Jakarta
     country: Indonesia
     url: "https://news.google.com/rss/search?q=Jakarta%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
     allowed_sources: *indonesia_sources
+
   - name: Google News — Indonesia economy
     country: Indonesia
     url: "https://news.google.com/rss/search?q=%28Indonesia%20economy%20OR%20Indonesian%20business%20OR%20Bank%20Indonesia%29%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
     allowed_sources: *indonesia_sources
+
   - name: Google News — Indonesia culture
     country: Indonesia
-    url: "https://news.google.com/rss/search?q=%28Indonesia%20OR%20Jakarta%29%20%28music%20OR%20film%20OR%20art%20OR%20culture%20OR%20food%20OR%20fashion%20OR%20lifestyle%29%20when%3A3d&hl=en-US&gl=US&ceid=US%3Aen"
+    url: "https://news.google.com/rss/search?q=%28Indonesia%20OR%20Jakarta%29%20%28music%20OR%20film%20OR%20art%20OR%20culture%20OR%20food%20OR%20fashion%20OR%20lifestyle%20OR%20design%29%20when%3A3d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *indonesia_sources
+
+  - name: Google News — Indonesia local
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=Indonesia%20when%3A2d&hl=id&gl=ID&ceid=ID%3Aid"
+    allowed_sources: *indonesia_sources
+
+  - name: Google News — Indonesia culture local
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=%28musik%20OR%20film%20OR%20seni%20OR%20budaya%20OR%20kuliner%20OR%20mode%20OR%20gaya%20hidup%20OR%20wisata%29%20Indonesia%20when%3A3d&hl=id&gl=ID&ceid=ID%3Aid"
     allowed_sources: *indonesia_sources
 
   - name: Google News — Indonesian outlets
     country: Indonesia
-    url: "https://news.google.com/rss/search?q=Indonesia%20%28site%3Athejakartapost.com%20OR%20site%3Ajakartaglobe.id%20OR%20site%3Atempo.co%29%20when%3A3d&hl=en-US&gl=US&ceid=US%3Aen"
+    url: "https://news.google.com/rss/search?q=Indonesia%20%28site%3Athejakartapost.com%20OR%20site%3Ajakartaglobe.id%20OR%20site%3Atempo.co%20OR%20site%3Akompas.com%20OR%20site%3Adetik.com%20OR%20site%3Acnnindonesia.com%29%20when%3A3d&hl=en-US&gl=US&ceid=US%3Aen"
     allowed_sources: *indonesia_sources
 
   # ANTARA is Indonesia's national news agency and publishes official RSS feeds.
