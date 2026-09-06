@@ -27,6 +27,12 @@ class Candidate:
 
 
 @dataclass(frozen=True)
+class SourceLink:
+    source: str
+    url: str
+
+
+@dataclass(frozen=True)
 class Story:
     headline: str
     summary: str
@@ -36,6 +42,8 @@ class Story:
     label: str = ""
     image_url: str = ""
     highlights: list[str] = field(default_factory=list)
+    source_links: list[SourceLink] = field(default_factory=list)
+    topic_key: str = ""
 
 
 @dataclass(frozen=True)
@@ -74,8 +82,16 @@ class IndonesiaEdition:
         return asdict(self)
 
 
+def source_link_from_dict(value: dict[str, Any]) -> SourceLink:
+    return SourceLink(source=value["source"], url=value["url"])
+
+
 def story_from_dict(value: dict[str, Any]) -> Story:
-    return Story(**value)
+    data = dict(value)
+    data["source_links"] = [
+        source_link_from_dict(item) for item in value.get("source_links", [])
+    ]
+    return Story(**data)
 
 
 def country_from_dict(value: dict[str, Any]) -> CountrySection:
