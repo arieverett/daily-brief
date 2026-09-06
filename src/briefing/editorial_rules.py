@@ -1,74 +1,235 @@
 """Production editorial overrides shared by both newsletter editions."""
 
+from __future__ import annotations
+
+import re
 from dataclasses import replace
 
 from . import editor
+from .models import CountrySection, Edition, IndonesiaEdition, SourceLink, Story
 
-# Allow the editor to use fewer bullets when the paragraph already carries the story.
-# This keeps highlights additive instead of forcing repetitive filler.
+# Story bullets are optional. Empty is better than filler or repeated copy.
 editor.STORY_SCHEMA["properties"]["highlights"]["minItems"] = 0
 editor.STORY_SCHEMA["properties"]["highlights"]["maxItems"] = 3
 
-_QUANTIFIED_RULES_EN = """
+# A story may synthesize several articles about one underlying event. Keep the
+# original primary url/source fields for headline linking and add validated
+# supporting links for Morning Brew-style multi-source sourcing.
+_SOURCE_LINK_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "source": {"type": "string"},
+        "url": {"type": "string"},
+    },
+    "required": ["source", "url"],
+}
+editor.STORY_SCHEMA["properties"]["source_links"] = {
+    "type": "array",
+    "items": _SOURCE_LINK_SCHEMA,
+    "minItems": 1,
+    "maxItems": 4,
+}
+editor.STORY_SCHEMA["properties"]["topic_key"] = {"type": "string"}
+for required_field in ("source_links", "topic_key"):
+    if required_field not in editor.STORY_SCHEMA["required"]:
+        editor.STORY_SCHEMA["required"].append(required_field)
 
-Additional Morning Brew-style data and story-selection rules:
-- For lead and secondary stories, make the paragraph and bullets complementary, never repetitive. Do not restate a fact in a bullet if the summary already communicates it clearly.
-- Use 0-3 bullets, only when they add critical standalone information from the article metadata. Fewer strong bullets are better than filler.
-- Every bullet must contain at least one concrete data point written with a numeral and one of these forms when supported by the metadata: a #/count, a % percentage, or a $ monetary figure. Examples include 162,000 jobs, 59%, or $5.85. Never invent or estimate a number just to satisfy this rule.
-- Make the summary data-forward too: whenever the candidate metadata contains a meaningful #/count, %, or $ figure, include at least one of the strongest such figures in the paragraph.
-- If the metadata contains no trustworthy numeric fact suitable for a bullet, use no bullets rather than repeating prose or manufacturing a statistic.
-- Treat a news EVENT or TOPIC, not an individual article URL, as the unit of a main story. Never use two lead/secondary slots for the same underlying event, even when different outlets cover different consequences, updates, locations, agencies, or statistics. Example: an eruption, its flight cancellations, airport closures, school closures, ash warnings, and alternative transport response are ONE story, not several stories.
-- When several candidates cover the same event, synthesize the strongest non-duplicative facts into one Morning Brew-style recap. Choose the best candidate as the primary Read more link. Do not fill remaining main-story slots with other coverage of that event. Use those slots for genuinely different topics from the candidate pool.
-- Main-story topic diversity is mandatory. Before finalizing each country section, compare the lead and every secondary story by underlying event/entity/action and replace any topical duplicate with the strongest distinct available story. There are enough outlets in the feed; prefer a slightly less prominent distinct story over duplicate coverage.
-- Do not repeat a lead/secondary topic again in Speed read. Speed reads must add different topics, not extra angles or consequences of a story already covered above.
-- Quick-hit labels describe the SUBJECT CATEGORY, never merely the geography. Use labels such as SPORTS, SOCCER, POLITICS, MONEY, BUSINESS, TECH, CULTURE, MUSIC, FILM, FOOD, TRAVEL, TRANSPORT, SOCIETY, CRIME, WEATHER, or HEALTH as appropriate. For football/soccer fixtures and league news, use SOCCER (or SPORTS when broader). Do not use STOCKHOLM, JAKARTA, MALMO, BANDUNG, or another place name as the label merely because the event occurs there.
-- Quick hits remain one concise sentence and do not display highlights, so do not force numeric data into them unless it is genuinely one of the most important facts.
+_RULES_EN = """
+
+Additional Morning Brew-style sourcing, bullet, and story-selection rules:
+- Treat the underlying NEWS EVENT OR POLICY DEBATE, not an article URL, as the unit of a story. Different consequences, agency responses, statistics, or outlet angles about one event belong in ONE synthesized story.
+- Before selecting the lead and secondary stories, cluster candidates by underlying topic. Use only one lead/secondary slot per cluster. A slightly less prominent but genuinely different story is always better than a second story about the same topic.
+- Set topic_key to a short canonical lowercase event/debate identifier, such as "anak krakatau eruption" or "sweden wealth tax debate". All coverage of the same underlying event or policy debate has the same topic_key.
+- If multiple candidates contribute facts to one story, synthesize their strongest non-overlapping facts. Put every candidate actually used in source_links using its EXACT source and EXACT URL from the candidate metadata. url/source remain the primary source and must also appear in source_links.
+- The newsletter template will render every source_links item under Read more. Do not list a source unless its candidate contributed a fact to the story.
+- A lead/secondary topic may not appear again as another main story or as a Speed read. Speed reads must add genuinely different topics.
+- Quick-hit labels describe the SUBJECT CATEGORY, never merely geography. Use labels such as SPORTS, SOCCER, POLITICS, MONEY, BUSINESS, TECH, CULTURE, MUSIC, FILM, FOOD, TRAVEL, TRANSPORT, SOCIETY, CRIME, WEATHER, or HEALTH. Use SOCCER for football fixtures/league news. Do not use STOCKHOLM, JAKARTA, MALMO, BANDUNG, or another place name merely because the story occurs there.
+- For lead and secondary stories, the summary and bullets must be complementary. Never repeat, paraphrase, or shorten a fact from the summary into a bullet.
+- Every bullet must be a complete grammatical sentence and a complete thought, with normal sentence punctuation. Never output fragments such as "8 airports closed", "Industry voice", "Exit threat", "Air quality under watch", or category-like notes.
+- Use 0-3 bullets. A bullet exists only when the candidate metadata contains an important additional fact that is NOT already communicated in the summary. If there is no such fact, return an empty highlights array.
+- Prefer a meaningful #/count, %, or $ figure in a bullet when an unused one is supported by the source metadata, but never force a number and never sacrifice sentence quality or novelty just to create a bullet.
+- The summary itself should remain data-forward: include the strongest useful #/count, %, or $ figure when supported by the candidate metadata.
+- Quick hits remain one concise self-contained sentence and do not display highlights.
 """
 
-_QUANTIFIED_RULES_ID = """
+_RULES_ID = """
 
-Aturan data dan pemilihan berita tambahan ala Morning Brew:
-- Untuk berita utama dan berita tambahan, paragraf dan bullet harus saling melengkapi, bukan mengulang fakta yang sama.
-- Gunakan 0-3 bullet saja, dan hanya jika bullet menambahkan informasi penting yang dapat berdiri sendiri. Lebih sedikit bullet yang kuat lebih baik daripada filler.
-- Setiap bullet harus memuat setidaknya satu data konkret dengan angka dan, bila didukung metadata, berbentuk #/jumlah, % persentase, atau $ nilai uang. Contoh: 162.000 pekerjaan, 59%, atau $5,85. Jangan pernah mengarang atau memperkirakan angka hanya untuk memenuhi aturan ini.
-- Ringkasan paragraf juga harus data-forward: jika metadata kandidat memiliki angka #/jumlah, %, atau $ yang bermakna, masukkan setidaknya satu angka terkuat ke dalam paragraf.
-- Jika metadata tidak memiliki fakta numerik yang tepercaya untuk bullet, gunakan 0 bullet daripada mengulang paragraf atau membuat statistik baru.
-- Anggap PERISTIWA atau TOPIK berita, bukan URL artikel, sebagai satu unit berita utama. Jangan pernah memakai dua slot berita utama/tambahan untuk peristiwa yang sama walaupun media berbeda membahas dampak, pembaruan, lokasi, instansi, atau statistik yang berbeda. Contoh: erupsi, pembatalan penerbangan, penutupan bandara, sekolah daring, peringatan abu, dan transportasi alternatif adalah SATU berita.
-- Jika beberapa kandidat membahas peristiwa yang sama, gabungkan fakta terkuat yang tidak berulang menjadi satu ringkasan ala Morning Brew. Pilih kandidat terbaik sebagai tautan Baca selengkapnya utama. Jangan isi slot berita utama lainnya dengan liputan lain dari peristiwa tersebut; pilih topik yang benar-benar berbeda.
-- Keragaman topik berita utama wajib. Sebelum menyelesaikan bagian Indonesia, bandingkan lead dan semua berita tambahan berdasarkan peristiwa/entitas/aksi yang mendasarinya dan ganti duplikat topik dengan berita berbeda terbaik yang tersedia.
-- Jangan ulang topik berita utama/tambahan di Baca kilat. Baca kilat harus menambah topik baru, bukan sudut atau konsekuensi tambahan dari berita yang sudah dibahas.
-- Label Baca kilat harus menjelaskan KATEGORI ISI, bukan sekadar lokasi. Gunakan label seperti OLAHRAGA, SEPAK BOLA, POLITIK, EKONOMI, BISNIS, TEKNOLOGI, BUDAYA, MUSIK, FILM, KULINER, WISATA, TRANSPORTASI, SOSIAL, KRIMINAL, CUACA, atau KESEHATAN sesuai isi. Jangan gunakan JAKARTA, BANDUNG, BALI, atau nama tempat lain hanya karena berita terjadi di sana.
-- Speed read tetap satu kalimat ringkas dan highlights-nya tidak ditampilkan, jadi jangan memaksakan angka kecuali memang merupakan fakta terpenting.
+Aturan tambahan ala Morning Brew untuk sumber, bullet, dan pemilihan berita:
+- Anggap PERISTIWA BERITA ATAU PERDEBATAN KEBIJAKAN, bukan URL artikel, sebagai satu unit berita. Dampak, respons instansi, statistik, atau sudut media yang berbeda dari satu peristiwa harus digabung menjadi SATU berita.
+- Sebelum memilih berita utama dan tambahan, kelompokkan kandidat berdasarkan topik yang mendasarinya. Gunakan hanya satu slot utama/tambahan untuk setiap kelompok. Berita yang sedikit kurang besar tetapi benar-benar berbeda selalu lebih baik daripada berita kedua tentang topik yang sama.
+- Isi topic_key dengan penanda peristiwa/debat singkat dalam huruf kecil, misalnya "erupsi anak krakatau" atau "debat pajak kekayaan swedia". Semua liputan tentang peristiwa atau debat yang sama harus memakai topic_key yang sama.
+- Jika beberapa kandidat menyumbang fakta untuk satu berita, gabungkan fakta terkuat yang tidak tumpang tindih. Masukkan setiap kandidat yang benar-benar digunakan ke source_links dengan source dan URL PERSIS dari metadata kandidat. url/source utama juga wajib ada di source_links.
+- Template akan menampilkan semua source_links di bagian Baca selengkapnya. Jangan cantumkan sumber yang tidak menyumbang fakta pada berita tersebut.
+- Topik berita utama/tambahan tidak boleh muncul lagi sebagai berita utama lain atau Baca kilat. Baca kilat harus menambahkan topik yang benar-benar berbeda.
+- Label Baca kilat harus menjelaskan KATEGORI ISI, bukan lokasi. Gunakan OLAHRAGA, SEPAK BOLA, POLITIK, EKONOMI, BISNIS, TEKNOLOGI, BUDAYA, MUSIK, FILM, KULINER, WISATA, TRANSPORTASI, SOSIAL, KRIMINAL, CUACA, atau KESEHATAN. Jangan gunakan JAKARTA, BANDUNG, BALI, atau nama tempat hanya karena berita terjadi di sana.
+- Untuk berita utama dan tambahan, ringkasan dan bullet harus saling melengkapi. Jangan mengulang, memparafrase, atau memendekkan fakta dari ringkasan menjadi bullet.
+- Setiap bullet wajib berupa kalimat lengkap secara tata bahasa dan menyampaikan gagasan lengkap dengan tanda baca kalimat yang normal. Jangan pernah membuat fragmen seperti "8 bandara ditutup", "Ancaman keluar", atau "Kualitas udara dipantau".
+- Gunakan 0-3 bullet. Bullet hanya boleh ada jika metadata kandidat memuat fakta tambahan penting yang BELUM disampaikan dalam ringkasan. Jika tidak ada fakta baru, kembalikan highlights sebagai array kosong.
+- Utamakan angka #/jumlah, %, atau $ yang bermakna dalam bullet jika ada angka tepercaya yang belum digunakan, tetapi jangan memaksakan angka dan jangan mengorbankan kualitas kalimat atau kebaruan fakta.
+- Ringkasan tetap data-forward dan harus memakai angka terkuat bila didukung metadata kandidat.
+- Baca kilat tetap satu kalimat mandiri yang ringkas dan highlights tidak ditampilkan.
 """
 
-editor.SYSTEM_PROMPT += _QUANTIFIED_RULES_EN
-editor.INDONESIA_SYSTEM_PROMPT += _QUANTIFIED_RULES_ID
+editor.SYSTEM_PROMPT += _RULES_EN
+editor.INDONESIA_SYSTEM_PROMPT += _RULES_ID
 
-# The legacy front_page is not rendered anymore, so it should never block delivery.
-# If the model invents only unusable front-page URLs, retry link repair using real
-# section stories as compatibility placeholders while keeping all visible content intact.
-_original_validate_links = editor.validate_links
-
-
-def _validate_links_with_hidden_front_page_fallback(edition, candidates):
-    try:
-        return _original_validate_links(edition, candidates)
-    except ValueError as exc:
-        if "no usable front page links" not in str(exc):
-            raise
-
-        section_stories = []
-        if isinstance(edition, editor.Edition):
-            section_stories.extend([edition.sweden.lead, *edition.sweden.stories])
-        section_stories.extend([edition.indonesia.lead, *edition.indonesia.stories])
-        if not section_stories:
-            raise
-
-        # Three are enough for the legacy compatibility field; the template never renders them.
-        fallback = section_stories[:3]
-        if len(fallback) < 3:
-            fallback = (fallback * 3)[:3]
-        return _original_validate_links(replace(edition, front_page=fallback), candidates)
+_WORD_RE = re.compile(r"[\w%$]+", re.UNICODE)
+_STOPWORDS = {
+    "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "have",
+    "in", "into", "is", "it", "of", "on", "or", "that", "the", "their", "to", "was",
+    "were", "will", "with", "yang", "dan", "di", "ke", "dari", "untuk", "pada", "ini",
+    "itu", "dengan", "setelah", "akan", "telah", "sebagai", "atas", "oleh", "dalam",
+    "news", "update", "report", "reports", "berita",
+}
 
 
-editor.validate_links = _validate_links_with_hidden_front_page_fallback
+def _tokens(text: str) -> set[str]:
+    return {
+        token
+        for token in _WORD_RE.findall(text.casefold())
+        if len(token) > 2 and token not in _STOPWORDS
+    }
+
+
+def _clean_highlights(story: Story) -> list[str]:
+    """Keep only full-sentence bullets that add material beyond the summary."""
+    summary_tokens = _tokens(story.summary)
+    summary_normalized = " ".join(_WORD_RE.findall(story.summary.casefold()))
+    cleaned: list[str] = []
+    for raw in story.highlights:
+        item = raw.strip()
+        if not item or item[-1] not in ".!?":
+            continue
+        if len(_WORD_RE.findall(item)) < 4:
+            continue
+        normalized = " ".join(_WORD_RE.findall(item.casefold()))
+        if normalized and normalized in summary_normalized:
+            continue
+        bullet_tokens = _tokens(item)
+        if bullet_tokens and len(bullet_tokens - summary_tokens) < 2:
+            continue
+        cleaned.append(item)
+        if len(cleaned) == 3:
+            break
+    return cleaned
+
+
+def _topic_tokens(story: Story) -> set[str]:
+    return _tokens(story.topic_key or story.headline)
+
+
+def _same_topic(left: Story, right: Story) -> bool:
+    left_key = " ".join(_WORD_RE.findall(left.topic_key.casefold()))
+    right_key = " ".join(_WORD_RE.findall(right.topic_key.casefold()))
+    if left_key and right_key and left_key == right_key:
+        return True
+    left_tokens = _topic_tokens(left)
+    right_tokens = _topic_tokens(right)
+    if not left_tokens or not right_tokens:
+        return False
+    overlap = left_tokens & right_tokens
+    return len(overlap) >= 2 and len(overlap) / min(len(left_tokens), len(right_tokens)) >= 0.6
+
+
+def _candidate_from_url(url: str, by_url: dict[str, object]):
+    for key in (
+        url,
+        url.strip(),
+        editor.canonical_url_key(url),
+        editor.canonical_url_key(url).split("?")[0],
+    ):
+        if key in by_url:
+            return by_url[key]
+    return None
+
+
+def _repair_and_clean(
+    edition: Edition | IndonesiaEdition, candidates: list
+) -> Edition | IndonesiaEdition:
+    """Validate every source link and enforce no-repeat editorial rules after generation."""
+    by_url, by_title = editor.build_link_index(candidates)
+    dropped = 0
+
+    def fix(story: Story) -> Story | None:
+        nonlocal dropped
+        primary = editor.match_candidate(story, by_url, by_title)
+        if primary is None:
+            dropped += 1
+            return None
+
+        links: list[SourceLink] = []
+        seen_urls: set[str] = set()
+        for link in story.source_links:
+            candidate = _candidate_from_url(link.url, by_url)
+            if candidate is None or candidate.url in seen_urls:
+                continue
+            links.append(SourceLink(source=candidate.source, url=candidate.url))
+            seen_urls.add(candidate.url)
+
+        if primary.url not in seen_urls:
+            links.insert(0, SourceLink(source=primary.source, url=primary.url))
+        links = links[:4]
+
+        return replace(
+            story,
+            url=primary.url,
+            source=primary.source or story.source,
+            source_links=links,
+            highlights=_clean_highlights(story),
+        )
+
+    def fix_list(stories: list[Story]) -> list[Story]:
+        return [fixed for fixed in (fix(story) for story in stories) if fixed is not None]
+
+    def dedupe(stories: list[Story], used: list[Story]) -> list[Story]:
+        kept: list[Story] = []
+        for story in stories:
+            if any(_same_topic(story, previous) for previous in [*used, *kept]):
+                continue
+            kept.append(story)
+        return kept
+
+    def fix_section(section: CountrySection) -> CountrySection:
+        lead = fix(section.lead)
+        stories = fix_list(section.stories)
+        quick_hits = fix_list(section.quick_hits)
+        if lead is None:
+            if stories:
+                lead, stories = stories[0], stories[1:]
+            elif quick_hits:
+                lead, quick_hits = quick_hits[0], quick_hits[1:]
+            else:
+                raise ValueError("A country section lost every story during link repair")
+        stories = dedupe(stories, [lead])
+        quick_hits = dedupe(quick_hits, [lead, *stories])
+        return replace(section, lead=lead, stories=stories, quick_hits=quick_hits)
+
+    indonesia = fix_section(edition.indonesia)
+    changes = {"indonesia": indonesia}
+    section_stories = [indonesia.lead, *indonesia.stories, *indonesia.quick_hits]
+    if isinstance(edition, Edition):
+        sweden = fix_section(edition.sweden)
+        changes["sweden"] = sweden
+        section_stories = [
+            sweden.lead,
+            *sweden.stories,
+            *sweden.quick_hits,
+            *section_stories,
+        ]
+
+    front_page = fix_list(edition.front_page)
+    if not front_page:
+        # Front page is compatibility-only and is not rendered. It must never
+        # block an otherwise valid newsletter delivery.
+        front_page = section_stories[:3]
+    changes["front_page"] = front_page
+
+    if dropped:
+        print(f"  Dropped {dropped} story link(s) the editor invented", flush=True)
+    return replace(edition, **changes)
+
+
+# create_edition/create_indonesia_edition resolve this module global at runtime,
+# so production generation receives the stricter validated cleanup.
+editor.validate_links = _repair_and_clean
