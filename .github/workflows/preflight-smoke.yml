@@ -1,0 +1,57 @@
+name: Preflight smoke
+
+on:
+  push:
+    paths:
+      - ".github/run-preflight-smoke-now"
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install .
+      - name: Generate Sweden Indonesia without sending
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
+          BRIEF_TIMEZONE: America/New_York
+          BRIEF_MAX_CANDIDATES: "40"
+        run: python -m briefing --out out/smoke-standard
+      - name: Validate Sweden Indonesia output
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          files = list(Path('out/smoke-standard').glob('*.html'))
+          assert len(files) == 1, files
+          html = files[0].read_text(encoding='utf-8')
+          speed_rows = html.count('class="speed-row"')
+          assert speed_rows >= 6, f'Expected at least 3 speed reads per country; got {speed_rows}'
+          assert 'NORDIC + NUSANTARA' in html
+          assert 'Sweden' in html and 'Indonesia' in html
+          print(f'standard_html={files[0]} speed_rows={speed_rows} images={html.count("<img") }')
+          PY
+      - name: Generate Indonesia-only without sending
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
+          BRIEF_TIMEZONE: America/New_York
+          BRIEF_MAX_CANDIDATES: "40"
+        run: python -m briefing --edition indonesia --sources config/indonesia_sources.yml --out out/smoke-indonesia
+      - name: Validate Indonesia-only output
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          files = list(Path('out/smoke-indonesia').glob('*.html'))
+          assert len(files) == 1, files
+          html = files[0].read_text(encoding='utf-8')
+          speed_rows = html.count('class="speed-row"')
+          assert speed_rows >= 3, f'Expected at least 3 speed reads; got {speed_rows}'
+          assert 'NUSANTARA DAILY' in html
+          print(f'indonesia_html={files[0]} speed_rows={speed_rows} images={html.count("<img") }')
+          PY
