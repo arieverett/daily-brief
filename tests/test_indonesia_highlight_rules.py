@@ -1,4 +1,4 @@
-from briefing.indonesia_highlight_rules import _strict_clean
+from briefing.editorial import clean_indonesia_highlights
 from briefing.models import Story
 
 
@@ -6,7 +6,6 @@ def _story(summary: str, highlights: list[str]) -> Story:
     return Story(
         headline="Indonesia test story",
         summary=summary,
-        why_it_matters="",
         url="https://example.com/story",
         source="Example",
         label="NEWS",
@@ -25,7 +24,7 @@ def test_indonesia_wildfire_recap_bullets_are_removed():
             "Malaysia has said it is waiting for Indonesia's approval to assist firefighting efforts.",
         ],
     )
-    assert _strict_clean(story) == []
+    assert clean_indonesia_highlights(story) == []
 
 
 def test_indonesia_keeps_new_number_but_drops_repeated_bonus_and_resilience():
@@ -39,6 +38,19 @@ def test_indonesia_keeps_new_number_but_drops_repeated_bonus_and_resilience():
             "Officials framed the delegation as a symbol of national resilience.",
         ],
     )
-    assert _strict_clean(story) == [
+    assert clean_indonesia_highlights(story) == [
         "Prabowo led the send-off for Indonesia's Asian Games contingent of over 400 athletes."
     ]
+
+
+def test_indonesia_prefers_new_quantitative_bullet():
+    story = _story(
+        "The government launched a new electric motorcycle incentive program nationwide.",
+        [
+            "Officials said the plan is intended to accelerate transport electrification.",
+            "The program targets 100,000 electric motorcycles per year.",
+        ],
+    )
+    assert clean_indonesia_highlights(story)[0] == (
+        "The program targets 100,000 electric motorcycles per year."
+    )
