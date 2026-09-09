@@ -1,79 +1,79 @@
+"""HTML and plain-text rendering."""
+
 from __future__ import annotations
 
+from functools import lru_cache
 from importlib.resources import files
 
-from jinja2 import Environment, FileSystemLoader, select_autoescape
+from jinja2 import Environment, FileSystemLoader, Template, select_autoescape
 
-from .models import Edition, IndonesiaEdition, Story
+from .models import Edition, IndonesiaEdition, NewsletterEdition, Story
 
 
-def _template_env() -> Environment:
+@lru_cache(maxsize=1)
+def _newsletter_template() -> Template:
+    """Build the Jinja environment once per process instead of once per render."""
     template_dir = files("briefing").joinpath("templates")
-    return Environment(
+    environment = Environment(
         loader=FileSystemLoader(str(template_dir)),
         autoescape=select_autoescape(["html", "xml"]),
         trim_blocks=True,
         lstrip_blocks=True,
     )
+    return environment.get_template("newsletter.html")
 
 
-def render_html(edition: Edition) -> str:
-    return _template_env().get_template("newsletter.html").render(edition=edition)
-
-
-def render_indonesia_html(edition: IndonesiaEdition) -> str:
-    return _template_env().get_template("newsletter.html").render(edition=edition)
+def render_html(edition: NewsletterEdition) -> str:
+    return _newsletter_template().render(edition=edition)
 
 
 def _source_lines(story: Story, prefix: str) -> list[str]:
-    if story.source_links:
-        return [f"{prefix}: {link.source} | {link.url}" for link in story.source_links]
+    links = story.source_links or []
+    if links:
+        return [f"{prefix}: {link.source} | {link.url}" for link in links]
     return [f"{prefix}: {story.source} | {story.url}"]
 
 
-def _story_text(story: Story, *, include_why: bool = True) -> str:
+def _story_text(story: Story, *, source_prefix: str) -> str:
     lines = [f"{story.label}: {story.headline}", story.summary]
     lines.extend(f"• {item}" for item in story.highlights)
-    lines.extend(_source_lines(story, "Read article"))
+    lines.extend(_source_lines(story, source_prefix))
     return "\n".join(lines)
 
 
 def render_text(edition: Edition) -> str:
-    blocks = [
-        "DAILY BRIEF",
-        edition.date_label,
-        "",
-        "THE SETUP",
-        edition.bottom_line,
-    ]
+    blocks = ["DAILY BRIEF", edition.date_label, "", "THE SETUP", edition.setup]
     for heading, section in (("SWEDEN", edition.sweden), ("INDONESIA", edition.indonesia)):
-        blocks += ["", heading, _story_text(section.lead)]
-        blocks.extend(_story_text(story) for story in section.stories)
-        blocks.append("QUICK HITS")
-        blocks.extend(_story_text(story, include_why=False) for story in section.quick_hits)
+        blocks.extend(("", heading, _story_text(section.lead, source_prefix="Read more")))
+        blocks.extend(
+            _story_text(story, source_prefix="Read more") for story in section.stories
+        )
+        blocks.append("SPEED READ")
+        blocks.extend(
+            _story_text(story, source_prefix="Read article") for story in section.quick_hits
+        )
     return "\n\n".join(blocks)
 
 
 def render_indonesia_text(edition: IndonesiaEdition) -> str:
     section = edition.indonesia
-
-    def indonesia_story_text(story: Story, *, include_why: bool = True) -> str:
-        lines = [f"{story.label}: {story.headline}", story.summary]
-        lines.extend(f"• {item}" for item in story.highlights)
-        lines.extend(_source_lines(story, "Baca artikel"))
-        return "\n".join(lines)
-
     blocks = [
         "NUSANTARA DAILY",
         edition.date_label,
         "",
         "DALAM EDISI HARI INI",
-        edition.bottom_line,
+        edition.setup,
         "",
         "INDONESIA",
-        indonesia_story_text(section.lead),
-        *(indonesia_story_text(story) for story in section.stories),
+        _story_text(section.lead, source_prefix="Baca selengkapnya"),
+        *(
+            _story_text(story, source_prefix="Baca selengkapnya")
+            for story in section.stories
+        ),
         "BACA KILAT",
-        *(indonesia_story_text(story, include_why=False) for story in section.quick_hits),
+        *(
+            _story_text(story, source_prefix="Baca artikel")
+            for story in section.quick_hits
+        ),
     ]
     return "\n\n".join(blocks)
