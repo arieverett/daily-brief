@@ -1,0 +1,83 @@
+name: Reusable newsletter delivery
+
+on:
+  workflow_call:
+    inputs:
+      edition:
+        description: Newsletter edition to generate
+        required: true
+        type: string
+      sources:
+        description: Source configuration path
+        required: true
+        type: string
+      max_candidates:
+        description: Maximum candidate stories passed to the editor
+        required: false
+        default: "60"
+        type: string
+    secrets:
+      OPENAI_API_KEY:
+        required: true
+      RESEND_API_KEY:
+        required: true
+      BRIEF_FROM_EMAIL:
+        required: true
+      DELIVERY_TO_EMAIL:
+        required: true
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Check New York delivery schedule
+        id: delivery_time
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          offset="$(TZ=America/New_York date +%z)"
+          schedule="${{ github.event.schedule }}"
+          if [[ "$offset" == "-0400" && "$schedule" == "0 7 * * *" ]] || \
+             [[ "$offset" == "-0500" && "$schedule" == "0 8 * * *" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v5
+        if: steps.delivery_time.outputs.should_run == 'true'
+
+      - uses: actions/setup-python@v6
+        if: steps.delivery_time.outputs.should_run == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install application
+        if: steps.delivery_time.outputs.should_run == 'true'
+        run: pip install .
+
+      - name: Generate and send newsletter
+        if: steps.delivery_time.outputs.should_run == 'true'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          BRIEF_TO_EMAIL: ${{ secrets.DELIVERY_TO_EMAIL }}
+          BRIEF_FROM_EMAIL: ${{ secrets.BRIEF_FROM_EMAIL }}
+          BRIEF_TIMEZONE: America/New_York
+          BRIEF_MAX_CANDIDATES: ${{ inputs.max_candidates }}
+        shell: bash
+        run: |
+          args=(--send --sources "${{ inputs.sources }}")
+          if [[ "${{ inputs.edition }}" != "standard" ]]; then
+            args+=(--edition "${{ inputs.edition }}")
+          fi
+          python -m briefing "${args[@]}"
