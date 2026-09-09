@@ -73,7 +73,6 @@ def _indonesia_prompt(candidates: list[Candidate], timezone_name: str) -> str:
 
 def _generate_structured_output(
     *,
-    candidates: list[Candidate],
     api_key: str,
     model: str,
     instructions: str,
@@ -119,7 +118,6 @@ def create_edition(
         raise RuntimeError(f"Not enough candidate stories to publish safely: {counts}")
 
     payload = _generate_structured_output(
-        candidates=candidates,
         api_key=api_key,
         model=model,
         instructions=SYSTEM_PROMPT,
@@ -145,7 +143,6 @@ def create_indonesia_edition(
         )
 
     payload = _generate_structured_output(
-        candidates=indonesia_candidates,
         api_key=api_key,
         model=model,
         instructions=INDONESIA_SYSTEM_PROMPT,
