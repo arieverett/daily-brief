@@ -1,23 +1,29 @@
 # Daily Brief
 
 Two personal morning newsletters: an English Sweden + Indonesia edition and a Bahasa Indonesia
-edition for Ari's mom. They collect recent reporting, deduplicate overlapping headlines, ask an AI
-editor to prioritize the news, render polished HTML and plain-text editions, and send via Resend.
+edition for Ari's mom. They collect recent reporting, deduplicate overlapping coverage, ask an AI
+editor to prioritize the news, run deterministic editorial quality gates, render responsive HTML
+and plain-text editions, and send through Resend.
 
-## What ships in V1
+## What ships
 
-- 30-second **Front Page** with the three stories that define the day
-- Sweden and Indonesia sections with a lead, short explainers, and speed reads
+- Sweden and Indonesia sections with one lead, concise explainers, and speed reads
+- Morning Brew-style writing: direct, conversational, data-forward, and high signal
 - Editorial preference for significance, authoritative sourcing, and economic/political context
-- Exact source links on every item
-- Automated 5:45 AM Phoenix run, targeting inbox delivery by 6:00 AM
-- Duplicate-send protection through a per-day Resend idempotency key
-- HTML email plus plain-text fallback
-- A no-API sample renderer and unit tests
+- Optional bullets that must add new information instead of restating the summary
+- Stricter Indonesia bullet filtering, with priority for unused counts, percentages, and currency data
+- Exact, validated source links on every item
+- Publisher article images when they can be fetched within the image time budget
+- Duplicate-send protection through a content-based Resend idempotency key
+- Responsive HTML email plus a plain-text fallback
+- Automated tests, linting, and a no-API sample renderer
 
-## One-time launch setup
+## Production schedule
 
-The scheduled workflow needs four repository secrets:
+Both newsletters are scheduled for **3:00 AM America/New_York**. GitHub Actions runs the UTC
+variants for daylight and standard time, then a timezone guard selects the correct run.
+
+The scheduled workflows need these repository secrets:
 
 | Secret | Value |
 |---|---|
@@ -25,13 +31,10 @@ The scheduled workflow needs four repository secrets:
 | `RESEND_API_KEY` | Resend sending API key |
 | `BRIEF_TO_EMAIL` | Ari's destination email address |
 | `INDONESIA_BRIEF_TO_EMAIL` | Recipient for Nusantara Daily |
-| `BRIEF_FROM_EMAIL` | Verified sender, e.g. `Daily Brief <brief@yourdomain.com>` |
+| `BRIEF_FROM_EMAIL` | Verified sender, e.g. `Daily Brief <news@dailybrief.example.com>` |
 
-For the quickest first send, Resend's test sender can deliver only to the email attached to the
-Resend account. A verified domain is the durable production setup.
-
-After adding the secrets, manually run both **Send daily brief** and **Send Indonesia brief** once.
-Both editions are scheduled for 3:00 AM America/New_York and account for daylight saving time.
+The model can be changed with the `OPENAI_MODEL` repository variable. Production currently falls
+back to `gpt-5-mini` when the variable is not set.
 
 ## Run locally
 
@@ -45,13 +48,13 @@ cp .env.example .env
 Export the variables from `.env`, then:
 
 ```bash
-# Render the bundled design sample (no API keys or network needed)
+# Render the bundled standard design sample without network/API keys
 python -m briefing --sample
 
-# Generate a live edition without sending
+# Generate a live standard edition without sending
 python -m briefing
 
-# Generate and send
+# Generate and send the standard edition
 python -m briefing --send
 
 # Generate and send Nusantara Daily
@@ -60,22 +63,51 @@ python -m briefing --edition indonesia --sources config/indonesia_sources.yml --
 
 Generated HTML and text files are written to `out/`.
 
-## Editorial pipeline
+## Pipeline
 
-1. Pull the last 36 hours from country, city, economy, and authoritative RSS searches.
-2. Normalize titles and collapse near-duplicate coverage.
-3. Require at least six fresh candidates for each country or stop without sending.
-4. Use structured AI output with strict story counts and fields.
-5. Reject any link/source pair the model did not receive in the candidate set.
-6. Render responsive email HTML and a plain-text fallback.
-7. Send once per date and recipient through Resend.
+1. **Collect:** pull recent stories from the configured feeds concurrently.
+2. **Normalize:** clean titles, enforce trusted-source lists, and collapse near-duplicate coverage.
+3. **Recover:** aim for at least three fresh candidates per relevant country. If the editorial pool
+   is thin, expand the lookback to 7 days and then 30 days rather than failing just because the
+   current news cycle is light.
+4. **Edit:** send the candidate metadata to OpenAI using strict structured output. The model chooses
+   the lead, secondary stories, speed reads, setup, subject, and preview text.
+5. **Validate:** snap every generated URL back to a real candidate, reject invented sources, merge
+   duplicate topics, remove recap bullets, and backfill speed reads from unused candidate topics
+   when needed.
+6. **Enrich:** fetch publisher social images concurrently under a fixed time budget, with RSS images
+   as the fallback.
+7. **Render:** build one responsive email template and the edition-specific plain-text fallback.
+8. **Send:** deliver through Resend with an idempotency key derived from the edition content.
 
-## V1 operating notes
+## Code map
 
-- Sources are editable in `config/sources.yml` without touching the application code.
-- Nusantara Daily sources are isolated in `config/indonesia_sources.yml`.
-- The model is configurable with `OPENAI_MODEL`; the default is `gpt-5-mini`.
-- Feed failure is tolerated, but the minimum-story safety check prevents thin editions.
-- The workflow can be run manually at any time from GitHub Actions.
-- This is a personal briefing, not a bulk marketing list, so subscriber management and
-  unsubscribe workflows are intentionally outside V1.
+- `src/briefing/collect.py` — feed collection, deduplication, Google News URL resolution, images
+- `src/briefing/editor.py` — OpenAI request orchestration and date/localization prompt setup
+- `src/briefing/editorial.py` — schemas, newsroom style guide, source validation, quality gates
+- `src/briefing/models.py` — newsletter data model and backward-compatible fixture parsing
+- `src/briefing/render.py` — cached Jinja template rendering and plain-text output
+- `src/briefing/send.py` — recipient parsing and Resend delivery
+- `src/briefing/templates/newsletter.html` — email-safe responsive presentation
+- `config/sources.yml` — standard Sweden + Indonesia source discovery
+- `config/indonesia_sources.yml` — Nusantara Daily source discovery
+
+## Editorial guardrails
+
+- Facts must come from candidate metadata. The model may synthesize coverage, not invent details.
+- The news event is the unit of a story; multiple outlet URLs about the same event do not get
+  multiple newsletter slots.
+- Main-story bullets are optional. **Zero bullets is better than a redundant bullet.**
+- Indonesia bullets receive an additional post-generation novelty check. Reused paragraph numbers
+  and paraphrased recap bullets are removed automatically.
+- Speed reads must use distinct topics and link to the underlying article.
+- Source names live in the source row, not in prose such as "according to Reuters."
+- Serious stories stay serious. Light wordplay is reserved for appropriate topics.
+
+## Reliability notes
+
+- Feed failures are tolerated individually.
+- The editor needs at least six candidate stories per relevant country after fallback so it can fill
+  the minimum structured edition without recycling topics.
+- Image failures never block delivery; the newsletter can send with RSS images or no image.
+- The GitHub test workflow runs Ruff, Pytest, and a full sample render on every push.
