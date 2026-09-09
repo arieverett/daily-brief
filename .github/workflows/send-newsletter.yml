@@ -35,39 +35,17 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Check New York delivery schedule
-        id: delivery_time
-        shell: bash
-        run: |
-          if [[ "${{ github.event_name }}" != "schedule" ]]; then
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          offset="$(TZ=America/New_York date +%z)"
-          schedule="${{ github.event.schedule }}"
-          if [[ "$offset" == "-0400" && "$schedule" == "0 7 * * *" ]] || \
-             [[ "$offset" == "-0500" && "$schedule" == "0 8 * * *" ]]; then
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - uses: actions/checkout@v5
-        if: steps.delivery_time.outputs.should_run == 'true'
 
       - uses: actions/setup-python@v6
-        if: steps.delivery_time.outputs.should_run == 'true'
         with:
           python-version: "3.12"
           cache: pip
 
       - name: Install application
-        if: steps.delivery_time.outputs.should_run == 'true'
         run: pip install .
 
       - name: Generate and send newsletter
-        if: steps.delivery_time.outputs.should_run == 'true'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
