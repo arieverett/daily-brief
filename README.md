@@ -20,8 +20,9 @@ and plain-text editions, and send through Resend.
 
 ## Production schedule
 
-Both newsletters are scheduled for **3:00 AM America/New_York**. GitHub Actions runs the UTC
-variants for daylight and standard time, then a timezone guard selects the correct run.
+Both newsletters are scheduled for **3:00 AM America/New_York**. Each lightweight schedule file
+calls the same reusable delivery workflow. GitHub Actions runs the UTC variants for daylight and
+standard time, then the shared timezone guard selects the correct run.
 
 The scheduled workflows need these repository secrets:
 
@@ -33,8 +34,8 @@ The scheduled workflows need these repository secrets:
 | `INDONESIA_BRIEF_TO_EMAIL` | Recipient for Nusantara Daily |
 | `BRIEF_FROM_EMAIL` | Verified sender, e.g. `Daily Brief <news@dailybrief.example.com>` |
 
-The model can be changed with the `OPENAI_MODEL` repository variable. Production currently falls
-back to `gpt-5-mini` when the variable is not set.
+The model can be changed with the `OPENAI_MODEL` repository variable. Production falls back to
+`gpt-5-mini` when the variable is not set.
 
 ## Run locally
 
@@ -85,12 +86,15 @@ Generated HTML and text files are written to `out/`.
 - `src/briefing/collect.py` — feed collection, deduplication, Google News URL resolution, images
 - `src/briefing/editor.py` — OpenAI request orchestration and date/localization prompt setup
 - `src/briefing/editorial.py` — schemas, newsroom style guide, source validation, quality gates
-- `src/briefing/models.py` — newsletter data model and backward-compatible fixture parsing
+- `src/briefing/models.py` — current newsletter data model and structured-output parsing
 - `src/briefing/render.py` — cached Jinja template rendering and plain-text output
 - `src/briefing/send.py` — recipient parsing and Resend delivery
 - `src/briefing/templates/newsletter.html` — email-safe responsive presentation
 - `config/sources.yml` — standard Sweden + Indonesia source discovery
 - `config/indonesia_sources.yml` — Nusantara Daily source discovery
+- `.github/workflows/send-newsletter.yml` — shared install, timezone guard, generation, and delivery job
+- `.github/workflows/daily.yml` — standard edition schedule and recipient wiring
+- `.github/workflows/indonesia-daily.yml` — Indonesia edition schedule and recipient wiring
 
 ## Editorial guardrails
 
@@ -110,4 +114,5 @@ Generated HTML and text files are written to `out/`.
 - The editor needs at least six candidate stories per relevant country after fallback so it can fill
   the minimum structured edition without recycling topics.
 - Image failures never block delivery; the newsletter can send with RSS images or no image.
+- Both production editions use the same reusable delivery workflow, preventing schedule/setup drift.
 - The GitHub test workflow runs Ruff, Pytest, and a full sample render on every push.
