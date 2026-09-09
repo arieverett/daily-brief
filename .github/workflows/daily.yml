@@ -27,4 +27,4 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       BRIEF_FROM_EMAIL: ${{ secrets.BRIEF_FROM_EMAIL }}
-      DELIVERY_TO_EMAIL: ${{ secrets.BRIEF_TO_EMAIL }}
+      BRIEF_TO_EMAIL: ${{ secrets.BRIEF_TO_EMAIL }}
