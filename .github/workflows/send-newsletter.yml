@@ -23,8 +23,10 @@ on:
         required: true
       BRIEF_FROM_EMAIL:
         required: true
-      DELIVERY_TO_EMAIL:
+      BRIEF_TO_EMAIL:
         required: true
+      INDONESIA_BRIEF_TO_EMAIL:
+        required: false
 
 jobs:
   send:
@@ -70,12 +72,19 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          BRIEF_TO_EMAIL: ${{ secrets.DELIVERY_TO_EMAIL }}
+          PRIMARY_TO_EMAIL: ${{ secrets.BRIEF_TO_EMAIL }}
+          INDONESIA_TO_EMAIL: ${{ secrets.INDONESIA_BRIEF_TO_EMAIL }}
           BRIEF_FROM_EMAIL: ${{ secrets.BRIEF_FROM_EMAIL }}
           BRIEF_TIMEZONE: America/New_York
           BRIEF_MAX_CANDIDATES: ${{ inputs.max_candidates }}
         shell: bash
         run: |
+          if [[ "${{ inputs.edition }}" == "indonesia" ]]; then
+            export BRIEF_TO_EMAIL="${INDONESIA_TO_EMAIL},${PRIMARY_TO_EMAIL}"
+          else
+            export BRIEF_TO_EMAIL="${PRIMARY_TO_EMAIL}"
+          fi
+
           args=(--send --sources "${{ inputs.sources }}")
           if [[ "${{ inputs.edition }}" != "standard" ]]; then
             args+=(--edition "${{ inputs.edition }}")
