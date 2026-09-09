@@ -18,7 +18,13 @@ from .editorial import (
     prefix_indonesia_subject,
     validate_edition,
 )
-from .models import Candidate, Edition, IndonesiaEdition, edition_from_dict, indonesia_edition_from_dict
+from .models import (
+    Candidate,
+    Edition,
+    IndonesiaEdition,
+    edition_from_dict,
+    indonesia_edition_from_dict,
+)
 
 MIN_CANDIDATES_PER_COUNTRY = 6
 OPENAI_TIMEOUT_SECONDS = 300.0
