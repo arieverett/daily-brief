@@ -20,9 +20,9 @@ and plain-text editions, and send through Resend.
 
 ## Production schedule
 
-Both newsletters are scheduled for **3:00 AM America/New_York**. Each lightweight schedule file
-calls the same reusable delivery workflow. GitHub Actions runs the UTC variants for daylight and
-standard time, then the shared timezone guard selects the correct run.
+Both newsletters are scheduled for **3:00 AM America/New_York** using GitHub Actions' native IANA
+timezone support, so daylight-saving changes do not require duplicate UTC cron entries or a custom
+DST guard. Each lightweight schedule file calls the same reusable delivery workflow.
 
 The scheduled workflows need these repository secrets:
 
@@ -92,7 +92,7 @@ Generated HTML and text files are written to `out/`.
 - `src/briefing/templates/newsletter.html` — email-safe responsive presentation
 - `config/sources.yml` — standard Sweden + Indonesia source discovery
 - `config/indonesia_sources.yml` — Nusantara Daily source discovery
-- `.github/workflows/send-newsletter.yml` — shared install, timezone guard, generation, and delivery job
+- `.github/workflows/send-newsletter.yml` — shared install, generation, and delivery job
 - `.github/workflows/daily.yml` — standard edition schedule and recipient wiring
 - `.github/workflows/indonesia-daily.yml` — Indonesia edition schedule and recipient wiring
 
