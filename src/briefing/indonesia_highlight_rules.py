@@ -70,9 +70,10 @@ def _strict_clean(story):
 
         # Non-numeric bullets must be very clearly separate from the paragraph.
         # Empty highlights are explicitly preferable to paraphrased filler.
-        if not bullet_data:
-            if overlap >= 2 or overlap_ratio >= 0.25 or len(new_words) < 4:
-                continue
+        if not bullet_data and (
+            overlap >= 2 or overlap_ratio >= 0.25 or len(new_words) < 4
+        ):
+            continue
 
         kept.append((item, bool(new_data)))
 
