@@ -92,9 +92,7 @@ def source_link_from_dict(value: dict[str, Any]) -> SourceLink:
 
 
 def story_from_dict(value: dict[str, Any]) -> Story:
-    """Parse current output while tolerating obsolete V1 compatibility fields."""
     data = dict(value)
-    data.pop("why_it_matters", None)
     data["source_links"] = [
         source_link_from_dict(item) for item in value.get("source_links", [])
     ]
@@ -109,11 +107,6 @@ def country_from_dict(value: dict[str, Any]) -> CountrySection:
     )
 
 
-def _setup_from_dict(value: dict[str, Any]) -> str:
-    # ``bottom_line`` is accepted only so old sample fixtures remain readable.
-    return str(value.get("setup", value.get("bottom_line", "")))
-
-
 def edition_from_dict(value: dict[str, Any]) -> Edition:
     return Edition(
         edition_date=value["edition_date"],
@@ -122,7 +115,7 @@ def edition_from_dict(value: dict[str, Any]) -> Edition:
         preview_text=value["preview_text"],
         sweden=country_from_dict(value["sweden"]),
         indonesia=country_from_dict(value["indonesia"]),
-        setup=_setup_from_dict(value),
+        setup=value["setup"],
     )
 
 
@@ -133,5 +126,5 @@ def indonesia_edition_from_dict(value: dict[str, Any]) -> IndonesiaEdition:
         subject=value["subject"],
         preview_text=value["preview_text"],
         indonesia=country_from_dict(value["indonesia"]),
-        setup=_setup_from_dict(value),
+        setup=value["setup"],
     )
