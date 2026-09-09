@@ -6,9 +6,9 @@ import argparse
 import asyncio
 import json
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
 
 from .collect import add_article_images, add_indonesia_article_images, collect_candidates
 from .config import DEFAULT_OUT_DIR, DEFAULT_SOURCES_PATH, Settings
