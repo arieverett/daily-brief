@@ -2,10 +2,8 @@ name: Send daily brief
 
 on:
   schedule:
-    # GitHub cron uses UTC. The reusable workflow selects the correct
-    # New York offset for daylight or standard time.
-    - cron: "0 7 * * *"
-    - cron: "0 8 * * *"
+    - cron: "0 3 * * *"
+      timezone: America/New_York
   workflow_dispatch:
   push:
     paths:
