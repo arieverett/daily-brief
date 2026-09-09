@@ -7,6 +7,8 @@ from typing import Any
 
 @dataclass(frozen=True)
 class Candidate:
+    """A trusted article candidate collected from an configured feed."""
+
     country: str
     title: str
     url: str
@@ -16,6 +18,7 @@ class Candidate:
     image_url: str = ""
 
     def prompt_dict(self) -> dict[str, str]:
+        """Return only the fields the AI editor needs."""
         return {
             "country": self.country,
             "title": self.title,
@@ -34,9 +37,10 @@ class SourceLink:
 
 @dataclass(frozen=True)
 class Story:
+    """A rendered main story or speed-read item."""
+
     headline: str
     summary: str
-    why_it_matters: str
     url: str
     source: str
     label: str = ""
@@ -59,10 +63,9 @@ class Edition:
     date_label: str
     subject: str
     preview_text: str
-    front_page: list[Story]
     sweden: CountrySection
     indonesia: CountrySection
-    bottom_line: str
+    setup: str
 
     def asdict(self) -> dict[str, Any]:
         return asdict(self)
@@ -74,12 +77,14 @@ class IndonesiaEdition:
     date_label: str
     subject: str
     preview_text: str
-    front_page: list[Story]
     indonesia: CountrySection
-    bottom_line: str
+    setup: str
 
     def asdict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+NewsletterEdition = Edition | IndonesiaEdition
 
 
 def source_link_from_dict(value: dict[str, Any]) -> SourceLink:
@@ -87,7 +92,9 @@ def source_link_from_dict(value: dict[str, Any]) -> SourceLink:
 
 
 def story_from_dict(value: dict[str, Any]) -> Story:
+    """Parse current output while tolerating obsolete V1 compatibility fields."""
     data = dict(value)
+    data.pop("why_it_matters", None)
     data["source_links"] = [
         source_link_from_dict(item) for item in value.get("source_links", [])
     ]
@@ -102,16 +109,20 @@ def country_from_dict(value: dict[str, Any]) -> CountrySection:
     )
 
 
+def _setup_from_dict(value: dict[str, Any]) -> str:
+    # ``bottom_line`` is accepted only so old sample fixtures remain readable.
+    return str(value.get("setup", value.get("bottom_line", "")))
+
+
 def edition_from_dict(value: dict[str, Any]) -> Edition:
     return Edition(
         edition_date=value["edition_date"],
         date_label=value["date_label"],
         subject=value["subject"],
         preview_text=value["preview_text"],
-        front_page=[story_from_dict(item) for item in value["front_page"]],
         sweden=country_from_dict(value["sweden"]),
         indonesia=country_from_dict(value["indonesia"]),
-        bottom_line=value["bottom_line"],
+        setup=_setup_from_dict(value),
     )
 
 
@@ -121,7 +132,6 @@ def indonesia_edition_from_dict(value: dict[str, Any]) -> IndonesiaEdition:
         date_label=value["date_label"],
         subject=value["subject"],
         preview_text=value["preview_text"],
-        front_page=[story_from_dict(item) for item in value["front_page"]],
         indonesia=country_from_dict(value["indonesia"]),
-        bottom_line=value["bottom_line"],
+        setup=_setup_from_dict(value),
     )
