@@ -7,7 +7,7 @@ from typing import Any
 
 @dataclass(frozen=True)
 class Candidate:
-    """A trusted article candidate collected from an configured feed."""
+    """A trusted article candidate collected from a configured feed."""
 
     country: str
     title: str
