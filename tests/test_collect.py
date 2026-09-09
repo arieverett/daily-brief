@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 import httpx
 
 from briefing.collect import (
+    _select_candidates,
     decode_legacy_google_news_id,
     deduplicate,
     extract_article_image,
@@ -20,11 +21,11 @@ from briefing.collect import (
 from briefing.models import Candidate
 
 
-def candidate(title: str, source: str = "Reuters") -> Candidate:
+def candidate(title: str, source: str = "Reuters", country: str = "Sweden") -> Candidate:
     return Candidate(
-        country="Sweden",
+        country=country,
         title=title,
-        url=f"https://example.com/{len(title)}",
+        url=f"https://example.com/{country}/{len(title)}/{source}",
         source=source,
         published_at=datetime.now(UTC),
     )
@@ -55,6 +56,25 @@ def test_deduplicate_near_identical_titles():
     ]
     result = deduplicate(items)
     assert len(result) == 2
+
+
+def test_deduplicate_does_not_drop_same_headline_from_other_country():
+    title = "Regional airline announces new route"
+    items = [
+        candidate(title, country="Sweden"),
+        candidate(title, country="Indonesia"),
+    ]
+    assert len(deduplicate(items)) == 2
+
+
+def test_candidate_selection_splits_limit_fairly_across_countries():
+    items = [
+        *(candidate(f"Sweden story {index}", country="Sweden") for index in range(5)),
+        *(candidate(f"Indonesia story {index}", country="Indonesia") for index in range(5)),
+    ]
+    selected = _select_candidates(items, 4)
+    assert sum(item.country == "Sweden" for item in selected) == 2
+    assert sum(item.country == "Indonesia" for item in selected) == 2
 
 
 def test_extract_image_from_summary_markup():
