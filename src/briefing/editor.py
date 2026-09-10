@@ -29,6 +29,36 @@ from .models import (
 MIN_CANDIDATES_PER_COUNTRY = 6
 OPENAI_TIMEOUT_SECONDS = 300.0
 
+ENGLISH_VOICE_GUIDANCE = """VOICE AND TONE OVERRIDE
+- Write like a staff journalist delivering the newsletter directly to readers. Report the news itself; do not describe the source material as source material.
+- State facts directly: write "Volvo plans to build an energy park in Mariestad," not "Reporting says Volvo plans to build an energy park in Mariestad."
+- Never use meta-reporting phrases such as "coverage reports", "coverage indicates", "coverage highlights", "coverage focuses on", "reporting states", "reporting indicates", "reporting notes", "the article says", "the story says", "the story frames", "the announcement adds", "the report says", or close variants.
+- More broadly, do not make "coverage", "reporting", "the article", "the story", "the report", or "the announcement" the narrator or subject of a sentence. Sources belong in links and in necessary attribution for claims, polls, estimates, allegations, or forecasts.
+- Use direct newsroom voice with occasional "we" or "you" only when it helps orient the reader. Never imply that we personally witnessed an event or did original reporting we did not do.
+- Cut throat-clearing, source-description, and generic wrap-up sentences. Every sentence should deliver a fact, number, useful context, or a sharp observation.
+- Keep the tone brisk, clear, conversational, and lightly witty in the spirit of Morning Brew. A natural pun or playful aside is welcome occasionally, but do not force one into every story and never joke about serious human harm.
+- Prefer the shortest phrasing that preserves the important facts. If a sentence can lose words without losing information, tighten it.
+- Keep the existing rule that bullets must add new information rather than recap the paragraph, and favor unused numbers, percentages, or currency figures when available.
+
+STYLE EXAMPLES
+Bad: "Recent coverage highlights how seat math may give the Sweden Democrats more influence. The story frames the election as decisive."
+Good: "Sweden's tight election could give the Sweden Democrats outsized leverage in coalition talks, even without leading the vote. The real action starts once the seat math is in."
+Bad: "Reporting indicates state spending approached Rp 2 quadrillion by July. Coverage provides a snapshot of budget execution."
+Good: "Indonesia's state spending approached Rp 2 quadrillion by the end of July, putting the government's midyear budget execution in clearer view."
+"""
+
+INDONESIA_VOICE_GUIDANCE = """ARAH SUARA DAN GAYA
+- Tulis seperti jurnalis redaksi yang menyampaikan berita langsung kepada pembaca. Ceritakan beritanya, jangan membahas bahan sumber sebagai bahan sumber.
+- Nyatakan fakta secara langsung: tulis "Belanja negara mendekati Rp 2 kuadriliun hingga akhir Juli," bukan "Pemberitaan menunjukkan belanja negara mendekati Rp 2 kuadriliun."
+- Jangan gunakan frasa meta seperti "menurut pemberitaan", "pemberitaan menunjukkan", "pemberitaan menyoroti", "laporan menyebut", "laporan menunjukkan", "artikel ini menyebut", "berita ini menyoroti", "cerita ini menggambarkan", "pengumuman tersebut menambahkan", atau variasi dekatnya.
+- Secara umum, jangan jadikan "pemberitaan", "laporan", "artikel", "berita", atau "pengumuman" sebagai narator kalimat. Sumber tetap ada di tautan dan hanya disebut di teks bila atribusi memang diperlukan untuk klaim, survei, estimasi, tuduhan, atau proyeksi.
+- Gunakan suara redaksi yang langsung, dengan "kita" atau sapaan pembaca sesekali jika membantu alur. Jangan memberi kesan bahwa redaksi menyaksikan peristiwa secara langsung atau melakukan peliputan asli yang tidak dilakukan.
+- Pangkas pembukaan yang bertele-tele, penjelasan tentang sumber, dan kalimat penutup generik. Setiap kalimat harus memberi fakta, angka, konteks berguna, atau observasi singkat yang tajam.
+- Nadanya cepat, jelas, santai, dan ringan seperti Morning Brew. Permainan kata atau seloroh boleh sesekali jika alami, tetapi jangan dipaksakan dan jangan digunakan untuk kematian, bencana, perang, korban kejahatan, atau penderitaan manusia.
+- Pilih kalimat sesingkat mungkin tanpa membuang fakta penting.
+- Pertahankan aturan bahwa bullet hanya berisi informasi baru, bukan mengulang paragraf, dan utamakan angka, persentase, atau nilai mata uang yang belum dipakai bila tersedia.
+"""
+
 
 def _date_context(timezone_name: str) -> datetime:
     return datetime.now(ZoneInfo(timezone_name))
@@ -120,7 +150,7 @@ def create_edition(
     payload = _generate_structured_output(
         api_key=api_key,
         model=model,
-        instructions=SYSTEM_PROMPT,
+        instructions=f"{SYSTEM_PROMPT}\n\n{ENGLISH_VOICE_GUIDANCE}",
         prompt=_standard_prompt(candidates, timezone_name),
         schema=EDITION_SCHEMA,
         schema_name="daily_brief",
@@ -145,7 +175,7 @@ def create_indonesia_edition(
     payload = _generate_structured_output(
         api_key=api_key,
         model=model,
-        instructions=INDONESIA_SYSTEM_PROMPT,
+        instructions=f"{INDONESIA_SYSTEM_PROMPT}\n\n{INDONESIA_VOICE_GUIDANCE}",
         prompt=_indonesia_prompt(indonesia_candidates, timezone_name),
         schema=INDONESIA_EDITION_SCHEMA,
         schema_name="indonesia_daily_brief",
