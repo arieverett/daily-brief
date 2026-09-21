@@ -2,8 +2,8 @@ name: Send Indonesia brief
 
 on:
   schedule:
-    - cron: "0 1 * * 1-6"
-      timezone: America/Phoenix
+    # Arizona stays on MST (UTC-7) year-round. 08:00 UTC = 01:00 Arizona.
+    - cron: "0 8 * * 1-6"
   workflow_dispatch:
   push:
     paths:
