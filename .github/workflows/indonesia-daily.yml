@@ -2,8 +2,8 @@ name: Send Indonesia brief
 
 on:
   schedule:
-    - cron: "0 3 * * *"
-      timezone: America/New_York
+    - cron: "0 1 * * 1-6"
+      timezone: America/Phoenix
   workflow_dispatch:
   push:
     paths:
