@@ -20,6 +20,9 @@ concurrency:
 
 jobs:
   send:
+    permissions:
+      contents: read
+      actions: read
     uses: ./.github/workflows/send-newsletter.yml
     with:
       edition: indonesia
