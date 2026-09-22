@@ -34,18 +34,60 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
+      actions: read
     steps:
+      - name: Check scheduled delivery date and previous successful runs
+        id: delivery_guard
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EDITION: ${{ inputs.edition }}
+        shell: bash
+        run: |
+          # The cron excludes Sunday. This second check also catches a delayed Saturday run.
+          if [[ "$(TZ=America/New_York date +%u)" == "7" ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping scheduled delivery on Sunday in New York."
+            exit 0
+          fi
+
+          today="$(TZ=America/New_York date +%F)"
+          if [[ "$EDITION" == "indonesia" ]]; then
+            workflow="indonesia-daily.yml"
+          else
+            workflow="daily.yml"
+          fi
+
+          # The first successful run (scheduled or manually dispatched) owns today's edition.
+          # Both scheduled attempts share the caller's concurrency group, so checks are serialized.
+          if ! runs="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/${workflow}/runs?per_page=50")"; then
+            echo "WARNING: Cannot inspect earlier runs; proceeding so delivery is not missed."
+            exit 0
+          fi
+          if jq -e --arg day "$today" --argjson current "$GITHUB_RUN_ID" \
+            '[.workflow_runs[] | select(.id != $current and .status == "completed" and .conclusion == "success" and (.created_at | startswith($day)))] | length > 0' \
+            <<< "$runs" >/dev/null; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Today's $EDITION edition was already sent successfully; skipping duplicate."
+          else
+            echo "No successful $EDITION send found for $today; proceeding."
+          fi
+
       - uses: actions/checkout@v5
+        if: steps.delivery_guard.outputs.skip != 'true'
 
       - uses: actions/setup-python@v6
+        if: steps.delivery_guard.outputs.skip != 'true'
         with:
           python-version: "3.12"
           cache: pip
 
       - name: Install application
+        if: steps.delivery_guard.outputs.skip != 'true'
         run: pip install .
 
       - name: Generate and send newsletter
+        if: steps.delivery_guard.outputs.skip != 'true'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
