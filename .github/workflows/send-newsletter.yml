@@ -36,18 +36,21 @@ jobs:
       contents: read
       actions: read
     steps:
-      - name: Check scheduled delivery date and previous successful runs
+      - name: Check delivery day and previous successful runs
         id: delivery_guard
-        if: github.event_name == 'schedule'
+        # Guard scheduled runs and marker-triggered recovery alike. An explicit
+        # workflow_dispatch remains available for intentionally sending a revision.
+        if: github.event_name != 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
           EDITION: ${{ inputs.edition }}
         shell: bash
         run: |
-          # The cron excludes Sunday. This second check also catches a delayed Saturday run.
+          # The cron excludes Sunday. This check also catches delayed Saturday
+          # runs and marker pushes on Sunday in the target timezone.
           if [[ "$(TZ=America/New_York date +%u)" == "7" ]]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Skipping scheduled delivery on Sunday in New York."
+            echo "Skipping automatic delivery on Sunday in New York."
             exit 0
           fi
 
@@ -58,8 +61,8 @@ jobs:
             workflow="daily.yml"
           fi
 
-          # The first successful run (scheduled or manually dispatched) owns today's edition.
-          # Both scheduled attempts share the caller's concurrency group, so checks are serialized.
+          # Both attempts for an edition share the caller's concurrency group,
+          # so a delayed first run is completed before the later run checks.
           if ! runs="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/${workflow}/runs?per_page=50")"; then
             echo "WARNING: Cannot inspect earlier runs; proceeding so delivery is not missed."
             exit 0
@@ -68,7 +71,7 @@ jobs:
             '[.workflow_runs[] | select(.id != $current and .status == "completed" and .conclusion == "success" and (.created_at | startswith($day)))] | length > 0' \
             <<< "$runs" >/dev/null; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Today's $EDITION edition was already sent successfully; skipping duplicate."
+            echo "Today's $EDITION edition already has a successful run; skipping duplicate."
           else
             echo "No successful $EDITION send found for $today; proceeding."
           fi
