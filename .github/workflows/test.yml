@@ -2,10 +2,20 @@ name: Test
 
 on:
   push:
+    paths-ignore:
+      - ".github/run-briefs-now"
+      - ".github/run-standard-now"
+      - ".github/run-indonesia-now"
   pull_request:
+
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
