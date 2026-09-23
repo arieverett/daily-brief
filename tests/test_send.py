@@ -23,14 +23,18 @@ def test_parse_recipients_rejects_an_empty_value():
         parse_recipients(" , ")
 
 
-def test_idempotency_key_is_stable_and_content_sensitive():
+def test_idempotency_key_is_stable_for_automatic_retries():
     arguments = {
         "edition_date": "2026-09-09",
+        "edition_name": "standard",
         "recipients": ["ari@example.com"],
-        "subject": "Daily Brief",
-        "html": "<p>Hello</p>",
     }
     first = _idempotency_key(**arguments)
     assert first == _idempotency_key(**arguments)
     assert first.startswith("daily-brief-")
-    assert first != _idempotency_key(**{**arguments, "html": "<p>Changed</p>"})
+    assert first == _idempotency_key(
+        **{**arguments, "recipients": ["ARI@example.com"]}
+    )
+    assert first != _idempotency_key(
+        **{**arguments, "delivery_nonce": "manual-run-123"}
+    )

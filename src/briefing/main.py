@@ -208,6 +208,8 @@ def main() -> None:
                 html=html,
                 text=text,
                 edition_date=edition.edition_date,
+                edition_name=args.edition,
+                delivery_nonce=settings.delivery_nonce,
             )
         print(f"  Sent message {message_id}", flush=True)
 

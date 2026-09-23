@@ -32,6 +32,7 @@ class Settings:
     timezone: str = DEFAULT_TIMEZONE
     lookback_hours: int = DEFAULT_LOOKBACK_HOURS
     max_candidates: int = DEFAULT_MAX_CANDIDATES
+    delivery_nonce: str = ""
 
     @classmethod
     def from_env(cls, *, require_delivery: bool = True) -> Settings:
@@ -44,6 +45,7 @@ class Settings:
             "timezone": os.getenv("BRIEF_TIMEZONE", DEFAULT_TIMEZONE),
             "lookback_hours": _env_int("BRIEF_LOOKBACK_HOURS", DEFAULT_LOOKBACK_HOURS),
             "max_candidates": _env_int("BRIEF_MAX_CANDIDATES", DEFAULT_MAX_CANDIDATES),
+            "delivery_nonce": os.getenv("BRIEF_DELIVERY_NONCE", ""),
         }
 
         required = ["openai_api_key"]

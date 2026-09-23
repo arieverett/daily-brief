@@ -100,6 +100,9 @@ jobs:
           BRIEF_FROM_EMAIL: ${{ secrets.BRIEF_FROM_EMAIL }}
           BRIEF_TIMEZONE: America/New_York
           BRIEF_MAX_CANDIDATES: ${{ inputs.max_candidates }}
+          # Automatic primary/recovery attempts share a stable Resend key.
+          # Explicit manual revisions get a unique run nonce and can send again.
+          BRIEF_DELIVERY_NONCE: ${{ github.event_name == 'workflow_dispatch' && github.run_id || '' }}
         shell: bash
         run: |
           if [[ "${{ inputs.edition }}" == "indonesia" ]]; then

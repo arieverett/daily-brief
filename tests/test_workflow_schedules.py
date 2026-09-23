@@ -24,6 +24,19 @@ def test_both_newsletters_use_external_primary_and_new_york_recovery(filename: s
     assert workflow["jobs"]["send"]["permissions"]["actions"] == "read"
 
 
+def test_ci_skips_marker_only_delivery_commits() -> None:
+    workflow = yaml.safe_load((WORKFLOWS / "test.yml").read_text(encoding="utf-8"))
+    triggers = workflow.get("on", workflow.get(True))
+    ignored = set(triggers["push"]["paths-ignore"])
+
+    assert ignored == {
+        ".github/run-briefs-now",
+        ".github/run-standard-now",
+        ".github/run-indonesia-now",
+    }
+    assert workflow["concurrency"]["cancel-in-progress"] is True
+
+
 def test_delivery_workflow_checks_weekday_and_prevents_duplicate_retries() -> None:
     workflow = yaml.safe_load(
         (WORKFLOWS / "send-newsletter.yml").read_text(encoding="utf-8")
@@ -35,8 +48,6 @@ def test_delivery_workflow_checks_weekday_and_prevents_duplicate_retries() -> No
     assert "TZ=America/New_York date +%u" in guard["run"]
     assert 'echo "skip=true" >> "$GITHUB_OUTPUT"' in guard["run"]
     assert ".conclusion == \"success\"" in guard["run"]
-    assert all(
-        step.get("if") == "steps.delivery_guard.outputs.skip != 'true'"
-        for step in steps
-        if step.get("name") == "Generate and send newsletter"
-    )
+    generate = next(step for step in steps if step.get("name") == "Generate and send newsletter")
+    assert generate["if"] == "steps.delivery_guard.outputs.skip != 'true'"
+    assert "BRIEF_DELIVERY_NONCE" in generate["env"]

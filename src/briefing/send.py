@@ -30,11 +30,13 @@ def parse_recipients(value: str) -> list[str]:
 def _idempotency_key(
     *,
     edition_date: str,
+    edition_name: str,
     recipients: list[str],
-    subject: str,
-    html: str,
+    delivery_nonce: str = "",
 ) -> str:
-    digest_input = f"{edition_date}:{','.join(recipients)}:{subject}:{html}"
+    """Return a retry-stable key for one automatic edition delivery."""
+    recipient_key = ",".join(sorted(address.casefold() for address in recipients))
+    digest_input = f"{edition_name}:{edition_date}:{recipient_key}:{delivery_nonce}"
     digest = hashlib.sha256(digest_input.encode()).hexdigest()[:24]
     return f"daily-brief-{digest}"
 
@@ -48,6 +50,8 @@ def send_email(
     html: str,
     text: str,
     edition_date: str,
+    edition_name: str,
+    delivery_nonce: str = "",
 ) -> str:
     """Send one rendered edition and return Resend's message id."""
     recipients = parse_recipients(to_email)
@@ -58,9 +62,9 @@ def send_email(
             "Content-Type": "application/json",
             "Idempotency-Key": _idempotency_key(
                 edition_date=edition_date,
+                edition_name=edition_name,
                 recipients=recipients,
-                subject=subject,
-                html=html,
+                delivery_nonce=delivery_nonce,
             ),
             "User-Agent": "DailyBrief/1.0",
         },
