@@ -17,6 +17,7 @@ from briefing.collect import (
     resolve_google_news_url,
     source_allowed,
     split_google_title,
+    widen_google_news_lookback,
 )
 from briefing.models import Candidate
 
@@ -105,6 +106,19 @@ def test_google_news_article_id():
     assert google_news_article_id("https://news.google.com/rss/articles/CBMiAbc?oc=5") == "CBMiAbc"
     assert google_news_article_id("https://news.google.com/read/CBMiAbc") == "CBMiAbc"
     assert google_news_article_id("https://example.com/story") == ""
+
+
+def test_google_news_fallback_widens_feed_window():
+    url = (
+        "https://news.google.com/rss/search?"
+        "q=Sweden%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+    )
+    assert widen_google_news_lookback(url, 36) == url
+    assert "when%3A7d" in widen_google_news_lookback(url, 168)
+    assert "when%3A30d" in widen_google_news_lookback(url, 720)
+
+    direct_feed = "https://en.antaranews.com/rss/latest-news.xml"
+    assert widen_google_news_lookback(direct_feed, 720) == direct_feed
 
 
 def test_decode_legacy_google_news_id():
