@@ -16,6 +16,11 @@ on:
         required: false
         default: "60"
         type: string
+      force_send:
+        description: Bypass the same-day delivery guard for an intentional manual send
+        required: false
+        default: false
+        type: boolean
     secrets:
       OPENAI_API_KEY:
         required: true
@@ -40,7 +45,7 @@ jobs:
         id: delivery_guard
         # Guard scheduled runs and marker-triggered recovery alike. An explicit
         # workflow_dispatch remains available for intentionally sending a revision.
-        if: github.event_name != 'workflow_dispatch'
+        if: ${{ github.event_name != 'workflow_dispatch' && !inputs.force_send }}
         env:
           GH_TOKEN: ${{ github.token }}
           EDITION: ${{ inputs.edition }}
@@ -102,7 +107,7 @@ jobs:
           BRIEF_MAX_CANDIDATES: ${{ inputs.max_candidates }}
           # Automatic primary/recovery attempts share a stable Resend key.
           # Explicit manual revisions get a unique run nonce and can send again.
-          BRIEF_DELIVERY_NONCE: ${{ github.event_name == 'workflow_dispatch' && github.run_id || '' }}
+          BRIEF_DELIVERY_NONCE: ${{ (github.event_name == 'workflow_dispatch' || inputs.force_send) && github.run_id || '' }}
         shell: bash
         run: |
           if [[ "${{ inputs.edition }}" == "indonesia" ]]; then

@@ -23,6 +23,9 @@ def test_both_newsletters_use_external_primary_and_new_york_recovery(filename: s
     assert ".github/run-briefs-now" in triggers["push"]["paths"]
     assert workflow["jobs"]["send"]["permissions"]["actions"] == "read"
 
+    if filename == "daily.yml":
+        assert "force_send" in workflow["jobs"]["send"]["with"]
+
 
 def test_ci_skips_marker_only_delivery_commits() -> None:
     workflow = yaml.safe_load((WORKFLOWS / "test.yml").read_text(encoding="utf-8"))
@@ -44,10 +47,11 @@ def test_delivery_workflow_checks_weekday_and_prevents_duplicate_retries() -> No
     steps = workflow["jobs"]["send"]["steps"]
     guard = next(step for step in steps if step.get("id") == "delivery_guard")
 
-    assert guard["if"] == "github.event_name != 'workflow_dispatch'"
+    assert guard["if"] == "${{ github.event_name != 'workflow_dispatch' && !inputs.force_send }}"
     assert "TZ=America/New_York date +%u" in guard["run"]
     assert 'echo "skip=true" >> "$GITHUB_OUTPUT"' in guard["run"]
     assert ".conclusion == \"success\"" in guard["run"]
     generate = next(step for step in steps if step.get("name") == "Generate and send newsletter")
     assert generate["if"] == "steps.delivery_guard.outputs.skip != 'true'"
     assert "BRIEF_DELIVERY_NONCE" in generate["env"]
+    assert "inputs.force_send" in generate["env"]["BRIEF_DELIVERY_NONCE"]

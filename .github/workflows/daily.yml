@@ -26,6 +26,7 @@ jobs:
       edition: standard
       sources: config/sources.yml
       max_candidates: "40"
+      force_send: ${{ github.event_name == 'push' && github.event.head_commit.message == 'Manual standard test send' }}
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
