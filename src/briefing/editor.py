@@ -28,6 +28,7 @@ from .models import (
 
 MIN_CANDIDATES_PER_COUNTRY = 6
 OPENAI_TIMEOUT_SECONDS = 300.0
+OPENAI_MAX_RETRIES = 1
 
 ENGLISH_VOICE_GUIDANCE = """VOICE AND TONE OVERRIDE
 - Write like a staff journalist delivering the newsletter directly to readers. Report the news itself; do not describe the source material as source material.
@@ -154,7 +155,7 @@ def create_edition(
         prompt=_standard_prompt(candidates, timezone_name),
         schema=EDITION_SCHEMA,
         schema_name="daily_brief",
-        retries=0,
+        retries=OPENAI_MAX_RETRIES,
     )
     edition = edition_from_dict(payload)
     validated = validate_edition(edition, candidates)
@@ -179,7 +180,7 @@ def create_indonesia_edition(
         prompt=_indonesia_prompt(indonesia_candidates, timezone_name),
         schema=INDONESIA_EDITION_SCHEMA,
         schema_name="indonesia_daily_brief",
-        retries=1,
+        retries=OPENAI_MAX_RETRIES,
     )
     edition = indonesia_edition_from_dict(payload)
     edition = replace(edition, subject=prefix_indonesia_subject(edition.subject))
