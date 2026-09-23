@@ -14,17 +14,19 @@ and plain-text editions, and send through Resend.
 - Stricter Indonesia bullet filtering, with priority for unused counts, percentages, and currency data
 - Exact, validated source links on every item
 - Publisher article images when they can be fetched within the image time budget
-- Duplicate-send protection through a content-based Resend idempotency key
+- Duplicate-send protection through retry-stable Resend idempotency keys
 - Responsive HTML email plus a plain-text fallback
 - Automated tests, linting, and a no-API sample renderer
 
 ## Production schedule
 
-Both newsletters are scheduled for **3:00 AM America/New_York** using GitHub Actions' native IANA
-timezone support, so daylight-saving changes do not require duplicate UTC cron entries or a custom
-DST guard. Each lightweight schedule file calls the same reusable delivery workflow.
+Both newsletters are triggered at **6:00 AM America/New_York, Monday through Saturday** by an
+external exact-time scheduler. The scheduler updates `.github/run-briefs-now`, which starts both
+edition workflows immediately. GitHub Actions cron is retained only as a **6:20 AM recovery run**;
+the delivery guard skips it when that edition already completed successfully that New York calendar
+day. Sundays are excluded by both the schedule and the delivery guard.
 
-The scheduled workflows need these repository secrets:
+The delivery workflows need these repository secrets:
 
 | Secret | Value |
 |---|---|
@@ -69,8 +71,8 @@ Generated HTML and text files are written to `out/`.
 1. **Collect:** pull recent stories from the configured feeds concurrently.
 2. **Normalize:** clean titles, enforce trusted-source lists, and collapse near-duplicate coverage.
 3. **Recover:** aim for at least three fresh candidates per relevant country. If the editorial pool
-   is thin, expand the lookback to 7 days and then 30 days rather than failing just because the
-   current news cycle is light.
+   is thin, expand the lookback to 7 days and then 30 days, including widening Google News
+   `when:` filters so the fallback can actually retrieve older coverage.
 4. **Edit:** send the candidate metadata to OpenAI using strict structured output. The model chooses
    the lead, secondary stories, speed reads, setup, subject, and preview text.
 5. **Validate:** snap every generated URL back to a real candidate, reject invented sources, merge
@@ -79,7 +81,9 @@ Generated HTML and text files are written to `out/`.
 6. **Enrich:** fetch publisher social images concurrently under a fixed time budget, with RSS images
    as the fallback.
 7. **Render:** build one responsive email template and the edition-specific plain-text fallback.
-8. **Send:** deliver through Resend with an idempotency key derived from the edition content.
+8. **Send:** deliver through Resend with a stable edition/date idempotency key so an automatic
+   recovery cannot duplicate an email after an ambiguous network timeout. Manual revisions get a
+   unique workflow-run nonce so they can still be sent intentionally.
 
 ## Code map
 
@@ -115,4 +119,5 @@ Generated HTML and text files are written to `out/`.
   the minimum structured edition without recycling topics.
 - Image failures never block delivery; the newsletter can send with RSS images or no image.
 - Both production editions use the same reusable delivery workflow, preventing schedule/setup drift.
-- The GitHub test workflow runs Ruff, Pytest, and a full sample render on every push.
+- The GitHub test workflow runs Ruff, Pytest, and a full sample render on code/config changes;
+  marker-only delivery commits are ignored.
