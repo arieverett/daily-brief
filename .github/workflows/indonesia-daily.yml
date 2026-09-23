@@ -2,10 +2,8 @@ name: Send Indonesia brief
 
 on:
   schedule:
-    # GitHub supports IANA timezones and adjusts automatically for EST/EDT.
-    # 06:20 is a recovery run if the 06:00 run was dropped or failed.
-    - cron: "0 6 * * 1-6"
-      timezone: "America/New_York"
+    # Recovery only. The primary 06:00 America/New_York trigger is external
+    # and updates .github/run-briefs-now so GitHub's cron queue cannot delay it.
     - cron: "20 6 * * 1-6"
       timezone: "America/New_York"
   workflow_dispatch:
