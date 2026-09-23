@@ -29,6 +29,7 @@ PUBLISHER_SUFFIX_RE = re.compile(r"\s+-\s+([^-]{2,80})$")
 IMAGE_RE = re.compile(r'<img[^>]+src=["\']([^"\']+)["\']', re.IGNORECASE)
 GOOGLE_SIGNATURE_RE = re.compile(r'data-n-a-sg="([^"]+)"')
 GOOGLE_TIMESTAMP_RE = re.compile(r'data-n-a-ts="([^"]+)"')
+GOOGLE_WHEN_RE = re.compile(r"when(?::|%3A)(\d+)d", re.IGNORECASE)
 DECODED_URL_RE = re.compile(rb'https?://[^\x00-\x20"\\]+')
 
 COUNTRY_ORDER = ("Sweden", "Indonesia")
@@ -177,6 +178,23 @@ def google_news_article_id(url: str) -> str:
     return ""
 
 
+def widen_google_news_lookback(url: str, lookback_hours: int) -> str:
+    """Widen Google News when-filters during fallback collection passes."""
+    if (urlparse(url).hostname or "").casefold() != "news.google.com":
+        return url
+
+    requested_days = max(1, (lookback_hours + 23) // 24)
+
+    def replace_window(match: re.Match[str]) -> str:
+        current_days = int(match.group(1))
+        if requested_days <= current_days:
+            return match.group(0)
+        separator = "%3A" if "%3A" in match.group(0).upper() else ":"
+        return f"when{separator}{requested_days}d"
+
+    return GOOGLE_WHEN_RE.sub(replace_window, url)
+
+
 def decode_legacy_google_news_id(article_id: str) -> str:
     """Resolve older Google News IDs that still embed the publisher URL."""
     try:
@@ -301,9 +319,10 @@ async def _fetch_one(
     client: httpx.AsyncClient,
     feed: dict,
     cutoff: datetime,
+    lookback_hours: int,
 ) -> list[Candidate]:
     try:
-        response = await client.get(feed["url"])
+        response = await client.get(widen_google_news_lookback(feed["url"], lookback_hours))
         response.raise_for_status()
         return parse_feed(response.content, feed, cutoff)
     except (httpx.HTTPError, UnicodeError):
@@ -355,7 +374,9 @@ async def collect_candidates(
     headers = {"User-Agent": "DailyBrief/1.0 (+personal-newsletter)"}
 
     async with httpx.AsyncClient(headers=headers, timeout=timeout, follow_redirects=True) as client:
-        batches = await asyncio.gather(*(_fetch_one(client, feed, cutoff) for feed in feeds))
+        batches = await asyncio.gather(
+            *(_fetch_one(client, feed, cutoff, lookback_hours) for feed in feeds)
+        )
 
     unique = deduplicate([candidate for batch in batches for candidate in batch])
     return _select_candidates(unique, max_candidates)
