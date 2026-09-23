@@ -9,16 +9,18 @@ WORKFLOWS = Path(__file__).resolve().parents[1] / ".github" / "workflows"
 
 
 @pytest.mark.parametrize("filename", ["daily.yml", "indonesia-daily.yml"])
-def test_both_newsletters_use_new_york_monday_saturday_schedule(filename: str) -> None:
+def test_both_newsletters_use_external_primary_and_new_york_recovery(filename: str) -> None:
     workflow = yaml.safe_load((WORKFLOWS / filename).read_text(encoding="utf-8"))
     # YAML 1.1 treats the key "on" as boolean True.
     triggers = workflow.get("on", workflow.get(True))
     schedule = triggers["schedule"]
 
+    # The exact 06:00 New York send is triggered externally by touching the
+    # shared marker. GitHub cron remains only as a 06:20 recovery path.
     assert schedule == [
-        {"cron": "0 6 * * 1-6", "timezone": "America/New_York"},
         {"cron": "20 6 * * 1-6", "timezone": "America/New_York"},
     ]
+    assert ".github/run-briefs-now" in triggers["push"]["paths"]
     assert workflow["jobs"]["send"]["permissions"]["actions"] == "read"
 
 
