@@ -18,7 +18,7 @@ def test_html_has_core_sections_and_links():
     assert html.index("The setup") < html.index("🇸🇪 Sweden")
     assert "Every item links to its source" not in html
     assert "AI-assisted; verify important details at the source" not in html
-    assert "Coded by Ari with a &lt;3 to educate, inform, and enable." in html
+    assert "Coded by Ari with &lt;3 to educate, inform, and enable." in html
 
 
 def test_html_uses_email_safe_fonts_and_language_metadata():
