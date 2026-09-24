@@ -2,9 +2,12 @@ name: Send Indonesia brief
 
 on:
   schedule:
-    # Recovery only. The primary 06:00 America/New_York trigger is external
-    # and updates .github/run-briefs-now so GitHub's cron queue cannot delay it.
-    - cron: "20 6 * * 1-6"
+    # Redundant recovery attempts. The primary 06:00 America/New_York trigger
+    # is external and updates .github/run-briefs-now. Two off-peak retries make
+    # a dropped/delayed GitHub cron far less likely to miss the edition.
+    - cron: "7 6 * * 1-6"
+      timezone: "America/New_York"
+    - cron: "22 6 * * 1-6"
       timezone: "America/New_York"
   workflow_dispatch:
   push:
