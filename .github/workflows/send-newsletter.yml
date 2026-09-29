@@ -47,7 +47,7 @@ jobs:
     env:
       PYTHONPATH: src
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Check whether today's edition still needs sending
         id: guard
@@ -61,7 +61,7 @@ jobs:
           fi
           python3 -m briefing.delivery "${args[@]}"
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         if: steps.guard.outputs.any == 'true'
         with:
           python-version: "3.12"
@@ -111,7 +111,7 @@ jobs:
       - name: Archive edition
         if: ${{ !cancelled() && steps.guard.outputs.any == 'true' }}
         continue-on-error: true
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: edition-${{ inputs.edition }}-${{ steps.guard.outputs.date }}
           path: |
@@ -127,7 +127,7 @@ jobs:
       - name: Record delivery
         if: success() && steps.guard.outputs.any == 'true' && !inputs.force
         continue-on-error: true
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: delivered-${{ inputs.edition }}-${{ steps.guard.outputs.date }}
           path: out/delivery/${{ inputs.edition }}.json
@@ -152,7 +152,7 @@ jobs:
       - name: Record alert
         if: failure() && steps.alert.outputs.sent == 'true'
         continue-on-error: true
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.alert.outputs.record }}
           path: out/alert/alert.json

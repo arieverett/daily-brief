@@ -32,7 +32,7 @@ jobs:
       standard: ${{ steps.gate.outputs.standard }}
       indonesia: ${{ steps.gate.outputs.indonesia }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           sparse-checkout: src/briefing
 
