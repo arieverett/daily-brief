@@ -85,7 +85,8 @@ The model can be changed with the `OPENAI_MODEL` repository variable. Production
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -e ".[dev]"
+pip install -r requirements-dev.txt
+pip install --no-deps -e .
 cp .env.example .env
 ```
 
@@ -109,11 +110,14 @@ Generated HTML and text files are written to `out/`.
 
 ## Pipeline
 
-1. **Collect:** pull recent stories from the configured feeds concurrently.
+1. **Collect:** pull recent stories from the configured feeds concurrently. Google News searches
+   are the primary source; direct publisher RSS feeds (`tier: backup`) are fetched alongside them.
+   The run log and job summary list any feed that failed.
 2. **Normalize:** clean titles, enforce trusted-source lists, and collapse near-duplicate coverage.
-3. **Recover:** aim for at least three fresh candidates per relevant country. If the editorial pool
-   is thin, expand the lookback to 7 days and then 30 days, including widening Google News
-   `when:` filters so the fallback can actually retrieve older coverage.
+3. **Recover:** aim for at least twelve candidates per relevant country. If the Google News
+   searches come back thin (or fail), top up from the direct publisher feeds marked
+   `tier: backup`. Only if that is still short, widen the lookback to 7 days (never further, so
+   old stories can't pose as today's news).
 4. **Edit:** send the candidate metadata to OpenAI using strict structured output. The model chooses
    the lead, secondary stories, speed reads, setup, subject, and preview text.
 5. **Validate:** snap every generated URL back to a real candidate, reject invented sources, merge
@@ -139,11 +143,28 @@ Generated HTML and text files are written to `out/`.
 - `src/briefing/delivery.py` — delivery window, delivery records, and failure alerts (stdlib only;
   the workflows run it before installing dependencies)
 - `src/briefing/templates/newsletter.html` — email-safe responsive presentation
+- `src/briefing/feedcheck.py` — checks every configured feed and the resulting candidate pool
 - `config/sources.yml` — standard Sweden + Indonesia source discovery
 - `config/indonesia_sources.yml` — Nusantara Daily source discovery
+- `requirements.txt` / `requirements-dev.txt` — exact pinned versions used in production and CI
+- `.github/workflows/feed-check.yml` — runs the feed check when sources change, or on demand
+- `.github/dependabot.yml` — weekly grouped dependency update PRs
 - `.github/workflows/briefs.yml` — primary trigger (external 05:45 dispatch, manual runs)
 - `.github/workflows/briefs-backstop.yml` — hourly GitHub cron safety net
 - `.github/workflows/send-newsletter.yml` — shared guard, generation, delivery record, and alert
+
+## Maintenance
+
+- **Dependency updates:** Dependabot opens one grouped PR per week (Python packages, and
+  GitHub Actions). The Test workflow runs on it; merge when green. Production keeps the old
+  pins until you merge. To regenerate the lockfiles by hand:
+  `uv pip compile pyproject.toml --universal --python-version 3.12 -o requirements.txt`, then
+  `uv pip compile pyproject.toml --extra dev --universal --python-version 3.12 -c requirements.txt -o requirements-dev.txt`.
+- **Feeds:** after editing `config/*.yml`, the Feed check workflow fetches every feed from
+  GitHub's network. Dead feeds show as warnings; a country left with fewer than 6 usable stories
+  fails the check. You can also run it from the Actions tab at any time.
+- **Past editions:** each run that generated a brief keeps the HTML and text for 90 days under
+  Actions → the run → Artifacts (`edition-<edition>-<date>`).
 
 ## Editorial guardrails
 
@@ -162,7 +183,12 @@ Generated HTML and text files are written to `out/`.
 - The edition date comes from the workflow, not the AI editor, so duplicate protection can't be
   thrown off by a model writing the date differently.
 - If the editor returns output that can't be parsed or validated, it is regenerated once.
-- Feed failures are tolerated individually.
+- Feed failures are tolerated individually, and every run lists the failed feeds in its log and
+  job summary.
+- If Google News is thin, failing, or blocked, direct publisher feeds top each country up to 12
+  candidates. Older coverage is only used as a last resort, and never beyond 7 days.
+- Production installs exact versions from `requirements.txt`, and delivery jobs run on a pinned
+  runner image (`ubuntu-24.04`), so nothing changes underneath a morning run unexpectedly.
 - The editor needs at least six candidate stories per relevant country after fallback so it can fill
   the minimum structured edition without recycling topics.
 - Image failures never block delivery; the newsletter can send with RSS images or no image.

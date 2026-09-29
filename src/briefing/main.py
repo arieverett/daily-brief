@@ -23,7 +23,9 @@ from .send import SendResult, send_email
 COUNTRIES = ("Sweden", "Indonesia")
 FRESH_STORY_TARGET = 3
 EDITORIAL_POOL_TARGET = 12
-FALLBACK_LOOKBACK_HOURS = (168, 720)  # 7 days, then 30 days.
+# Last resort when even the direct-publisher backup feeds leave a country thin. Capped at
+# 7 days so a slow news day can't put month-old stories into "today's" brief.
+FALLBACK_LOOKBACK_HOURS = (168,)
 
 
 @contextmanager

@@ -1,0 +1,27 @@
+# Weekly dependency updates as one grouped PR per ecosystem. The Test workflow runs on
+# each PR; merge it when green. Until merged, production keeps the pinned versions.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: America/New_York
+    groups:
+      python-dependencies:
+        patterns: ["*"]
+    open-pull-requests-limit: 2
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: America/New_York
+    groups:
+      github-actions:
+        patterns: ["*"]
+    open-pull-requests-limit: 2

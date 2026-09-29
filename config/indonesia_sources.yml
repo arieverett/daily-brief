@@ -63,3 +63,42 @@ feeds:
     country: Indonesia
     url: "https://news.google.com/rss/search?q=%28selebritas%20OR%20artis%20OR%20penyanyi%20OR%20aktor%20OR%20aktris%29%20Indonesia%20when%3A3d&hl=id&gl=ID&ceid=ID%3Aid"
     allowed_sources: *trusted_sources
+
+  # Backup tier: direct publisher RSS. These only top the pool up to 12 candidates when
+  # the Google News searches above come back thin or fail, so a Google outage or block
+  # can't empty the edition. Checked working from GitHub Actions on 2026-09-29.
+  - name: ANTARA News
+    source: ANTARA News
+    country: Indonesia
+    tier: backup
+    url: "https://www.antaranews.com/rss/terkini.xml"
+  - name: detikcom
+    source: detikcom
+    country: Indonesia
+    tier: backup
+    url: "https://news.detik.com/berita/rss"
+  - name: detikJabar
+    source: detikJabar
+    country: Indonesia
+    tier: backup
+    url: "https://www.detik.com/jabar/rss"
+  - name: detikFinance
+    source: detikFinance
+    country: Indonesia
+    tier: backup
+    url: "https://finance.detik.com/rss"
+  - name: BBC News Indonesia
+    source: BBC News Indonesia
+    country: Indonesia
+    tier: backup
+    url: "https://feeds.bbci.co.uk/indonesia/rss.xml"
+  - name: Liputan6.com
+    source: Liputan6.com
+    country: Indonesia
+    tier: backup
+    url: "https://feed.liputan6.com/rss/news"
+  - name: Republika
+    source: Republika
+    country: Indonesia
+    tier: backup
+    url: "https://www.republika.co.id/rss"

@@ -20,6 +20,7 @@ def test_only_the_expected_delivery_workflows_exist():
     assert {path.name for path in WORKFLOWS.glob("*.yml")} == {
         "briefs.yml",
         "briefs-backstop.yml",
+        "feed-check.yml",
         "send-newsletter.yml",
         "test.yml",
     }
@@ -80,6 +81,11 @@ def test_delivery_job_serializes_per_edition_and_rechecks_before_sending():
     assert "!inputs.force" in record["if"]
     assert record["continue-on-error"] is True
 
+    archive = steps["Archive edition"]
+    assert archive["with"]["retention-days"] == 90
+    assert archive["continue-on-error"] is True
+    assert "cancelled()" in archive["if"]
+
     alert = steps["Email a failure alert"]
     assert alert["if"].startswith("failure()")
     assert alert["env"]["ALERT_TO_EMAIL"] == "${{ secrets.BRIEF_TO_EMAIL }}"
@@ -90,3 +96,42 @@ def test_ci_skips_marker_only_delivery_commits():
     ignored = set(triggers(workflow)["push"]["paths-ignore"])
     assert ignored == {".github/run-briefs-now"}
     assert workflow["concurrency"]["cancel-in-progress"] is True
+
+
+def test_production_and_ci_install_pinned_dependencies():
+    install = next(
+        step for step in load("send-newsletter.yml")["jobs"]["send"]["steps"]
+        if step.get("name") == "Install application"
+    )
+    assert "pip install -r requirements.txt" in install["run"]
+    assert "--no-deps" in install["run"]
+
+    test_steps = load("test.yml")["jobs"]["test"]["steps"]
+    assert any("requirements-dev.txt" in step.get("run", "") for step in test_steps)
+
+
+def test_delivery_runners_are_pinned():
+    assert load("send-newsletter.yml")["jobs"]["send"]["runs-on"] == "ubuntu-24.04"
+    assert load("briefs-backstop.yml")["jobs"]["gate"]["runs-on"] == "ubuntu-24.04"
+
+
+def test_lockfile_pins_every_runtime_dependency_exactly():
+    root = WORKFLOWS.parents[1]
+    pins = [
+        line.split(";")[0].strip()
+        for line in (root / "requirements.txt").read_text(encoding="utf-8").splitlines()
+        if line and not line.startswith((" ", "#"))
+    ]
+    assert pins and all("==" in pin for pin in pins)
+    names = {pin.split("==")[0].lower() for pin in pins}
+    assert {"openai", "httpx", "feedparser", "jinja2", "pyyaml", "python-dateutil"} <= names
+
+
+def test_dependabot_groups_weekly_updates():
+    config = yaml.safe_load(
+        (WORKFLOWS.parent / "dependabot.yml").read_text(encoding="utf-8")
+    )
+    ecosystems = {update["package-ecosystem"]: update for update in config["updates"]}
+    assert set(ecosystems) == {"pip", "github-actions"}
+    assert all(update["schedule"]["interval"] == "weekly" for update in config["updates"])
+    assert all(update.get("groups") for update in config["updates"])

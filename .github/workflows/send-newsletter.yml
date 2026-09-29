@@ -32,7 +32,8 @@ on:
 jobs:
   send:
     name: Send ${{ inputs.edition }}
-    runs-on: ubuntu-latest
+    # Pinned so a runner-image upgrade can't change the environment on a random morning.
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     # One delivery per edition at a time, whichever workflow started it. A run that
     # queues behind another re-checks the delivery record below and skips if the
@@ -65,10 +66,15 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+          cache-dependency-path: requirements.txt
 
+      # Exact versions from the lockfile, so a new release of a dependency can't break
+      # the morning run. Dependabot proposes updates weekly; CI tests them first.
       - name: Install application
         if: steps.guard.outputs.any == 'true'
-        run: pip install .
+        run: |
+          pip install -r requirements.txt
+          pip install --no-deps .
 
       - name: Generate and send newsletter
         if: steps.guard.outputs.any == 'true'
@@ -99,6 +105,21 @@ jobs:
           fi
           echo "Trigger: ${{ inputs.trigger }}"
           python -m briefing --send --edition "${{ inputs.edition }}" --sources "$sources"
+
+      # Archive of what was sent (or generated, if sending failed): Actions -> this run
+      # -> Artifacts. Kept 90 days.
+      - name: Archive edition
+        if: ${{ !cancelled() && steps.guard.outputs.any == 'true' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v5
+        with:
+          name: edition-${{ inputs.edition }}-${{ steps.guard.outputs.date }}
+          path: |
+            out/*.html
+            out/*.txt
+          retention-days: 90
+          if-no-files-found: ignore
+          overwrite: true
 
       # The delivery record that every later run checks. Forced revisions don't count
       # as the day's delivery. A failed upload must not fail the job (the email is

@@ -14,14 +14,18 @@ jobs:
   test:
     permissions:
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -e ".[dev]"
+          cache-dependency-path: requirements-dev.txt
+      # Same pinned versions production installs, plus the dev tools.
+      - run: |
+          pip install -r requirements-dev.txt
+          pip install --no-deps -e .
       - run: ruff check src tests
       - run: pytest -q
       - run: python -m briefing --sample

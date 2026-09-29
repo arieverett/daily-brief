@@ -135,16 +135,63 @@ feeds:
     url: "https://news.google.com/rss/search?q=Indonesia%20%28site%3Athejakartapost.com%20OR%20site%3Ajakartaglobe.id%20OR%20site%3Atempo.co%20OR%20site%3Akompas.com%20OR%20site%3Adetik.com%20OR%20site%3Acnnindonesia.com%29%20when%3A3d&hl=en-US&gl=US&ceid=US%3Aen"
     allowed_sources: *indonesia_sources
 
-  # ANTARA is Indonesia's national news agency and publishes official RSS feeds.
-  - name: ANTARA — Latest
+  # ANTARA is Indonesia's national news agency and publishes an official English RSS feed.
+  # (The old per-section feeds under /rss/*.xml were removed by ANTARA and returned 404.)
+  - name: ANTARA — English news
+    source: ANTARA
     country: Indonesia
-    url: "https://en.antaranews.com/rss/latest-news.xml"
-  - name: ANTARA — Politics
+    url: "https://en.antaranews.com/rss/news.xml"
+
+  # Backup tier: direct publisher RSS. These only top a country up to 12 candidates when
+  # the Google News searches above come back thin or fail, so a Google outage or block
+  # can't empty the edition. Checked working from GitHub Actions on 2026-09-29.
+  - name: The Local Sweden
+    source: The Local Sweden
+    country: Sweden
+    tier: backup
+    url: "https://www.thelocal.se/feeds/rss.php"
+  - name: Radio Sweden (English)
+    source: Sveriges Radio
+    country: Sweden
+    tier: backup
+    url: "https://api.sr.se/api/rss/program/2054"
+  - name: SR Ekot
+    source: Sveriges Radio
+    country: Sweden
+    tier: backup
+    url: "https://api.sr.se/api/rss/program/83"
+  - name: SVT Nyheter
+    source: SVT Nyheter
+    country: Sweden
+    tier: backup
+    url: "https://www.svt.se/nyheter/rss.xml"
+  - name: Dagens Nyheter
+    source: Dagens Nyheter
+    country: Sweden
+    tier: backup
+    url: "https://www.dn.se/rss/"
+  - name: Svenska Dagbladet
+    source: Svenska Dagbladet
+    country: Sweden
+    tier: backup
+    url: "https://www.svd.se/feed/articles.rss"
+  - name: Dagens industri
+    source: Dagens industri
+    country: Sweden
+    tier: backup
+    url: "https://www.di.se/rss"
+  - name: Tempo (English)
+    source: Tempo.co
     country: Indonesia
-    url: "https://en.antaranews.com/rss/politik.xml"
-  - name: ANTARA — Economy
+    tier: backup
+    url: "https://rss.tempo.co/en"
+  - name: BBC News Indonesia
+    source: BBC News Indonesia
     country: Indonesia
-    url: "https://en.antaranews.com/rss/ekonomi.xml"
-  - name: ANTARA — Jakarta
+    tier: backup
+    url: "https://feeds.bbci.co.uk/indonesia/rss.xml"
+  - name: detikcom
+    source: detikcom
     country: Indonesia
-    url: "https://en.antaranews.com/rss/metro.xml"
+    tier: backup
+    url: "https://news.detik.com/berita/rss"

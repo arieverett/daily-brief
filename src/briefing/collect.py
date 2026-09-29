@@ -7,8 +7,9 @@ import base64
 import binascii
 import html
 import json
+import os
 import re
-from dataclasses import replace
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime, timedelta
 from difflib import SequenceMatcher
 from html.parser import HTMLParser
@@ -35,6 +36,9 @@ DECODED_URL_RE = re.compile(rb'https?://[^\x00-\x20"\\]+')
 COUNTRY_ORDER = ("Sweden", "Indonesia")
 SOURCE_STORY_CAP = 8
 IMAGE_CONCURRENCY = 4
+# Feeds marked `tier: backup` (direct publisher RSS) only top a country up to this many
+# candidates when the primary Google News searches come back thin or fail.
+BACKUP_FILL_TARGET = 12
 
 PLACEHOLDER_IMAGE_HOSTS = {
     "lh3.googleusercontent.com",
@@ -98,7 +102,10 @@ def normalized_title(value: str) -> str:
 
 
 def split_google_title(title: str, feed_name: str) -> tuple[str, str]:
-    """Strip Google News' trailing publisher name and return it as the source."""
+    """Strip Google News' trailing publisher name and return it as the source.
+
+    Direct publisher feeds keep their title and use the feed's source label.
+    """
     if not feed_name.startswith("Google News"):
         return title, feed_name
     match = PUBLISHER_SUFFIX_RE.search(title)
@@ -269,7 +276,7 @@ def parse_feed(payload: bytes, feed: dict, cutoff: datetime) -> list[Candidate]:
             continue
 
         raw_title = clean_text(entry.get("title", ""))
-        title, source = split_google_title(raw_title, feed["name"])
+        title, source = split_google_title(raw_title, feed.get("source") or feed["name"])
         if not source_allowed(source, feed.get("allowed_sources")):
             continue
 
@@ -315,19 +322,89 @@ def deduplicate(candidates: list[Candidate]) -> list[Candidate]:
     return kept
 
 
+@dataclass
+class FeedResult:
+    """What one feed returned, kept so failures are visible instead of silent."""
+
+    name: str
+    country: str
+    tier: str
+    entries: int = 0
+    candidates: list[Candidate] = field(default_factory=list)
+    error: str = ""
+    newest: datetime | None = None
+
+    @property
+    def ok(self) -> bool:
+        return not self.error
+
+
+def feed_tier(feed: dict) -> str:
+    return "backup" if feed.get("tier") == "backup" else "primary"
+
+
 async def _fetch_one(
     client: httpx.AsyncClient,
     feed: dict,
     cutoff: datetime,
     lookback_hours: int,
-) -> list[Candidate]:
+) -> FeedResult:
+    result = FeedResult(name=feed["name"], country=feed["country"], tier=feed_tier(feed))
     try:
         response = await client.get(widen_google_news_lookback(feed["url"], lookback_hours))
         response.raise_for_status()
-        return parse_feed(response.content, feed, cutoff)
-    except (httpx.HTTPError, UnicodeError):
-        # One bad publisher/feed should never sink the daily edition.
-        return []
+        entries = feedparser.parse(response.content).entries
+        result.entries = len(entries)
+        dates = [date for date in (parse_date(entry) for entry in entries) if date]
+        result.newest = max(dates, default=None)
+        result.candidates = parse_feed(response.content, feed, cutoff)
+        if result.entries == 0:
+            result.error = "feed returned no entries"
+    except (httpx.HTTPError, UnicodeError) as exc:
+        # One bad publisher/feed should never sink the daily edition, but it should
+        # show up in the run log.
+        first_line = (str(exc).splitlines() or [""])[0]
+        result.error = f"{type(exc).__name__}: {first_line}"[:160]
+    return result
+
+
+async def fetch_feeds(feeds: list[dict], lookback_hours: int) -> list[FeedResult]:
+    cutoff = datetime.now(UTC) - timedelta(hours=lookback_hours)
+    timeout = httpx.Timeout(15.0, connect=5.0)
+    headers = {"User-Agent": "DailyBrief/1.0 (+personal-newsletter)"}
+    async with httpx.AsyncClient(headers=headers, timeout=timeout, follow_redirects=True) as client:
+        return list(
+            await asyncio.gather(
+                *(_fetch_one(client, feed, cutoff, lookback_hours) for feed in feeds)
+            )
+        )
+
+
+def report_feed_health(results: list[FeedResult], lookback_hours: int) -> None:
+    """Print which feeds failed and how many stories each tier contributed."""
+    working = sum(result.ok for result in results)
+    print(f"  Feeds working: {working}/{len(results)} (lookback {lookback_hours}h)", flush=True)
+    for result in results:
+        if not result.ok:
+            print(f"  ! {result.name}: {result.error}", flush=True)
+
+    summary_path = os.getenv("GITHUB_STEP_SUMMARY")
+    if not summary_path:
+        return
+    lines = [
+        f"### Feeds ({lookback_hours}h lookback): {working}/{len(results)} working",
+        "",
+        "| Feed | Tier | Entries | Usable | Status |",
+        "|---|---|---:|---:|---|",
+    ]
+    for result in results:
+        status = "ok" if result.ok else result.error.replace("|", "/")
+        lines.append(
+            f"| {result.name} | {result.tier} | {result.entries} | "
+            f"{len(result.candidates)} | {status} |"
+        )
+    with open(summary_path, "a", encoding="utf-8") as handle:
+        handle.write("\n".join(lines) + "\n\n")
 
 
 def _ordered_countries(candidates: list[Candidate]) -> list[str]:
@@ -362,24 +439,74 @@ def _select_candidates(candidates: list[Candidate], max_candidates: int) -> list
     return selected
 
 
+def _top_up_from_backup(
+    selected: list[Candidate],
+    backup: list[Candidate],
+    max_candidates: int,
+    target: int = BACKUP_FILL_TARGET,
+) -> list[Candidate]:
+    """Add direct-publisher stories to countries whose primary pool is thin."""
+    countries = [
+        country
+        for country in COUNTRY_ORDER
+        if any(item.country == country for item in [*selected, *backup])
+    ]
+    if not countries:
+        return selected
+    per_country_cap = max(1, max_candidates // len(countries))
+    fill_to = min(target, per_country_cap)
+
+    result = list(selected)
+    for country in countries:
+        chosen = [item for item in result if item.country == country]
+        if len(chosen) >= fill_to:
+            continue
+        fingerprints = [normalized_title(item.title) for item in chosen]
+        source_counts: dict[str, int] = {}
+        for item in chosen:
+            key = item.source.casefold()
+            source_counts[key] = source_counts.get(key, 0) + 1
+        for candidate in (item for item in backup if item.country == country):
+            if len(chosen) >= fill_to:
+                break
+            fingerprint = normalized_title(candidate.title)
+            if any(
+                fingerprint == existing
+                or SequenceMatcher(None, fingerprint, existing).ratio() >= 0.86
+                for existing in fingerprints
+            ):
+                continue
+            key = candidate.source.casefold()
+            if source_counts.get(key, 0) >= SOURCE_STORY_CAP:
+                continue
+            chosen.append(candidate)
+            result.append(candidate)
+            fingerprints.append(fingerprint)
+            source_counts[key] = source_counts.get(key, 0) + 1
+    return result
+
+
+def pool_from_results(results: list[FeedResult], max_candidates: int) -> list[Candidate]:
+    primary = [c for r in results if r.tier == "primary" for c in r.candidates]
+    backup = [c for r in results if r.tier == "backup" for c in r.candidates]
+    selected = _select_candidates(deduplicate(primary), max_candidates)
+    return _top_up_from_backup(selected, deduplicate(backup), max_candidates)
+
+
 async def collect_candidates(
     sources_path: Path,
     lookback_hours: int,
     max_candidates: int,
 ) -> list[Candidate]:
     config = yaml.safe_load(sources_path.read_text(encoding="utf-8")) or {}
-    feeds = config.get("feeds", [])
-    cutoff = datetime.now(UTC) - timedelta(hours=lookback_hours)
-    timeout = httpx.Timeout(15.0, connect=5.0)
-    headers = {"User-Agent": "DailyBrief/1.0 (+personal-newsletter)"}
-
-    async with httpx.AsyncClient(headers=headers, timeout=timeout, follow_redirects=True) as client:
-        batches = await asyncio.gather(
-            *(_fetch_one(client, feed, cutoff, lookback_hours) for feed in feeds)
-        )
-
-    unique = deduplicate([candidate for batch in batches for candidate in batch])
-    return _select_candidates(unique, max_candidates)
+    results = await fetch_feeds(config.get("feeds", []), lookback_hours)
+    report_feed_health(results, lookback_hours)
+    pool = pool_from_results(results, max_candidates)
+    primary_urls = {c.url for r in results if r.tier == "primary" for c in r.candidates}
+    from_backup = sum(item.url not in primary_urls for item in pool)
+    if from_backup:
+        print(f"  Topped up thin pools with {from_backup} direct-publisher stories", flush=True)
+    return pool
 
 
 def _fallback_images(candidates: list[Candidate]) -> dict[str, str]:
