@@ -98,16 +98,20 @@ def test_ci_skips_marker_only_delivery_commits():
     assert workflow["concurrency"]["cancel-in-progress"] is True
 
 
-def test_production_and_ci_install_pinned_dependencies():
+def test_production_and_ci_install_exactly_the_locked_versions():
     install = next(
         step for step in load("send-newsletter.yml")["jobs"]["send"]["steps"]
         if step.get("name") == "Install application"
     )
-    assert "pip install -r requirements.txt" in install["run"]
-    assert "--no-deps" in install["run"]
+    assert "uv sync --locked" in install["run"]
+    send = next(
+        step for step in load("send-newsletter.yml")["jobs"]["send"]["steps"]
+        if step.get("name") == "Generate and send newsletter"
+    )
+    assert "uv run --no-sync python -m briefing" in send["run"]
 
-    test_steps = load("test.yml")["jobs"]["test"]["steps"]
-    assert any("requirements-dev.txt" in step.get("run", "") for step in test_steps)
+    test_runs = " ".join(step.get("run", "") for step in load("test.yml")["jobs"]["test"]["steps"])
+    assert "uv sync --locked --extra dev" in test_runs
 
 
 def test_delivery_runners_are_pinned():
@@ -115,16 +119,14 @@ def test_delivery_runners_are_pinned():
     assert load("briefs-backstop.yml")["jobs"]["gate"]["runs-on"] == "ubuntu-24.04"
 
 
-def test_lockfile_pins_every_runtime_dependency_exactly():
+def test_lockfile_covers_every_runtime_dependency():
+    import tomllib
+
     root = WORKFLOWS.parents[1]
-    pins = [
-        line.split(";")[0].strip()
-        for line in (root / "requirements.txt").read_text(encoding="utf-8").splitlines()
-        if line and not line.startswith((" ", "#"))
-    ]
-    assert pins and all("==" in pin for pin in pins)
-    names = {pin.split("==")[0].lower() for pin in pins}
-    assert {"openai", "httpx", "feedparser", "jinja2", "pyyaml", "python-dateutil"} <= names
+    lock = tomllib.loads((root / "uv.lock").read_text(encoding="utf-8"))
+    locked = {package["name"]: package["version"] for package in lock["package"]}
+    assert {"openai", "httpx", "feedparser", "jinja2", "pyyaml", "python-dateutil"} <= set(locked)
+    assert all(locked.values())
 
 
 def test_dependabot_groups_weekly_updates():
@@ -132,6 +134,12 @@ def test_dependabot_groups_weekly_updates():
         (WORKFLOWS.parent / "dependabot.yml").read_text(encoding="utf-8")
     )
     ecosystems = {update["package-ecosystem"]: update for update in config["updates"]}
-    assert set(ecosystems) == {"pip", "github-actions"}
-    assert all(update["schedule"]["interval"] == "weekly" for update in config["updates"])
-    assert all(update.get("groups") for update in config["updates"])
+    assert set(ecosystems) == {"uv", "github-actions"}
+    for update in config["updates"]:
+        assert update["schedule"]["interval"] == "weekly"
+        assert update.get("groups")
+        # Tests can't exercise the real OpenAI API or delivery workflows, so majors are
+        # deliberate upgrades rather than weekly bumps.
+        assert {"dependency-name": "*", "update-types": ["version-update:semver-major"]} in (
+            update["ignore"]
+        )

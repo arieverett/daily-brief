@@ -131,9 +131,15 @@ def _generate_structured_output(
     schema: dict[str, Any],
     schema_name: str,
     retries: int,
+    http_client: Any = None,
 ) -> dict[str, Any]:
     """Make one structured-output request and return the decoded JSON object."""
-    client = OpenAI(api_key=api_key, timeout=OPENAI_TIMEOUT_SECONDS, max_retries=retries)
+    client = OpenAI(
+        api_key=api_key,
+        timeout=OPENAI_TIMEOUT_SECONDS,
+        max_retries=retries,
+        http_client=http_client,
+    )
     request: dict[str, Any] = {
         "model": model,
         "instructions": instructions,

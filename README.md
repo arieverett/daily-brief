@@ -82,11 +82,10 @@ The model can be changed with the `OPENAI_MODEL` repository variable. Production
 
 ## Run locally
 
+Install [uv](https://docs.astral.sh/uv/), then:
+
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements-dev.txt
-pip install --no-deps -e .
+uv sync --extra dev        # exact versions from uv.lock, plus pytest and ruff
 cp .env.example .env
 ```
 
@@ -94,16 +93,16 @@ Export the variables from `.env`, then:
 
 ```bash
 # Render the bundled standard design sample without network/API keys
-python -m briefing --sample
+uv run python -m briefing --sample
 
 # Generate a live standard edition without sending
-python -m briefing
+uv run python -m briefing
 
 # Generate and send the standard edition
-python -m briefing --send
+uv run python -m briefing --send
 
 # Generate and send Nusantara Daily
-python -m briefing --edition indonesia --sources config/indonesia_sources.yml --send
+uv run python -m briefing --edition indonesia --sources config/indonesia_sources.yml --send
 ```
 
 Generated HTML and text files are written to `out/`.
@@ -146,7 +145,7 @@ Generated HTML and text files are written to `out/`.
 - `src/briefing/feedcheck.py` — checks every configured feed and the resulting candidate pool
 - `config/sources.yml` — standard Sweden + Indonesia source discovery
 - `config/indonesia_sources.yml` — Nusantara Daily source discovery
-- `requirements.txt` / `requirements-dev.txt` — exact pinned versions used in production and CI
+- `uv.lock` — exact dependency versions (with hashes) used in production and CI
 - `.github/workflows/feed-check.yml` — runs the feed check when sources change, or on demand
 - `.github/dependabot.yml` — weekly grouped dependency update PRs
 - `.github/workflows/briefs.yml` — primary trigger (external 05:45 dispatch, manual runs)
@@ -155,11 +154,12 @@ Generated HTML and text files are written to `out/`.
 
 ## Maintenance
 
-- **Dependency updates:** Dependabot opens one grouped PR per week (Python packages, and
-  GitHub Actions). The Test workflow runs on it; merge when green. Production keeps the old
-  pins until you merge. To regenerate the lockfiles by hand:
-  `uv pip compile pyproject.toml --universal --python-version 3.12 -o requirements.txt`, then
-  `uv pip compile pyproject.toml --extra dev --universal --python-version 3.12 -c requirements.txt -o requirements-dev.txt`.
+- **Dependency updates:** Dependabot opens one grouped PR per week for Python packages and one
+  for GitHub Actions (minor and patch versions only). The Test workflow runs on each, including
+  a contract test of the OpenAI SDK request/response shape; merge when green. Production keeps
+  the locked versions until you merge. Major versions are ignored on purpose, since tests can't
+  exercise the real OpenAI API or the delivery workflows; upgrade those deliberately with
+  `uv lock --upgrade-package <name>` and a manual test send.
 - **Feeds:** after editing `config/*.yml`, the Feed check workflow fetches every feed from
   GitHub's network. Dead feeds show as warnings; a country left with fewer than 6 usable stories
   fails the check. You can also run it from the Actions tab at any time.
@@ -187,7 +187,7 @@ Generated HTML and text files are written to `out/`.
   job summary.
 - If Google News is thin, failing, or blocked, direct publisher feeds top each country up to 12
   candidates. Older coverage is only used as a last resort, and never beyond 7 days.
-- Production installs exact versions from `requirements.txt`, and delivery jobs run on a pinned
+- Production installs exact versions from `uv.lock`, and delivery jobs run on a pinned
   runner image (`ubuntu-24.04`), so nothing changes underneath a morning run unexpectedly.
 - The editor needs at least six candidate stories per relevant country after fallback so it can fill
   the minimum structured edition without recycling topics.

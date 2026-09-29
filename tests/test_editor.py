@@ -84,3 +84,72 @@ def test_regeneration_gives_up_after_the_retry(monkeypatch):
         editor.create_edition(_candidates_for(_sample_payload()), "key", "gpt-5-mini",
                               date(2026, 9, 29))
     assert len(calls) == editor.GENERATION_ATTEMPTS
+
+
+def test_openai_sdk_contract_request_and_response_shape():
+    """Exercise the real OpenAI SDK against a fake server.
+
+    Catches SDK updates that change how our Responses API request is sent or how
+    `output_text` is read, which unit tests that mock our own helper can't see.
+    """
+    import httpx
+
+    seen: dict = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["path"] = request.url.path
+        seen["auth"] = request.headers.get("authorization")
+        seen["body"] = json.loads(request.content)
+        return httpx.Response(
+            200,
+            json={
+                "id": "resp_1",
+                "object": "response",
+                "created_at": 1790000000,
+                "model": "gpt-5-mini",
+                "status": "completed",
+                "output": [
+                    {
+                        "type": "message",
+                        "id": "msg_1",
+                        "status": "completed",
+                        "role": "assistant",
+                        "content": [
+                            {"type": "output_text", "text": '{"ok": true}', "annotations": []}
+                        ],
+                    }
+                ],
+            },
+        )
+
+    schema = {
+        "type": "object",
+        "properties": {"ok": {"type": "boolean"}},
+        "required": ["ok"],
+        "additionalProperties": False,
+    }
+    result = editor._generate_structured_output(
+        api_key="sk-test",
+        model="gpt-5-mini",
+        instructions="Be brief.",
+        prompt="Say ok.",
+        schema=schema,
+        schema_name="probe",
+        retries=0,
+        http_client=httpx.Client(transport=httpx.MockTransport(handler)),
+    )
+
+    assert result == {"ok": True}
+    assert seen["path"].endswith("/responses")
+    assert seen["auth"] == "Bearer sk-test"
+    body = seen["body"]
+    assert body["model"] == "gpt-5-mini"
+    assert body["instructions"] == "Be brief."
+    assert body["input"] == "Say ok."
+    assert body["text"]["format"] == {
+        "type": "json_schema",
+        "name": "probe",
+        "schema": schema,
+        "strict": True,
+    }
+    assert body["reasoning"] == {"effort": "low"}
