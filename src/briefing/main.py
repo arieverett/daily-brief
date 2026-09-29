@@ -8,14 +8,17 @@ import json
 import time
 from collections.abc import Iterator
 from contextlib import contextmanager
+from datetime import date, datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from .collect import add_article_images, add_indonesia_article_images, collect_candidates
 from .config import DEFAULT_OUT_DIR, DEFAULT_SOURCES_PATH, Settings
+from .delivery import parse_clock, scheduled_send_time
 from .editor import create_edition, create_indonesia_edition
 from .models import Candidate, NewsletterEdition, edition_from_dict
 from .render import render_html, render_indonesia_text, render_text
-from .send import send_email
+from .send import SendResult, send_email
 
 COUNTRIES = ("Sweden", "Indonesia")
 FRESH_STORY_TARGET = 3
@@ -123,9 +126,56 @@ def backfill_candidates(
     return candidates
 
 
+def edition_day(settings: Settings, now: datetime | None = None) -> date:
+    """The day this edition is for: fixed by the workflow gate, else today locally."""
+    if settings.edition_date:
+        return date.fromisoformat(settings.edition_date)
+    return (now or datetime.now(ZoneInfo(settings.timezone))).date()
+
+
+def delivery_time(settings: Settings, day: date, now: datetime | None = None) -> datetime | None:
+    """Inbox time for automatic runs; None means send immediately.
+
+    Manual revisions (which carry a delivery nonce) always go out immediately.
+    """
+    if settings.delivery_nonce or not settings.send_at:
+        return None
+    now = now or datetime.now(ZoneInfo(settings.timezone))
+    if now.date() != day:
+        return None
+    return scheduled_send_time(now, parse_clock(settings.send_at))
+
+
+def write_delivery_record(
+    out_dir: Path,
+    edition_name: str,
+    day: date,
+    result: SendResult,
+) -> Path:
+    record_dir = out_dir / "delivery"
+    record_dir.mkdir(parents=True, exist_ok=True)
+    path = record_dir / f"{edition_name}.json"
+    path.write_text(
+        json.dumps(
+            {
+                "edition": edition_name,
+                "date": day.isoformat(),
+                "message_id": result.message_id,
+                "duplicate": result.duplicate,
+                "scheduled_at": result.scheduled_at,
+                "recorded_at": datetime.now(ZoneInfo("UTC")).isoformat(),
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    return path
+
+
 def _generate_live_edition(
     args: argparse.Namespace,
     settings: Settings,
+    day: date,
 ) -> tuple[NewsletterEdition, list[Candidate]]:
     with stage("Fetching news feeds"):
         candidates = asyncio.run(
@@ -143,14 +193,14 @@ def _generate_live_edition(
                 candidates,
                 settings.openai_api_key,
                 settings.openai_model,
-                settings.timezone,
+                day,
             )
         else:
             edition = create_edition(
                 candidates,
                 settings.openai_api_key,
                 settings.openai_model,
-                settings.timezone,
+                day,
             )
     return edition, candidates
 
@@ -190,7 +240,9 @@ def main() -> None:
         edition: NewsletterEdition = load_sample()
     else:
         settings = Settings.from_env(require_delivery=args.send)
-        edition, candidates = _generate_live_edition(args, settings)
+        day = edition_day(settings)
+        print(f"  Edition date: {day.isoformat()}", flush=True)
+        edition, candidates = _generate_live_edition(args, settings, day)
         edition = _add_images(edition, candidates, args.edition)
 
     with stage("Rendering the email"):
@@ -199,8 +251,10 @@ def main() -> None:
 
     if args.send:
         assert settings is not None
-        with stage("Sending through Resend"):
-            message_id = send_email(
+        send_at = delivery_time(settings, day)
+        label = f"Scheduling for {send_at:%H:%M %Z}" if send_at else "Sending"
+        with stage(f"{label} through Resend"):
+            result = send_email(
                 api_key=settings.resend_api_key,
                 from_email=settings.from_email,
                 to_email=settings.to_email,
@@ -210,8 +264,20 @@ def main() -> None:
                 edition_date=edition.edition_date,
                 edition_name=args.edition,
                 delivery_nonce=settings.delivery_nonce,
+                scheduled_at=send_at,
             )
-        print(f"  Sent message {message_id}", flush=True)
+        if result.duplicate:
+            print(
+                "  Resend already has today's edition under this key (an earlier run sent "
+                "it); treating as delivered.",
+                flush=True,
+            )
+        elif result.scheduled_at:
+            print(f"  Resend message {result.message_id} will arrive at {send_at:%H:%M %Z}")
+        else:
+            print(f"  Sent message {result.message_id}", flush=True)
+        record = write_delivery_record(args.out, args.edition, day, result)
+        print(f"  Delivery record: {record}", flush=True)
 
 
 if __name__ == "__main__":

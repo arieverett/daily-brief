@@ -4,8 +4,6 @@ on:
   push:
     paths-ignore:
       - ".github/run-briefs-now"
-      - ".github/run-standard-now"
-      - ".github/run-indonesia-now"
   pull_request:
 
 concurrency:

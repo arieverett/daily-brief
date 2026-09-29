@@ -4,23 +4,19 @@ on:
   workflow_call:
     inputs:
       edition:
-        description: Newsletter edition to generate
+        description: Newsletter edition to generate (standard or indonesia)
         required: true
         type: string
-      sources:
-        description: Source configuration path
-        required: true
-        type: string
-      max_candidates:
-        description: Maximum candidate stories passed to the editor
-        required: false
-        default: "60"
-        type: string
-      force_send:
-        description: Bypass the same-day delivery guard for an intentional manual send
+      force:
+        description: Skip the day/duplicate checks and send immediately (manual revisions)
         required: false
         default: false
         type: boolean
+      trigger:
+        description: What started this run, for logs and failure alerts
+        required: false
+        default: manual
+        type: string
     secrets:
       OPENAI_API_KEY:
         required: true
@@ -35,67 +31,47 @@ on:
 
 jobs:
   send:
+    name: Send ${{ inputs.edition }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
+    # One delivery per edition at a time, whichever workflow started it. A run that
+    # queues behind another re-checks the delivery record below and skips if the
+    # first one already delivered.
+    concurrency:
+      group: deliver-${{ inputs.edition }}
+      cancel-in-progress: false
     permissions:
       contents: read
       actions: read
+    env:
+      PYTHONPATH: src
     steps:
-      - name: Check delivery day and previous successful runs
-        id: delivery_guard
-        # Guard scheduled runs and marker-triggered recovery alike. An explicit
-        # workflow_dispatch remains available for intentionally sending a revision.
-        if: ${{ github.event_name != 'workflow_dispatch' && !inputs.force_send }}
+      - uses: actions/checkout@v5
+
+      - name: Check whether today's edition still needs sending
+        id: guard
         env:
-          GH_TOKEN: ${{ github.token }}
-          EDITION: ${{ inputs.edition }}
+          GITHUB_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          # The cron excludes Sunday. This check also catches delayed Saturday
-          # runs and marker pushes on Sunday in the target timezone.
-          if [[ "$(TZ=America/New_York date +%u)" == "7" ]]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Skipping automatic delivery on Sunday in New York."
-            exit 0
+          args=(gate --editions "${{ inputs.edition }}")
+          if [[ "${{ inputs.force }}" == "true" ]]; then
+            args+=(--force)
           fi
-
-          today="$(TZ=America/New_York date +%F)"
-          if [[ "$EDITION" == "indonesia" ]]; then
-            workflow="indonesia-daily.yml"
-          else
-            workflow="daily.yml"
-          fi
-
-          # Both attempts for an edition share the caller's concurrency group,
-          # so a delayed first run is completed before the later run checks.
-          if ! runs="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/${workflow}/runs?per_page=50")"; then
-            echo "WARNING: Cannot inspect earlier runs; proceeding so delivery is not missed."
-            exit 0
-          fi
-          if jq -e --arg day "$today" --argjson current "$GITHUB_RUN_ID" \
-            '[.workflow_runs[] | select(.id != $current and .status == "completed" and .conclusion == "success" and (.created_at | startswith($day)))] | length > 0' \
-            <<< "$runs" >/dev/null; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Today's $EDITION edition already has a successful run; skipping duplicate."
-          else
-            echo "No successful $EDITION send found for $today; proceeding."
-          fi
-
-      - uses: actions/checkout@v5
-        if: steps.delivery_guard.outputs.skip != 'true'
+          python3 -m briefing.delivery "${args[@]}"
 
       - uses: actions/setup-python@v6
-        if: steps.delivery_guard.outputs.skip != 'true'
+        if: steps.guard.outputs.any == 'true'
         with:
           python-version: "3.12"
           cache: pip
 
       - name: Install application
-        if: steps.delivery_guard.outputs.skip != 'true'
+        if: steps.guard.outputs.any == 'true'
         run: pip install .
 
       - name: Generate and send newsletter
-        if: steps.delivery_guard.outputs.skip != 'true'
+        if: steps.guard.outputs.any == 'true'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
@@ -104,20 +80,59 @@ jobs:
           INDONESIA_TO_EMAIL: ${{ secrets.INDONESIA_BRIEF_TO_EMAIL }}
           BRIEF_FROM_EMAIL: ${{ secrets.BRIEF_FROM_EMAIL }}
           BRIEF_TIMEZONE: America/New_York
-          BRIEF_MAX_CANDIDATES: ${{ inputs.max_candidates }}
-          # Automatic primary/recovery attempts share a stable Resend key.
-          # Explicit manual revisions get a unique run nonce and can send again.
-          BRIEF_DELIVERY_NONCE: ${{ (github.event_name == 'workflow_dispatch' || inputs.force_send) && github.run_id || '' }}
+          BRIEF_MAX_CANDIDATES: ${{ inputs.edition == 'indonesia' && '60' || '40' }}
+          BRIEF_EDITION_DATE: ${{ steps.guard.outputs.date }}
+          # Automatic runs are handed to Resend to land at exactly 06:00 New York time
+          # (or immediately if it is already past 06:00).
+          BRIEF_SEND_AT: ${{ !inputs.force && '06:00' || '' }}
+          # Automatic attempts share one Resend idempotency key per edition and day.
+          # Forced revisions get a unique run nonce so they can be sent intentionally.
+          BRIEF_DELIVERY_NONCE: ${{ inputs.force && github.run_id || '' }}
         shell: bash
         run: |
           if [[ "${{ inputs.edition }}" == "indonesia" ]]; then
             export BRIEF_TO_EMAIL="${INDONESIA_TO_EMAIL},${PRIMARY_TO_EMAIL}"
+            sources="config/indonesia_sources.yml"
           else
             export BRIEF_TO_EMAIL="${PRIMARY_TO_EMAIL}"
+            sources="config/sources.yml"
           fi
+          echo "Trigger: ${{ inputs.trigger }}"
+          python -m briefing --send --edition "${{ inputs.edition }}" --sources "$sources"
 
-          args=(--send --sources "${{ inputs.sources }}")
-          if [[ "${{ inputs.edition }}" != "standard" ]]; then
-            args+=(--edition "${{ inputs.edition }}")
-          fi
-          python -m briefing "${args[@]}"
+      # The delivery record that every later run checks. Forced revisions don't count
+      # as the day's delivery. A failed upload must not fail the job (the email is
+      # already out); a later run would just hit Resend's duplicate guard.
+      - name: Record delivery
+        if: success() && steps.guard.outputs.any == 'true' && !inputs.force
+        continue-on-error: true
+        uses: actions/upload-artifact@v5
+        with:
+          name: delivered-${{ inputs.edition }}-${{ steps.guard.outputs.date }}
+          path: out/delivery/${{ inputs.edition }}.json
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Email a failure alert
+        id: alert
+        if: failure() && !inputs.force
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          BRIEF_FROM_EMAIL: ${{ secrets.BRIEF_FROM_EMAIL }}
+          ALERT_TO_EMAIL: ${{ secrets.BRIEF_TO_EMAIL }}
+        shell: bash
+        run: |
+          python3 -m briefing.delivery alert \
+            --edition "${{ inputs.edition }}" \
+            --date "${{ steps.guard.outputs.date }}" \
+            --trigger "${{ inputs.trigger }}"
+
+      - name: Record alert
+        if: failure() && steps.alert.outputs.sent == 'true'
+        continue-on-error: true
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{ steps.alert.outputs.record }}
+          path: out/alert/alert.json
+          retention-days: 7

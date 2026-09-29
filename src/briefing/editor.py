@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from dataclasses import replace
-from datetime import datetime
-from typing import Any
-from zoneinfo import ZoneInfo
+from datetime import date
+from typing import Any, TypeVar
 
 from openai import OpenAI
 
@@ -29,6 +29,27 @@ from .models import (
 MIN_CANDIDATES_PER_COUNTRY = 6
 OPENAI_TIMEOUT_SECONDS = 300.0
 OPENAI_MAX_RETRIES = 1
+# Extra full regenerations when the model's output can't be parsed or validated
+# (e.g. a truncated response or a section whose every link was invented).
+GENERATION_ATTEMPTS = 2
+
+T = TypeVar("T")
+
+INDONESIAN_DAYS = ("Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu")
+INDONESIAN_MONTHS = (
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
+)
 
 ENGLISH_VOICE_GUIDANCE = """VOICE AND TONE OVERRIDE
 - Write like a staff journalist delivering the newsletter directly to readers. Report the news itself; do not describe the source material as source material.
@@ -61,45 +82,44 @@ INDONESIA_VOICE_GUIDANCE = """ARAH SUARA DAN GAYA
 """
 
 
-def _date_context(timezone_name: str) -> datetime:
-    return datetime.now(ZoneInfo(timezone_name))
+def standard_date_label(day: date) -> str:
+    return f"{day:%A, %B} {day.day}"
 
 
-def _standard_prompt(candidates: list[Candidate], timezone_name: str) -> str:
-    local_now = _date_context(timezone_name)
+def indonesia_date_label(day: date) -> str:
+    return f"{INDONESIAN_DAYS[day.weekday()]}, {day.day} {INDONESIAN_MONTHS[day.month - 1]}"
+
+
+def _standard_prompt(candidates: list[Candidate], day: date) -> str:
     payload = [candidate.prompt_dict() for candidate in candidates]
     return (
-        f"Create the edition for {local_now:%Y-%m-%d}. "
-        f"Use date_label '{local_now:%A, %B} {local_now.day}'. "
+        f"Create the edition for {day.isoformat()}. "
+        f"Use date_label '{standard_date_label(day)}'. "
         "Candidate stories follow as JSON.\n\n"
         + json.dumps(payload, ensure_ascii=False)
     )
 
 
-def _indonesia_prompt(candidates: list[Candidate], timezone_name: str) -> str:
-    local_now = _date_context(timezone_name)
-    days = ("Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu")
-    months = (
-        "Januari",
-        "Februari",
-        "Maret",
-        "April",
-        "Mei",
-        "Juni",
-        "Juli",
-        "Agustus",
-        "September",
-        "Oktober",
-        "November",
-        "Desember",
-    )
-    date_label = f"{days[local_now.weekday()]}, {local_now.day} {months[local_now.month - 1]}"
+def _indonesia_prompt(candidates: list[Candidate], day: date) -> str:
     payload = [candidate.prompt_dict() for candidate in candidates]
     return (
-        f"Buat edisi untuk {local_now:%Y-%m-%d}. Gunakan date_label '{date_label}'. "
+        f"Buat edisi untuk {day.isoformat()}. "
+        f"Gunakan date_label '{indonesia_date_label(day)}'. "
         "Berikut kandidat berita dalam JSON.\n\n"
         + json.dumps(payload, ensure_ascii=False)
     )
+
+
+def _with_regeneration(build: Callable[[], T]) -> T:
+    """Retry generation when the model returns output that can't be used."""
+    for attempt in range(1, GENERATION_ATTEMPTS + 1):
+        try:
+            return build()
+        except (ValueError, KeyError, TypeError) as exc:
+            if attempt == GENERATION_ATTEMPTS:
+                raise
+            print(f"  Editor output unusable ({exc!r}); regenerating", flush=True)
+    raise AssertionError("unreachable")
 
 
 def _generate_structured_output(
@@ -142,29 +162,37 @@ def _country_counts(candidates: list[Candidate]) -> dict[str, int]:
 
 
 def create_edition(
-    candidates: list[Candidate], api_key: str, model: str, timezone_name: str
+    candidates: list[Candidate], api_key: str, model: str, day: date
 ) -> Edition:
     counts = _country_counts(candidates)
     if min(counts.values()) < MIN_CANDIDATES_PER_COUNTRY:
         raise RuntimeError(f"Not enough candidate stories to publish safely: {counts}")
 
-    payload = _generate_structured_output(
-        api_key=api_key,
-        model=model,
-        instructions=f"{SYSTEM_PROMPT}\n\n{ENGLISH_VOICE_GUIDANCE}",
-        prompt=_standard_prompt(candidates, timezone_name),
-        schema=EDITION_SCHEMA,
-        schema_name="daily_brief",
-        retries=OPENAI_MAX_RETRIES,
-    )
-    edition = edition_from_dict(payload)
-    validated = validate_edition(edition, candidates)
-    assert isinstance(validated, Edition)
-    return validated
+    def build() -> Edition:
+        payload = _generate_structured_output(
+            api_key=api_key,
+            model=model,
+            instructions=f"{SYSTEM_PROMPT}\n\n{ENGLISH_VOICE_GUIDANCE}",
+            prompt=_standard_prompt(candidates, day),
+            schema=EDITION_SCHEMA,
+            schema_name="daily_brief",
+            retries=OPENAI_MAX_RETRIES,
+        )
+        # The date is ours, not the model's: it keys duplicate protection.
+        edition = replace(
+            edition_from_dict(payload),
+            edition_date=day.isoformat(),
+            date_label=standard_date_label(day),
+        )
+        validated = validate_edition(edition, candidates)
+        assert isinstance(validated, Edition)
+        return validated
+
+    return _with_regeneration(build)
 
 
 def create_indonesia_edition(
-    candidates: list[Candidate], api_key: str, model: str, timezone_name: str
+    candidates: list[Candidate], api_key: str, model: str, day: date
 ) -> IndonesiaEdition:
     indonesia_candidates = [candidate for candidate in candidates if candidate.country == "Indonesia"]
     if len(indonesia_candidates) < MIN_CANDIDATES_PER_COUNTRY:
@@ -173,17 +201,25 @@ def create_indonesia_edition(
             f"{len(indonesia_candidates)}"
         )
 
-    payload = _generate_structured_output(
-        api_key=api_key,
-        model=model,
-        instructions=f"{INDONESIA_SYSTEM_PROMPT}\n\n{INDONESIA_VOICE_GUIDANCE}",
-        prompt=_indonesia_prompt(indonesia_candidates, timezone_name),
-        schema=INDONESIA_EDITION_SCHEMA,
-        schema_name="indonesia_daily_brief",
-        retries=OPENAI_MAX_RETRIES,
-    )
-    edition = indonesia_edition_from_dict(payload)
-    edition = replace(edition, subject=prefix_indonesia_subject(edition.subject))
-    validated = validate_edition(edition, indonesia_candidates)
-    assert isinstance(validated, IndonesiaEdition)
-    return validated
+    def build() -> IndonesiaEdition:
+        payload = _generate_structured_output(
+            api_key=api_key,
+            model=model,
+            instructions=f"{INDONESIA_SYSTEM_PROMPT}\n\n{INDONESIA_VOICE_GUIDANCE}",
+            prompt=_indonesia_prompt(indonesia_candidates, day),
+            schema=INDONESIA_EDITION_SCHEMA,
+            schema_name="indonesia_daily_brief",
+            retries=OPENAI_MAX_RETRIES,
+        )
+        edition = indonesia_edition_from_dict(payload)
+        edition = replace(
+            edition,
+            subject=prefix_indonesia_subject(edition.subject),
+            edition_date=day.isoformat(),
+            date_label=indonesia_date_label(day),
+        )
+        validated = validate_edition(edition, indonesia_candidates)
+        assert isinstance(validated, IndonesiaEdition)
+        return validated
+
+    return _with_regeneration(build)

@@ -1,0 +1,69 @@
+name: Morning briefs
+
+# Primary trigger. An external exact-time scheduler calls this workflow's
+# workflow_dispatch API at 05:45 America/New_York, Monday-Saturday (setup in the
+# README). Each edition is generated and handed to Resend to land at 06:00 sharp.
+#
+# GitHub's own cron runs hours late for this repo, so it is only used as a backstop
+# (briefs-backstop.yml). This file deliberately has no `schedule:` trigger: GitHub
+# auto-disables scheduled workflows after 60 days without repo activity, and that must
+# never switch off the primary path.
+#
+# Manual use: Actions -> Morning briefs -> Run workflow. By default it only sends an
+# edition that hasn't gone out today; tick "force" to re-send a revision.
+
+on:
+  workflow_dispatch:
+    inputs:
+      editions:
+        description: Which editions to send
+        type: choice
+        options:
+          - both
+          - standard
+          - indonesia
+        default: both
+      force:
+        description: Send even if today's edition already went out (e.g. to test a revision)
+        type: boolean
+        default: false
+  push:
+    branches:
+      - main
+    paths:
+      # Committing a change to this file sends any edition not yet delivered today.
+      - ".github/run-briefs-now"
+
+jobs:
+  standard:
+    if: ${{ inputs.editions != 'indonesia' }}
+    permissions:
+      contents: read
+      actions: read
+    uses: ./.github/workflows/send-newsletter.yml
+    with:
+      edition: standard
+      force: ${{ inputs.force == true }}
+      trigger: ${{ github.event_name }}
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      BRIEF_FROM_EMAIL: ${{ secrets.BRIEF_FROM_EMAIL }}
+      BRIEF_TO_EMAIL: ${{ secrets.BRIEF_TO_EMAIL }}
+
+  indonesia:
+    if: ${{ inputs.editions != 'standard' }}
+    permissions:
+      contents: read
+      actions: read
+    uses: ./.github/workflows/send-newsletter.yml
+    with:
+      edition: indonesia
+      force: ${{ inputs.force == true }}
+      trigger: ${{ github.event_name }}
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      BRIEF_FROM_EMAIL: ${{ secrets.BRIEF_FROM_EMAIL }}
+      BRIEF_TO_EMAIL: ${{ secrets.BRIEF_TO_EMAIL }}
+      INDONESIA_BRIEF_TO_EMAIL: ${{ secrets.INDONESIA_BRIEF_TO_EMAIL }}

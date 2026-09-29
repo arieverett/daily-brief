@@ -1,0 +1,77 @@
+name: Morning briefs backstop
+
+# Safety net for days the 05:45 primary trigger (briefs.yml) doesn't fire or fails.
+#
+# GitHub starts scheduled runs late: in September 2026 this repo's 06:07 cron ran
+# anywhere from 10:21 to 14:05, and some days not at all. So instead of one cron
+# aimed at 6 AM, this polls hourly from the evening before through late morning.
+# Each run exits in seconds unless it lands between 05:00 and 15:00 New York time.
+# A run landing 05:00-05:55 waits until 05:55 (giving the primary run time to
+# finish), then sends any edition that still has no delivery record. A later run
+# sends whatever is missing right away.
+
+on:
+  schedule:
+    - cron: "17 20-23 * * 0-5"
+      timezone: "America/New_York"
+    - cron: "17 0-11 * * 1-6"
+      timezone: "America/New_York"
+
+concurrency:
+  group: briefs-backstop
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      standard: ${{ steps.gate.outputs.standard }}
+      indonesia: ${{ steps.gate.outputs.indonesia }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: src/briefing
+
+      - name: Decide whether any edition still needs sending
+        id: gate
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PYTHONPATH: src
+        run: python3 -m briefing.delivery gate --backstop --editions both
+
+  standard:
+    needs: gate
+    if: ${{ needs.gate.outputs.standard == 'true' }}
+    permissions:
+      contents: read
+      actions: read
+    uses: ./.github/workflows/send-newsletter.yml
+    with:
+      edition: standard
+      trigger: backstop
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      BRIEF_FROM_EMAIL: ${{ secrets.BRIEF_FROM_EMAIL }}
+      BRIEF_TO_EMAIL: ${{ secrets.BRIEF_TO_EMAIL }}
+
+  indonesia:
+    needs: gate
+    if: ${{ needs.gate.outputs.indonesia == 'true' }}
+    permissions:
+      contents: read
+      actions: read
+    uses: ./.github/workflows/send-newsletter.yml
+    with:
+      edition: indonesia
+      trigger: backstop
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      BRIEF_FROM_EMAIL: ${{ secrets.BRIEF_FROM_EMAIL }}
+      BRIEF_TO_EMAIL: ${{ secrets.BRIEF_TO_EMAIL }}
+      INDONESIA_BRIEF_TO_EMAIL: ${{ secrets.INDONESIA_BRIEF_TO_EMAIL }}

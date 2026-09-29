@@ -20,11 +20,52 @@ and plain-text editions, and send through Resend.
 
 ## Production schedule
 
-Both newsletters are triggered at **6:00 AM America/New_York, Monday through Saturday** by an
-external exact-time scheduler. The scheduler updates `.github/run-briefs-now`, which starts both
-edition workflows immediately. GitHub Actions cron is retained only as a **6:20 AM recovery run**;
-the delivery guard skips it when that edition already completed successfully that New York calendar
-day. Sundays are excluded by both the schedule and the delivery guard.
+Both newsletters land at **6:00 AM America/New_York, Monday through Saturday**.
+
+| When (ET) | What happens |
+|---|---|
+| 05:45 | An external scheduler calls the `workflow_dispatch` API for **Morning briefs** (`briefs.yml`). Each edition is generated, then handed to Resend with `scheduled_at` = 06:00, so it arrives at 6:00 on the dot. |
+| 05:55 | If a backstop run is waiting, it sends any edition that still has no delivery record. |
+| until 15:00 | Hourly backstop runs (`briefs-backstop.yml`) send anything still missing, immediately. After 15:00 a morning brief is too stale to send automatically. |
+
+GitHub's own cron is **not** the primary trigger because it runs very late for this repo: in
+September 2026 the 06:07 cron started between 10:21 AM and 2:05 PM and sometimes not at all.
+The backstop therefore polls hourly from 8:17 PM the evening before; each poll exits in seconds
+unless it lands inside the 05:00–15:00 window.
+
+Every successful automatic send uploads a `delivered-<edition>-<date>` artifact. All runs check
+that record before generating, and each edition's sends are serialized, so the primary and
+backstop can overlap without sending twice. Resend's per-edition, per-day idempotency key is a
+second, independent guard. Sundays are skipped.
+
+If an automatic send fails, Ari gets one alert email per edition per day with a link to the run.
+
+### External trigger setup (once)
+
+1. **Token.** GitHub → Settings → Developer settings → Fine-grained personal access tokens →
+   *Generate new token*. Repository access: *Only select repositories* → `daily-brief`.
+   Permissions: **Actions: Read and write** (nothing else). Pick the longest expiry you're comfortable
+   with and set a calendar reminder to rotate it.
+2. **Scheduler.** Create a free account at [cron-job.org](https://cron-job.org) and add a cron job:
+   - URL: `https://api.github.com/repos/arieverett/daily-brief/actions/workflows/briefs.yml/dispatches`
+   - Schedule: custom, **05:45**, Monday–Saturday, time zone **America/New_York**
+   - Advanced → Request method **POST**, headers
+     `Authorization: Bearer <token>`, `Accept: application/vnd.github+json`,
+     `X-GitHub-Api-Version: 2022-11-28`, request body `{"ref":"main"}`
+   - Notifications: turn on *notify on failure* (catches an expired token).
+   - Use *Test run* once: GitHub answers **204** and a *Morning briefs* run appears. On a day that
+     already went out, that run just logs "already delivered" and skips.
+
+Any scheduler that can send that POST works the same way.
+
+### Manual runs
+
+- **Send whatever hasn't gone out today:** Actions → *Morning briefs* → *Run workflow*.
+- **Re-send a revision / test a change:** same, with *force* ticked (sends immediately, doesn't
+  count as the day's delivery). The Indonesia edition also goes to its recipient.
+- Committing a change to `.github/run-briefs-now` behaves like a normal (unforced) manual run.
+
+### Secrets
 
 The delivery workflows need these repository secrets:
 
@@ -32,7 +73,7 @@ The delivery workflows need these repository secrets:
 |---|---|
 | `OPENAI_API_KEY` | OpenAI API key with billing enabled |
 | `RESEND_API_KEY` | Resend sending API key |
-| `BRIEF_TO_EMAIL` | Ari's destination email address |
+| `BRIEF_TO_EMAIL` | Ari's destination email address (also receives failure alerts) |
 | `INDONESIA_BRIEF_TO_EMAIL` | Recipient for Nusantara Daily |
 | `BRIEF_FROM_EMAIL` | Verified sender, e.g. `Daily Brief <news@dailybrief.example.com>` |
 
@@ -81,9 +122,11 @@ Generated HTML and text files are written to `out/`.
 6. **Enrich:** fetch publisher social images concurrently under a fixed time budget, with RSS images
    as the fallback.
 7. **Render:** build one responsive email template and the edition-specific plain-text fallback.
-8. **Send:** deliver through Resend with a stable edition/date idempotency key so an automatic
-   recovery cannot duplicate an email after an ambiguous network timeout. Manual revisions get a
-   unique workflow-run nonce so they can still be sent intentionally.
+8. **Send:** deliver through Resend, scheduled for 06:00 when the run finishes early. Transient
+   Resend errors are retried with the same idempotency key. That key is stable per edition and
+   day, so if an earlier run already sent today's edition Resend refuses the copy and the run
+   records it as delivered. Forced revisions get a unique workflow-run nonce so they can still be
+   sent intentionally.
 
 ## Code map
 
@@ -92,13 +135,15 @@ Generated HTML and text files are written to `out/`.
 - `src/briefing/editorial.py` — schemas, newsroom style guide, source validation, quality gates
 - `src/briefing/models.py` — current newsletter data model and structured-output parsing
 - `src/briefing/render.py` — cached Jinja template rendering and plain-text output
-- `src/briefing/send.py` — recipient parsing and Resend delivery
+- `src/briefing/send.py` — recipient parsing, Resend delivery, retries, and duplicate handling
+- `src/briefing/delivery.py` — delivery window, delivery records, and failure alerts (stdlib only;
+  the workflows run it before installing dependencies)
 - `src/briefing/templates/newsletter.html` — email-safe responsive presentation
 - `config/sources.yml` — standard Sweden + Indonesia source discovery
 - `config/indonesia_sources.yml` — Nusantara Daily source discovery
-- `.github/workflows/send-newsletter.yml` — shared install, generation, and delivery job
-- `.github/workflows/daily.yml` — standard edition schedule and recipient wiring
-- `.github/workflows/indonesia-daily.yml` — Indonesia edition schedule and recipient wiring
+- `.github/workflows/briefs.yml` — primary trigger (external 05:45 dispatch, manual runs)
+- `.github/workflows/briefs-backstop.yml` — hourly GitHub cron safety net
+- `.github/workflows/send-newsletter.yml` — shared guard, generation, delivery record, and alert
 
 ## Editorial guardrails
 
@@ -114,10 +159,13 @@ Generated HTML and text files are written to `out/`.
 
 ## Reliability notes
 
+- The edition date comes from the workflow, not the AI editor, so duplicate protection can't be
+  thrown off by a model writing the date differently.
+- If the editor returns output that can't be parsed or validated, it is regenerated once.
 - Feed failures are tolerated individually.
 - The editor needs at least six candidate stories per relevant country after fallback so it can fill
   the minimum structured edition without recycling topics.
 - Image failures never block delivery; the newsletter can send with RSS images or no image.
-- Both production editions use the same reusable delivery workflow, preventing schedule/setup drift.
+- Both editions and both triggers use the same reusable delivery workflow, preventing drift.
 - The GitHub test workflow runs Ruff, Pytest, and a full sample render on code/config changes;
   marker-only delivery commits are ignored.

@@ -33,6 +33,11 @@ class Settings:
     lookback_hours: int = DEFAULT_LOOKBACK_HOURS
     max_candidates: int = DEFAULT_MAX_CANDIDATES
     delivery_nonce: str = ""
+    # YYYY-MM-DD chosen by the workflow's delivery gate, so the prompt, the Resend
+    # idempotency key, and the delivery record all agree on which day this is.
+    edition_date: str = ""
+    # Local HH:MM inbox time for automatic runs (Resend holds the email until then).
+    send_at: str = ""
 
     @classmethod
     def from_env(cls, *, require_delivery: bool = True) -> Settings:
@@ -46,6 +51,8 @@ class Settings:
             "lookback_hours": _env_int("BRIEF_LOOKBACK_HOURS", DEFAULT_LOOKBACK_HOURS),
             "max_candidates": _env_int("BRIEF_MAX_CANDIDATES", DEFAULT_MAX_CANDIDATES),
             "delivery_nonce": os.getenv("BRIEF_DELIVERY_NONCE", ""),
+            "edition_date": os.getenv("BRIEF_EDITION_DATE", "").strip(),
+            "send_at": os.getenv("BRIEF_SEND_AT", "").strip(),
         }
 
         required = ["openai_api_key"]
