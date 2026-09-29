@@ -36,11 +36,11 @@ jiter==0.17.0
     # via openai
 markupsafe==3.0.3
     # via jinja2
-openai==2.54.0
+openai==3.19.2
     # via daily-brief (pyproject.toml)
 pydantic==2.13.5
     # via openai
-pydantic-core==2.46.5
+pydantic-core==2.49.0
     # via pydantic
 python-dateutil==2.9.0.post0
     # via daily-brief (pyproject.toml)
