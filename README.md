@@ -8,7 +8,8 @@ and plain-text editions, and send through Resend.
 ## What ships
 
 - Sweden and Indonesia sections with one lead, concise explainers, and speed reads
-- Morning Brew-style writing: direct, conversational, data-forward, and high signal
+- Morning Brew voice: a witty, expert "we" talking straight to "you", with hooks, bold run-ins
+  (**Zoom out:**, **The catch:**), short paragraphs, and punny kickers, while staying data-forward
 - Editorial preference for significance, authoritative sourcing, and economic/political context
 - Optional bullets that must add new information instead of restating the summary
 - Stricter Indonesia bullet filtering, with priority for unused counts, percentages, and currency data
@@ -176,7 +177,15 @@ Generated HTML and text files are written to `out/`.
   and paraphrased recap bullets are removed automatically.
 - Speed reads must use distinct topics and link to the underlying article.
 - Source names live in the source row, not in prose such as "according to Reuters."
-- Serious stories stay serious. Light wordplay is reserved for appropriate topics.
+- Serious stories stay serious. About one clever moment per story, and wit only reframes real facts;
+  it never invents a detail to land a joke.
+- "We" is the editors' voice for explaining and judging what matters. It never claims reporting the
+  newsletter didn't do.
+- No em dashes, by house rule.
+- The only markup the editor may use is `**bold**` for a run-in at the start of a paragraph, plus blank
+  lines between paragraphs. The renderer escapes everything else.
+- The voice lives in `ENGLISH_VOICE_GUIDANCE` / `INDONESIA_VOICE_GUIDANCE` (`editor.py`) and the writing
+  rules in `editorial.py`.
 
 ## Reliability notes
 

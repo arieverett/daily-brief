@@ -161,3 +161,46 @@ def test_validate_edition_snaps_urls_and_drops_hallucinations():
     assert fixed.sweden.stories == []
     assert fixed.sweden.quick_hits[0].url == "https://b.se/metro/"
     assert fixed.indonesia.lead.url == "https://c.id/floods"
+
+
+def test_run_ins_and_paragraphs_render_safely():
+    from briefing.render import inline_markup, plain, rich_inline, rich_paragraphs
+
+    summary = "Hook with <script> & a 5% move.\n\n**The catch:** rates   still\nbite.\n\n**Looking ahead...**next week"
+    html = str(rich_paragraphs(summary, "story-copy"))
+    assert html.count('<p class="story-copy">') == 3
+    assert "&lt;script&gt; &amp; a 5% move." in html
+    assert "<strong>The catch:</strong> rates still bite." in html
+    assert "<strong>Looking ahead...</strong>next week" in html
+    assert "<script>" not in html
+
+    assert str(inline_markup("Unpaired **marker")) == "Unpaired marker"
+    assert str(rich_inline("One.\n\nTwo **bold**.")) == "One. Two <strong>bold</strong>."
+    assert plain(summary).split("\n\n")[1] == "The catch: rates still bite."
+
+
+def test_sample_edition_renders_run_ins_and_kickers():
+    edition = load_sample()
+    html = render_html(edition)
+    assert "<strong>Why it matters:</strong>" in html
+    assert "<strong>Big spending, bigger ambitions.</strong>" in html
+    assert "ANCHORS AWEIGH" in html
+    assert "**" not in html
+
+    text = render_text(edition)
+    assert "**" not in text
+    assert "Why it matters: It's the latest step" in text
+
+
+def test_prompts_only_ask_for_markup_the_renderer_supports():
+    from briefing.editor import ENGLISH_VOICE_GUIDANCE, INDONESIA_VOICE_GUIDANCE
+    from briefing.editorial import INDONESIA_SYSTEM_PROMPT, SYSTEM_PROMPT
+
+    assert "**double asterisks**" in SYSTEM_PROMPT
+    assert "**tanda bintang ganda**" in INDONESIA_SYSTEM_PROMPT
+    assert "Never use an em dash" in SYSTEM_PROMPT
+    assert "Jangan gunakan em dash" in INDONESIA_SYSTEM_PROMPT
+    for guidance in (ENGLISH_VOICE_GUIDANCE, INDONESIA_VOICE_GUIDANCE):
+        assert "MORNING BREW" in guidance
+        assert "—" not in guidance  # the style examples must follow the no-em-dash rule
+    assert "—" not in SYSTEM_PROMPT and "—" not in INDONESIA_SYSTEM_PROMPT

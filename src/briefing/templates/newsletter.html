@@ -10,13 +10,13 @@
 {% macro story_card(story, lead=false) -%}
 <table role="presentation" class="story-card" width="100%">
   <tr><td class="story-body story-header">
-    <div class="story-label">{% if lead %}{{ 'Yang utama' if indonesia_only else 'The big one' }} · {% endif %}{{ story.label }}</div>
-    {% if lead %}<h2><a href="{{ story.url }}">{{ story.headline }}</a></h2>{% else %}<h3><a href="{{ story.url }}">{{ story.headline }}</a></h3>{% endif %}
+    <div class="story-label">{% if lead %}{{ 'Yang utama' if indonesia_only else 'The big one' }} · {% endif %}{{ story.label | plain }}</div>
+    {% if lead %}<h2><a href="{{ story.url }}">{{ story.headline | plain }}</a></h2>{% else %}<h3><a href="{{ story.url }}">{{ story.headline | plain }}</a></h3>{% endif %}
   </td></tr>
-  {% if story.image_url %}<tr><td><img class="story-image" src="{{ story.image_url }}" width="604" alt="{{ story.headline }}"></td></tr>{% endif %}
+  {% if story.image_url %}<tr><td><img class="story-image" src="{{ story.image_url }}" width="604" alt="{{ story.headline | plain }}"></td></tr>{% endif %}
   <tr><td class="story-body story-details">
-    <p class="story-copy">{{ story.summary }}</p>
-    {% if story.highlights %}<ul class="story-highlights">{% for item in story.highlights %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}
+    {{ story.summary | rich_paragraphs('story-copy') }}
+    {% if story.highlights %}<ul class="story-highlights">{% for item in story.highlights %}<li>{{ item | rich_inline }}</li>{% endfor %}</ul>{% endif %}
     {{ source_list(story) }}
   </td></tr>
 </table>
@@ -69,6 +69,7 @@
     .speed-row td { padding: 15px 19px; font-size: 15px; line-height: 22px; }
     .setup-card { margin: 0 0 4px; }
     .setup-copy { padding: 19px; font-size: 17px; line-height: 26px; }
+    .setup-para { margin: 0 0 12px; }
     .footer { padding-top: 23px; padding-bottom: 38px; border-top: 2px solid #171717; text-align: center; font-size: 11px; line-height: 17px; color: #252525; }
     @media only screen and (max-width: 650px) {
       .inset { padding-left: 18px !important; padding-right: 18px !important; }
@@ -99,7 +100,7 @@
         <tr><td class="inset">
           <table role="presentation" class="module setup-card" width="100%">
             <tr><td class="setup-title">☕ {{ 'Dalam edisi hari ini' if indonesia_only else 'The setup' }}</td></tr>
-            <tr><td class="setup-copy">{{ edition.setup }}</td></tr>
+            <tr><td class="setup-copy">{{ edition.setup | rich_paragraphs('setup-para', true) }}</td></tr>
           </table>
         </td></tr>
 
@@ -113,7 +114,7 @@
           <table role="presentation" class="module" width="100%">
             <tr><td class="speed-title">⚡ {{ 'Baca kilat' if indonesia_only else 'Speed read' }}</td></tr>
             {% for story in section.quick_hits %}
-            <tr class="speed-row"><td><strong>{{ story.label }}:</strong> {{ story.summary }} <a href="{{ story.url }}">{{ 'Baca artikel' if indonesia_only else 'Read article' }} →</a></td></tr>
+            <tr class="speed-row"><td><strong>{{ story.label | plain }}:</strong> {{ story.summary | rich_inline }} <a href="{{ story.url }}">{{ 'Baca artikel' if indonesia_only else 'Read article' }} →</a></td></tr>
             {% endfor %}
           </table>
         </td></tr>

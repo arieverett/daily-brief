@@ -6,10 +6,10 @@
   "sweden": {
     "lead": {
       "headline": "Sweden goes shopping for warships",
-      "summary": "Sweden signed an agreement for four French frigates, with deliveries expected to begin around 2030 as Stockholm reinforces its navy after joining NATO.",
+      "summary": "Sweden just added some very large items to its cart: four French frigates, with deliveries expected to start around 2030.\n\n**Why it matters:** It's the latest step in Stockholm's push to rebuild its navy now that it's a NATO member, and a reminder that this defense buildout is a long game, not a one-off splurge.",
       "url": "https://www.reuters.com/world/sweden-inks-french-war-ship-order-2026-08-31/",
       "source": "Reuters",
-      "label": "DEFENSE"
+      "label": "ANCHORS AWEIGH"
     },
     "stories": [
       {
@@ -40,10 +40,10 @@
   "indonesia": {
     "lead": {
       "headline": "Indonesia gets a new central-bank boss",
-      "summary": "Parliament approved Destry Damayanti as governor of Bank Indonesia. She is the first woman to lead the central bank and has spoken optimistically about stronger growth.",
+      "summary": "Bank Indonesia has a new person in the corner office, and she's making history on day one. Parliament approved Destry Damayanti as governor, the first woman to lead the central bank.\n\n**Her pitch:** Damayanti has sounded upbeat about stronger growth.\n\n**The catch:** She inherits a trade surplus that just got thinner as imports jumped, so keeping inflation and the rupiah in check comes with the job.",
       "url": "https://www.reuters.com/world/asia-pacific/indonesias-destry-wins-parliaments-backing-central-bank-chief-prioritise-2026-09-01/",
       "source": "Reuters",
-      "label": "MONEY"
+      "label": "NEW BOSS IN TOWN"
     },
     "stories": [
       {
@@ -71,5 +71,5 @@
       }
     ]
   },
-  "setup": "Sweden is pairing a brighter growth outlook with a long-term defense buildout. Indonesia is chasing faster expansion too, but its new central-bank leadership will have to manage inflation, imports, and currency pressure along the way."
+  "setup": "**Big spending, bigger ambitions.** Sweden is pairing a brighter growth outlook with a long-term defense buildout. Indonesia wants faster growth too, and its new central-bank chief now has to deliver it without letting inflation or the rupiah wobble."
 }
