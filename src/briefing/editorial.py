@@ -120,6 +120,8 @@ the judgment of a serious financial newspaper about what matters. Significance b
 
 REPORTING RULES
 - Use only facts present in candidate metadata. Never invent a number, quote, consequence, motive, or event.
+- Some candidates include article_excerpt, the opening of the article itself. Its facts count as candidate
+  metadata; mine it for the names, figures, dates, reactions, and next steps that make a story worth reading.
 - Treat the underlying event or policy debate, not an article URL, as the unit of a story. Cluster duplicate
   coverage and use one story slot per topic.
 - Prefer Reuters/AP, official institutions, public broadcasters, established national outlets, and strong
@@ -135,8 +137,11 @@ WRITING RULES
   survives a quick skim. No clickbait, vague teases, or inflated stakes.
 - Lead summaries are 110-170 words in 2-4 short paragraphs. Secondary summaries are 70-120 words in 2-3 short
   paragraphs. Separate paragraphs with one blank line.
-- Bullets are optional and must complement the summary. Use 0-3 complete sentences. Every bullet must add a
-  materially new fact not already stated, implied, paraphrased, or summarized in the summary.
+- Every sentence must add a fact. Never restate the headline or an earlier paragraph in different words, and
+  skip "looking ahead" lines unless the metadata gives a concrete next step (a date, vote, decision, or deadline).
+- Bullets are optional and must complement the headline and summary. Use 0-3 complete sentences. Every bullet
+  must add a materially new fact not already stated, implied, paraphrased, or summarized in the headline or
+  summary: a name, figure, date, quote, reaction, or detail from the excerpt. Never use a bullet to recap the story.
 - Prefer an unused #/count, %, or currency figure in bullets when the metadata supports one. Never repeat a
   summary number in a bullet merely to make it look data-forward. Zero bullets is better than filler.
 - Speed reads are 1-2 sentences, roughly 20-45 words: a quick hook or wry framing plus the fact, with a useful
@@ -173,6 +178,8 @@ berisi, cepat, berbasis data, santai, dan sesekali jenaka tanpa mengorbankan aku
 
 ATURAN PELIPUTAN
 - Gunakan hanya fakta dalam metadata kandidat. Jangan mengarang angka, kutipan, dampak, motif, atau peristiwa.
+- Sebagian kandidat menyertakan article_excerpt, yaitu pembuka artikel aslinya. Faktanya termasuk metadata
+  kandidat; gali nama, angka, tanggal, reaksi, dan langkah berikutnya yang membuat berita layak dibaca.
 - Anggap peristiwa atau debat kebijakan, bukan URL artikel, sebagai satu unit berita. Gabungkan liputan duplikat
   dan gunakan hanya satu slot untuk setiap topik.
 - Utamakan Reuters/AP, lembaga resmi, media nasional tepercaya, dan media lokal dengan peliputan kuat.
@@ -188,8 +195,11 @@ ATURAN PENULISAN
   jelas sekali baca. Hindari clickbait, teka-teki, dan dramatisasi.
 - Ringkasan berita utama berisi 110-170 kata dalam 2-4 paragraf pendek. Ringkasan berita tambahan berisi 70-120
   kata dalam 2-3 paragraf pendek. Pisahkan paragraf dengan satu baris kosong.
-- Bullet bersifat opsional dan harus melengkapi ringkasan. Gunakan 0-3 kalimat lengkap. Setiap bullet wajib
-  menambahkan fakta material yang benar-benar baru, bukan mengulang, menyiratkan ulang, atau memparafrase ringkasan.
+- Setiap kalimat wajib menambah fakta. Jangan mengulang judul atau paragraf sebelumnya dengan kata lain, dan
+  jangan menulis kalimat "ke depan" kecuali metadata memuat langkah konkret (tanggal, voting, keputusan, tenggat).
+- Bullet bersifat opsional dan harus melengkapi judul dan ringkasan. Gunakan 0-3 kalimat lengkap. Setiap bullet
+  wajib menambahkan fakta material yang benar-benar baru (nama, angka, tanggal, kutipan, reaksi, atau detail dari
+  excerpt), bukan mengulang, menyiratkan ulang, atau memparafrase judul maupun ringkasan.
 - Utamakan #/jumlah, %, Rp/IDR, $, atau angka mata uang lain yang belum dipakai di ringkasan. Jangan mengulang
   angka ringkasan hanya agar bullet terlihat berbasis data. Nol bullet lebih baik daripada filler.
 - Baca kilat berisi 1-2 kalimat, sekitar 20-45 kata: pembuka singkat yang tajam atau jenaka ditambah faktanya,
@@ -297,9 +307,20 @@ def match_candidate(
     return best if best_score >= 0.75 else None
 
 
+def _stem(token: str) -> str:
+    """Crude suffix folding so "solved"/"solving" or "prize"/"prizes" count as the same word."""
+    for suffix in ("ing", "ed", "es", "s"):
+        if token.endswith(suffix) and len(token) - len(suffix) >= 3:
+            token = token[: -len(suffix)]
+            break
+    if token.endswith("e") and len(token) > 4:
+        token = token[:-1]
+    return token
+
+
 def _tokens(text: str) -> set[str]:
     return {
-        token
+        _stem(token)
         for token in WORD_RE.findall(text.casefold())
         if len(token) > 2 and token not in STOPWORDS
     }
@@ -312,10 +333,18 @@ def _data_markers(text: str) -> set[str]:
     }
 
 
+# A bullet without a new figure must bring at least this many new content words, and new
+# words must make up at least this share of it, or it is a recap of the headline/summary.
+MIN_NEW_BULLET_WORDS = 3
+MIN_NEW_BULLET_SHARE = 0.5
+
+
 def clean_highlights(story: Story) -> list[str]:
-    """Remove fragments and bullets that add little beyond the summary."""
-    summary_tokens = _tokens(story.summary)
-    summary_normalized = " ".join(WORD_RE.findall(story.summary.casefold()))
+    """Remove fragments and bullets that add little beyond the headline and summary."""
+    context = f"{story.headline}\n{story.summary}"
+    summary_tokens = _tokens(context)
+    summary_data = _data_markers(context)
+    summary_normalized = " ".join(WORD_RE.findall(context.casefold()))
     cleaned: list[str] = []
     seen: set[str] = set()
 
@@ -329,7 +358,12 @@ def clean_highlights(story: Story) -> list[str]:
             continue
 
         bullet_tokens = _tokens(item)
-        if bullet_tokens and len(bullet_tokens - summary_tokens) < 2:
+        new_words = bullet_tokens - summary_tokens
+        has_new_data = bool(_data_markers(item) - summary_data)
+        if not has_new_data and (
+            len(new_words) < MIN_NEW_BULLET_WORDS
+            or len(new_words) / max(len(bullet_tokens), 1) < MIN_NEW_BULLET_SHARE
+        ):
             continue
 
         cleaned.append(item)
@@ -455,6 +489,14 @@ def _candidate_quick_hit(candidate: Candidate, localized: bool) -> Story:
     )
 
 
+EM_DASH_RE = re.compile(r"\s*[\u2014\u2015]\s*")
+
+
+def strip_em_dashes(text: str) -> str:
+    """House style bans em dashes; the model still slips them in, so swap for a comma."""
+    return EM_DASH_RE.sub(", ", text)
+
+
 def validate_edition(
     edition: Edition | IndonesiaEdition, candidates: list[Candidate]
 ) -> Edition | IndonesiaEdition:
@@ -482,6 +524,12 @@ def validate_edition(
             links.insert(0, SourceLink(source=primary.source, url=primary.url))
         links = links[:4]
 
+        story = replace(
+            story,
+            headline=strip_em_dashes(story.headline),
+            summary=strip_em_dashes(story.summary),
+            highlights=[strip_em_dashes(item) for item in story.highlights],
+        )
         cleaned_story = replace(
             story,
             url=primary.url,
@@ -562,7 +610,7 @@ def validate_edition(
         localized=indonesia_only,
         strict_indonesia=True,
     )
-    changes: dict[str, CountrySection] = {"indonesia": indonesia}
+    changes: dict[str, object] = {"indonesia": indonesia}
 
     if isinstance(edition, Edition):
         changes["sweden"] = fix_section(
@@ -571,6 +619,8 @@ def validate_edition(
             localized=False,
             strict_indonesia=False,
         )
+
+    changes["setup"] = strip_em_dashes(edition.setup)
 
     if dropped:
         print(f"  Dropped {dropped} story link(s) the editor invented", flush=True)

@@ -151,3 +151,41 @@ def test_resolve_google_news_url_round_trip():
             )
 
     assert asyncio.run(run()) == "https://publisher.example/story"
+
+
+def test_article_excerpt_keeps_body_paragraphs_and_skips_chrome():
+    from briefing.collect import extract_article_excerpt
+
+    page = """
+    <html><head><meta property="og:description" content="Short teaser."></head><body>
+    <nav><p>Home News Sport Weather and a long navigation line that should never be kept at all.</p></nav>
+    <article>
+      <p>By Staff</p>
+      <p>The Royal Swedish Academy of Sciences awarded the prize to two chemists for work on
+      molecular chirality, the property that makes some molecules mirror images of each other.</p>
+      <p>The laureates will share the 11 million Swedish crown award, the academy said on Wednesday,
+      and will receive it at a ceremony in Stockholm on December 10.</p>
+    </article>
+    <footer><p>Copyright notice that is long enough to pass the length filter if not skipped.</p></footer>
+    </body></html>
+    """
+    excerpt = extract_article_excerpt(page)
+    assert excerpt.startswith("The Royal Swedish Academy")
+    assert "December 10" in excerpt
+    assert "navigation" not in excerpt and "Copyright" not in excerpt and "By Staff" not in excerpt
+
+
+def test_article_excerpt_falls_back_to_meta_description():
+    from briefing.collect import extract_article_excerpt
+
+    page = '<meta name="description" content="Police closed the E4 near Uppsala after a crash.">'
+    assert extract_article_excerpt(page) == "Police closed the E4 near Uppsala after a crash."
+
+
+def test_prompt_dict_includes_excerpt_only_when_present():
+    from briefing.models import Candidate
+
+    plain = Candidate(country="Sweden", title="T", url="https://e.com", source="S")
+    assert "article_excerpt" not in plain.prompt_dict()
+    rich = Candidate(country="Sweden", title="T", url="https://e.com", source="S", excerpt="Body.")
+    assert rich.prompt_dict()["article_excerpt"] == "Body."

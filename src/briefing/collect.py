@@ -39,6 +39,12 @@ IMAGE_CONCURRENCY = 4
 # Feeds marked `tier: backup` (direct publisher RSS) only top a country up to this many
 # candidates when the primary Google News searches come back thin or fail.
 BACKUP_FILL_TARGET = 12
+# Article text gives the editor real detail to write from beyond the RSS headline and blurb.
+EXCERPT_MAX_CHARS = 1500
+EXCERPT_CONCURRENCY = 8
+ARTICLE_SKIP_TAGS = frozenset(
+    {"script", "style", "noscript", "nav", "header", "footer", "aside", "figure", "form"}
+)
 
 PLACEHOLDER_IMAGE_HOSTS = {
     "lh3.googleusercontent.com",
@@ -88,6 +94,64 @@ class SocialImageParser(HTMLParser):
             self.og_image = url
         elif not self.twitter_image:
             self.twitter_image = url
+
+
+class ArticleTextParser(HTMLParser):
+    """Pull the meta description and body paragraphs out of a publisher article page."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.description = ""
+        self.paragraphs: list[str] = []
+        self._skip_depth = 0
+        self._in_paragraph = False
+        self._buffer: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        tag = tag.casefold()
+        if tag == "meta" and not self.description:
+            values = {key.casefold(): value or "" for key, value in attrs}
+            key = (values.get("property") or values.get("name") or "").casefold()
+            if key in {"og:description", "description", "twitter:description"}:
+                self.description = clean_text(values.get("content", ""))
+        elif tag in ARTICLE_SKIP_TAGS:
+            self._skip_depth += 1
+        elif tag == "p" and not self._skip_depth:
+            self._in_paragraph = True
+            self._buffer = []
+
+    def handle_endtag(self, tag: str) -> None:
+        tag = tag.casefold()
+        if tag in ARTICLE_SKIP_TAGS and self._skip_depth:
+            self._skip_depth -= 1
+        elif tag == "p" and self._in_paragraph:
+            self._in_paragraph = False
+            text = clean_text(" ".join(self._buffer))
+            # Real article prose: a sentence or more, not a byline, caption or button.
+            if len(text) >= 80 and text not in self.paragraphs:
+                self.paragraphs.append(text)
+
+    def handle_data(self, data: str) -> None:
+        if self._in_paragraph and not self._skip_depth:
+            self._buffer.append(data)
+
+
+def extract_article_excerpt(page_html: str, max_chars: int = EXCERPT_MAX_CHARS) -> str:
+    """Return the article's opening paragraphs (or its meta description) as plain text."""
+    parser = ArticleTextParser()
+    try:
+        parser.feed(page_html)
+    except (AssertionError, ValueError):
+        pass
+
+    excerpt = ""
+    for paragraph in parser.paragraphs:
+        if len(excerpt) + len(paragraph) + 1 > max_chars:
+            break
+        excerpt = f"{excerpt} {paragraph}".strip()
+    if len(excerpt) < 200 and parser.description and parser.description not in excerpt:
+        excerpt = f"{parser.description} {excerpt}".strip()
+    return excerpt[:max_chars]
 
 
 def clean_text(value: str) -> str:
@@ -628,3 +692,55 @@ async def add_indonesia_article_images(
         edition,
         indonesia=_decorate_section(edition.indonesia, image_by_url),
     )
+
+
+async def add_article_excerpts(
+    candidates: list[Candidate],
+    budget_seconds: float = 60.0,
+) -> list[Candidate]:
+    """Attach each article's opening paragraphs, best effort and within a time budget.
+
+    Paywalled or bot-blocking publishers simply keep their RSS summary only. Whatever
+    finished before the budget runs out is kept.
+    """
+    if not candidates:
+        return candidates
+
+    timeout = httpx.Timeout(10.0, connect=5.0)
+    semaphore = asyncio.Semaphore(EXCERPT_CONCURRENCY)
+    excerpts: dict[int, str] = {}
+
+    async with httpx.AsyncClient(
+        headers=BROWSER_HEADERS,
+        timeout=timeout,
+        follow_redirects=True,
+    ) as client:
+
+        async def fetch_excerpt(index: int, candidate: Candidate) -> None:
+            try:
+                async with semaphore:
+                    article_url = await resolve_google_news_url(client, candidate.url)
+                    if google_news_article_id(article_url):
+                        return
+                    response = await client.get(article_url)
+                    response.raise_for_status()
+                excerpt = extract_article_excerpt(response.text)
+                if excerpt:
+                    excerpts[index] = excerpt
+            except (httpx.HTTPError, UnicodeError, ValueError):
+                return
+
+        tasks = [
+            asyncio.create_task(fetch_excerpt(index, candidate))
+            for index, candidate in enumerate(candidates)
+        ]
+        _, pending = await asyncio.wait(tasks, timeout=budget_seconds)
+        for task in pending:
+            task.cancel()
+        if pending:
+            await asyncio.gather(*pending, return_exceptions=True)
+
+    return [
+        replace(candidate, excerpt=excerpts[index]) if index in excerpts else candidate
+        for index, candidate in enumerate(candidates)
+    ]

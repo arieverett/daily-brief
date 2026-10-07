@@ -53,3 +53,31 @@ def test_cleanup_deduplicates_repeated_bullets():
     assert clean_highlights(story) == [
         "Applications will reopen on October 1 for small businesses."
     ]
+
+
+def test_cleanup_drops_bullet_that_recaps_headline_and_summary():
+    # Oct 7, 2026 edition: the bullet restated the headline with "solved" for "solving".
+    story = Story(
+        headline="Nobel chemistry prize awarded for 'mirror-image' molecules",
+        summary=(
+            "Sweden hosted one of the world's most predictable October moments: the Nobel Prize "
+            "in Chemistry went to a pair credited with solving the mystery of ‘mirror image’ "
+            "molecules."
+        ),
+        url="https://example.com/nobel",
+        source="Reuters",
+        label="NOBEL MOMENT",
+        highlights=[
+            "Prize went to a pair who solved the mystery of 'mirror image' molecules.",
+            "The laureates will share the 11 million crown award.",
+        ],
+    )
+    assert clean_highlights(story) == ["The laureates will share the 11 million crown award."]
+
+
+def test_validate_strips_em_dashes():
+    from briefing.editorial import strip_em_dashes
+
+    assert strip_em_dashes("molecular handedness — the chemistry phrase") == (
+        "molecular handedness, the chemistry phrase"
+    )

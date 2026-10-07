@@ -13,7 +13,12 @@ from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from .collect import add_article_images, add_indonesia_article_images, collect_candidates
+from .collect import (
+    add_article_excerpts,
+    add_article_images,
+    add_indonesia_article_images,
+    collect_candidates,
+)
 from .config import DEFAULT_OUT_DIR, DEFAULT_SOURCES_PATH, Settings
 from .delivery import parse_clock, scheduled_send_time
 from .editor import create_edition, create_indonesia_edition
@@ -204,6 +209,11 @@ def _generate_live_edition(
     print(f"  Found {len(candidates)} usable fresh stories: {fresh_counts}", flush=True)
     candidates = backfill_candidates(args.sources, candidates, settings, args.edition)
     print(f"  Publishing candidate pool: {country_counts(candidates)}", flush=True)
+
+    with stage("Reading article text"):
+        candidates = asyncio.run(add_article_excerpts(candidates))
+    read = sum(1 for candidate in candidates if candidate.excerpt)
+    print(f"  Article text found for {read} of {len(candidates)} candidates", flush=True)
 
     with stage("Writing the edition with OpenAI"):
         if args.edition == "indonesia":

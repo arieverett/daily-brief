@@ -16,10 +16,12 @@ class Candidate:
     published_at: datetime | None = None
     summary: str = ""
     image_url: str = ""
+    # Opening paragraphs of the article itself, when the publisher page could be read.
+    excerpt: str = ""
 
     def prompt_dict(self) -> dict[str, str]:
         """Return only the fields the AI editor needs."""
-        return {
+        fields = {
             "country": self.country,
             "title": self.title,
             "source": self.source,
@@ -27,6 +29,9 @@ class Candidate:
             "summary": self.summary[:900],
             "url": self.url,
         }
+        if self.excerpt:
+            fields["article_excerpt"] = self.excerpt[:1500]
+        return fields
 
 
 @dataclass(frozen=True)
