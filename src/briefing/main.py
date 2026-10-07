@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import time
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -28,6 +29,20 @@ EDITORIAL_POOL_TARGET = 12
 FALLBACK_LOOKBACK_HOURS = (168,)
 
 
+def _annotate_error(label: str, exc: BaseException) -> None:
+    """Surface the failure as a GitHub Actions annotation.
+
+    Annotations show on the run page and through the API even when the raw job log
+    can't be fetched, so the cause of a failed morning is visible at a glance.
+    """
+    if os.environ.get("GITHUB_ACTIONS") != "true":
+        return
+    message = f"{type(exc).__name__}: {exc}"[:1500]
+    # Workflow-command escaping so newlines and percent signs survive.
+    message = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+    print(f"::error title={label} failed::{message}", flush=True)
+
+
 @contextmanager
 def stage(label: str) -> Iterator[None]:
     """Log a pipeline stage with elapsed time and preserve the original exception."""
@@ -35,8 +50,9 @@ def stage(label: str) -> Iterator[None]:
     print(f"→ {label}...", flush=True)
     try:
         yield
-    except Exception:
+    except Exception as exc:
         print(f"✗ {label} failed after {time.monotonic() - started:.1f}s", flush=True)
+        _annotate_error(label, exc)
         raise
     print(f"✓ {label} ({time.monotonic() - started:.1f}s)", flush=True)
 
