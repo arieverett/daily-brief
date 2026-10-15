@@ -113,7 +113,7 @@ jobs:
       - name: Archive edition
         if: ${{ !cancelled() && steps.guard.outputs.any == 'true' }}
         continue-on-error: true
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: edition-${{ inputs.edition }}-${{ steps.guard.outputs.date }}
           path: |
@@ -129,7 +129,7 @@ jobs:
       - name: Record delivery
         if: success() && steps.guard.outputs.any == 'true' && !inputs.force
         continue-on-error: true
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: delivered-${{ inputs.edition }}-${{ steps.guard.outputs.date }}
           path: out/delivery/${{ inputs.edition }}.json
@@ -154,7 +154,7 @@ jobs:
       - name: Record alert
         if: failure() && steps.alert.outputs.sent == 'true'
         continue-on-error: true
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.alert.outputs.record }}
           path: out/alert/alert.json

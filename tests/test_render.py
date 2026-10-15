@@ -36,6 +36,28 @@ def test_story_heading_precedes_article_image():
     assert f'alt="{lead.headline}"' in html
 
 
+def test_compact_spacing_only_pads_around_images_when_there_is_one():
+    # Morning Brew-tight layout: without an image the headline sits right on its copy,
+    # so the header/details padding that frames an image must not stack up.
+    edition = load_sample()
+    html = render_html(edition)
+    assert "has-image" not in html.split("<body>")[1]
+    assert "after-image" not in html.split("<body>")[1]
+    assert "font-size: 16px; line-height: 22px" in html
+
+    lead = replace(edition.sweden.lead, image_url="https://example.com/article-main.jpg")
+    html = render_html(replace(edition, sweden=replace(edition.sweden, lead=lead)))
+    body = html.split("<body>")[1]
+    assert body.count("story-header has-image") == 1
+    assert body.count("story-details after-image") == 1
+
+    # Speed reads get hairline rules between rows, never above a section's first one.
+    rows = body.split('<tr class="speed-row')[1:]
+    firsts = [row for row in rows if row.startswith(" first")]
+    assert len(firsts) == 2  # one per country section
+    assert all(row.startswith((" first", " rule")) for row in rows)
+
+
 def test_story_can_render_multiple_sources():
     from briefing.models import SourceLink
 

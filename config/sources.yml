@@ -180,11 +180,8 @@ feeds:
     country: Sweden
     tier: backup
     url: "https://www.di.se/rss"
-  - name: Tempo (English)
-    source: Tempo.co
-    country: Indonesia
-    tier: backup
-    url: "https://rss.tempo.co/en"
+  # Tempo English (rss.tempo.co/en) was dropped Oct 15, 2026: it returns 403 to GitHub's
+  # runners. Tempo stories still arrive through the "Indonesian outlets" Google News query.
   - name: BBC News Indonesia
     source: BBC News Indonesia
     country: Indonesia

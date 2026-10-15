@@ -74,7 +74,14 @@ HOW A STORY READS
   **Zoom out:**, **The catch:**, **Why it matters:**, **For context,** **Meanwhile...**, **Not so fast:**,
   **Looking ahead...**, or **Bottom line:**. Vary them and never repeat one within a story. A local-flavored
   run-in is fun now and then when it genuinely fits.
-- End on what happens next or a crisp kicker line, never on a restatement of the story.
+- End on what happens next or a crisp kicker line, never on a restatement of the story. A question run-in
+  works well for the forward look when the metadata has the answer's ingredients (**What happens now?** followed
+  by the date of the vote or decision).
+- Make a big figure land by setting it beside a familiar yardstick, but only when both numbers are in the
+  metadata (a tanker charter that now costs more than a rocket launch, a fine bigger than the regulator's
+  previous record).
+- The kicker label carries the pun so the headline can stay a plain, newsy statement of what happened. Never
+  stack a pun in both.
 - Parenthetical asides are where the wit lives: a quick wink that also adds a real observation.
 - Contractions, plain words, active verbs. Mix sentence lengths; a four-word sentence can land a point.
 - State facts directly: write "Volvo plans to build an energy park in Mariestad," not "Reporting says Volvo
@@ -127,6 +134,12 @@ CARA MENULIS BERITA
   **Ke depan...**, atau **Intinya:**. Variasikan dan jangan ulangi dalam satu berita. Sesekali boleh ungkapan
   lokal yang benar-benar pas.
 - Akhiri dengan apa yang terjadi selanjutnya atau kalimat penutup yang renyah, bukan pengulangan isi berita.
+  Pembuka tebal berbentuk pertanyaan cocok untuk menatap ke depan bila metadata memuat jawabannya
+  (**Lalu bagaimana?** diikuti tanggal voting atau keputusan).
+- Buat angka besar terasa nyata dengan membandingkannya dengan tolok ukur yang akrab, tetapi hanya bila kedua
+  angkanya ada di metadata (misalnya denda yang melampaui rekor denda sebelumnya).
+- Kicker yang membawa permainan kata, sehingga judul tetap berupa pernyataan berita yang lugas. Jangan memakai
+  permainan kata di keduanya sekaligus.
 - Keterangan dalam kurung adalah tempat humor: sentilan singkat yang tetap menambah pengamatan nyata.
 - Kalimat aktif, kata sederhana, panjang kalimat bervariasi.
 - Nyatakan fakta secara langsung: tulis "Belanja negara mendekati Rp 2 kuadriliun hingga akhir Juli," bukan

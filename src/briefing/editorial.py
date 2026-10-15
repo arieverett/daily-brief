@@ -134,7 +134,7 @@ REPORTING RULES
 WRITING RULES
 - Lead with what changed, fast. Put the core event and the strongest useful number up top.
 - Headlines are clear first, clever second, usually 5-12 words. Light wordplay is welcome when the meaning
-  survives a quick skim. No clickbait, vague teases, or inflated stakes.
+  survives a quick skim and the kicker isn't already punning. No clickbait, vague teases, or inflated stakes.
 - Lead summaries are 110-170 words in 2-4 short paragraphs. Secondary summaries are 70-120 words in 2-3 short
   paragraphs. Separate paragraphs with one blank line.
 - Every sentence must add a fact. Never restate the headline or an earlier paragraph in different words, and
@@ -192,7 +192,7 @@ ATURAN PELIPUTAN
 ATURAN PENULISAN
 - Mulai dengan apa yang berubah, langsung. Taruh inti berita dan angka terkuat di awal.
 - Judul harus jelas dulu, cerdas kemudian, umumnya 5-12 kata. Permainan kata ringan boleh bila maknanya tetap
-  jelas sekali baca. Hindari clickbait, teka-teki, dan dramatisasi.
+  jelas sekali baca dan kicker-nya tidak sedang bermain kata. Hindari clickbait, teka-teki, dan dramatisasi.
 - Ringkasan berita utama berisi 110-170 kata dalam 2-4 paragraf pendek. Ringkasan berita tambahan berisi 70-120
   kata dalam 2-3 paragraf pendek. Pisahkan paragraf dengan satu baris kosong.
 - Setiap kalimat wajib menambah fakta. Jangan mengulang judul atau paragraf sebelumnya dengan kata lain, dan

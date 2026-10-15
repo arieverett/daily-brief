@@ -9,12 +9,12 @@
 {%- endmacro %}
 {% macro story_card(story, lead=false) -%}
 <table role="presentation" class="story-card" width="100%">
-  <tr><td class="story-body story-header">
+  <tr><td class="story-body story-header{% if story.image_url %} has-image{% endif %}">
     <div class="story-label">{% if lead %}{{ 'Yang utama' if indonesia_only else 'The big one' }} · {% endif %}{{ story.label | plain }}</div>
     {% if lead %}<h2><a href="{{ story.url }}">{{ story.headline | plain }}</a></h2>{% else %}<h3><a href="{{ story.url }}">{{ story.headline | plain }}</a></h3>{% endif %}
   </td></tr>
   {% if story.image_url %}<tr><td><img class="story-image" src="{{ story.image_url }}" width="604" alt="{{ story.headline | plain }}"></td></tr>{% endif %}
-  <tr><td class="story-body story-details">
+  <tr><td class="story-body story-details{% if story.image_url %} after-image{% endif %}">
     {{ story.summary | rich_paragraphs('story-copy') }}
     {% if story.highlights %}<ul class="story-highlights">{% for item in story.highlights %}<li>{{ item | rich_inline }}</li>{% endfor %}</ul>{% endif %}
     {{ source_list(story) }}
@@ -40,44 +40,50 @@
     .email { width: 660px; max-width: 100%; background: #ffffff; }
     .inset { padding-left: 28px; padding-right: 28px; }
     .top-rule { height: 2px; background: #111111; font-size: 1px; line-height: 1px; }
-    .masthead { padding-top: 30px; padding-bottom: 29px; text-align: center; }
-    .brand-kicker { margin-bottom: 7px; font-size: 12px; font-weight: 800; letter-spacing: 2px; color: {{ accent }}; text-transform: uppercase; }
+    .masthead { padding-top: 20px; padding-bottom: 18px; text-align: center; }
+    .brand-kicker { margin-bottom: 5px; font-size: 12px; font-weight: 800; letter-spacing: 2px; color: {{ accent }}; text-transform: uppercase; }
     .brand { margin: 0; font-family: Arial Black, Arial, sans-serif; font-size: 40px; line-height: 44px; font-weight: 900; letter-spacing: -2px; text-transform: uppercase; }
     .brand-mark { display: inline-block; color: {{ accent }}; }
-    .date { margin-top: 8px; font-size: 13px; font-weight: 700; color: #252525; }
-    .hello { padding-top: 27px; padding-bottom: 25px; }
-    .hello p { margin: 0; font-size: 17px; line-height: 26px; }
-    .hello strong { color: {{ accent }}; font-family: Georgia, 'Times New Roman', serif; font-size: 20px; font-weight: 900; }
-    .section-wrap { padding-top: 17px; padding-bottom: 18px; }
-    .section-heading { margin: 0 0 13px; font-family: Arial Black, Arial, sans-serif; font-size: 26px; line-height: 31px; font-weight: 900; letter-spacing: -0.8px; text-transform: uppercase; }
+    .date { margin-top: 6px; font-size: 13px; font-weight: 700; color: #252525; }
+    .hello { padding-top: 16px; padding-bottom: 14px; }
+    .hello p { margin: 0; font-size: 16px; line-height: 22px; }
+    .hello strong { color: {{ accent }}; font-family: Georgia, 'Times New Roman', serif; font-size: 18px; font-weight: 900; }
+    .section-wrap { padding-top: 14px; padding-bottom: 4px; }
+    .section-heading { margin: 0 0 10px; font-family: Arial Black, Arial, sans-serif; font-size: 26px; line-height: 31px; font-weight: 900; letter-spacing: -0.8px; text-transform: uppercase; }
     .section-heading .underline { display: inline-block; border-bottom: 6px solid {{ accent }}; padding-bottom: 2px; }
     .module, .story-card { width: 100%; border: 1px solid #b6b6b6; border-radius: 10px; border-collapse: separate; overflow: hidden; }
-    .story-card { margin-bottom: 16px; }
-    .story-body { padding: 22px 22px 20px; }
-    .story-header { padding-bottom: 16px; }
-    .story-details { padding-top: 20px; }
-    .story-label { margin-bottom: 8px; font-size: 11px; line-height: 14px; font-weight: 900; letter-spacing: 1.4px; color: {{ accent }}; text-transform: uppercase; }
-    .story-card h2 { margin: 0 0 10px; font-family: Georgia, 'Times New Roman', serif; font-size: 29px; line-height: 34px; font-weight: 900; letter-spacing: -0.8px; }
-    .story-card h3 { margin: 0 0 9px; font-family: Georgia, 'Times New Roman', serif; font-size: 23px; line-height: 28px; font-weight: 900; letter-spacing: -0.45px; }
+    .story-card { margin-bottom: 8px; }
+    .story-body { padding: 15px 18px; }
+    .story-header { padding-bottom: 0; }
+    .story-header.has-image { padding-bottom: 15px; }
+    .story-details { padding-top: 12px; }
+    .story-details.after-image { padding-top: 15px; }
+    .story-label { margin-bottom: 6px; font-size: 11px; line-height: 14px; font-weight: 900; letter-spacing: 1.4px; color: {{ accent }}; text-transform: uppercase; }
+    .story-card h2 { margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 26px; line-height: 30px; font-weight: 900; letter-spacing: -0.8px; }
+    .story-card h3 { margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 22px; line-height: 26px; font-weight: 900; letter-spacing: -0.45px; }
     .story-card h2 a, .story-card h3 a { text-decoration: none; }
-    .story-copy { margin: 0 0 13px; font-size: 17px; line-height: 26px; }
-    .story-highlights { margin: 0 0 15px; padding-left: 21px; font-size: 16px; line-height: 24px; color: #111111; }
-    .story-highlights li { margin: 0 0 6px; }
+    .story-copy { margin: 0 0 12px; font-size: 16px; line-height: 22px; }
+    .story-highlights { margin: 0 0 12px; padding-left: 22px; font-size: 16px; line-height: 22px; color: #111111; }
+    .story-highlights li { margin: 0 0 7px; }
     .source { font-size: 12px; line-height: 18px; font-weight: 800; letter-spacing: 0.65px; color: #111111; text-transform: uppercase; }
     .source a { color: {{ accent }}; }
-    .speed-title, .setup-title { padding: 15px 19px 13px; border-bottom: 1px solid #b6b6b6; font-family: Arial Black, Arial, sans-serif; font-size: 14px; font-weight: 900; letter-spacing: 1.3px; text-transform: uppercase; }
-    .speed-row td { padding: 15px 19px; font-size: 15px; line-height: 22px; }
-    .setup-card { margin: 0 0 4px; }
-    .setup-copy { padding: 19px; font-size: 17px; line-height: 26px; }
+    .speed-title, .setup-title { padding: 12px 18px 10px; border-bottom: 1px solid #b6b6b6; font-family: Arial Black, Arial, sans-serif; font-size: 14px; font-weight: 900; letter-spacing: 1.3px; text-transform: uppercase; }
+    .speed-row td { padding: 10px 18px; font-size: 15px; line-height: 21px; }
+    .speed-row.rule td { border-top: 1px solid #e6e6e6; }
+    .speed-row.first td { padding-top: 12px; }
+    .speed-row.last td { padding-bottom: 13px; }
+    .setup-card { margin: 0; }
+    .setup-copy { padding: 14px 18px 15px; font-size: 16px; line-height: 22px; }
     .setup-para { margin: 0 0 12px; }
-    .footer { padding-top: 23px; padding-bottom: 38px; border-top: 2px solid #171717; text-align: center; font-size: 11px; line-height: 17px; color: #252525; }
+    .footer { padding-top: 16px; padding-bottom: 28px; border-top: 2px solid #171717; text-align: center; font-size: 11px; line-height: 17px; color: #252525; }
     @media only screen and (max-width: 650px) {
       .inset { padding-left: 18px !important; padding-right: 18px !important; }
       .brand { font-size: 29px !important; line-height: 33px !important; }
-      .story-card h2 { font-size: 25px !important; line-height: 29px !important; }
-      .story-card h3 { font-size: 21px !important; line-height: 25px !important; }
-      .story-body { padding: 18px !important; }
-      .speed-row td { padding: 14px 16px !important; }
+      .story-card h2 { font-size: 23px !important; line-height: 27px !important; }
+      .story-card h3 { font-size: 20px !important; line-height: 24px !important; }
+      .story-body { padding-left: 15px !important; padding-right: 15px !important; }
+      .speed-row td { padding-left: 15px !important; padding-right: 15px !important; }
+      .speed-title, .setup-title, .setup-copy { padding-left: 15px !important; padding-right: 15px !important; }
     }
   </style>
 </head>
@@ -114,7 +120,7 @@
           <table role="presentation" class="module" width="100%">
             <tr><td class="speed-title">⚡ {{ 'Baca kilat' if indonesia_only else 'Speed read' }}</td></tr>
             {% for story in section.quick_hits %}
-            <tr class="speed-row"><td><strong>{{ story.label | plain }}:</strong> {{ story.summary | rich_inline }} <a href="{{ story.url }}">{{ 'Baca artikel' if indonesia_only else 'Read article' }} →</a></td></tr>
+            <tr class="speed-row{% if loop.first %} first{% else %} rule{% endif %}{% if loop.last %} last{% endif %}"><td><strong>{{ story.label | plain }}:</strong> {{ story.summary | rich_inline }} <a href="{{ story.url }}">{{ 'Baca artikel' if indonesia_only else 'Read article' }} →</a></td></tr>
             {% endfor %}
           </table>
         </td></tr>
