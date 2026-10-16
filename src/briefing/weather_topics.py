@@ -15,6 +15,7 @@ list its key under `weather: topics:` in the edition's sources file.
 
 from __future__ import annotations
 
+import html
 import random
 import re
 from collections.abc import Callable
@@ -291,7 +292,7 @@ MONTHS = (
 
 
 def parse_enso_discussion(page: str) -> dict[str, str]:
-    text = " ".join(re.sub(r"<[^>]+>", " ", page).split())
+    text = " ".join(html.unescape(re.sub(r"<[^>]+>", " ", page)).split())
     found: dict[str, str] = {}
     status = re.search(r"ENSO Alert System Status:\s*(.+?)\s*(?:Synopsis:|$)", text)
     if status:
@@ -326,6 +327,8 @@ def el_nino(ctx: TopicContext) -> Topic | None:
         weekly = _get(ctx.client, ENSO_WEEKLY_URL, {}, REQUEST_TIMEOUT)
         weekly.raise_for_status()
         facts.update(parse_enso_weekly(weekly.text))
+        lines = [line for line in weekly.text.splitlines() if line.strip()]
+        ctx.notes.append("ENSO weekly table: " + " | ".join(lines[:3] + lines[-2:]))
     except httpx.HTTPError as exc:
         ctx.notes.append(f"El Niño weekly index unavailable: {exc}")
     # Bandung or Jakarta's dry/wet month, if we have it, so the editor can tie it in.

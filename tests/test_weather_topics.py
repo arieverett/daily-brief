@@ -59,7 +59,7 @@ def test_no_topics_means_no_special_topic():
 ENSO_PAGE = """<html><body><h1>EL NIÑO/SOUTHERN OSCILLATION (ENSO) DIAGNOSTIC DISCUSSION</h1>
 <p>issued by CLIMATE PREDICTION CENTER/NCEP/NWS and the International Research Institute
 for Climate and Society</p><p>8 October 2026</p>
-<p><b>ENSO Alert System Status:</b> El Niño Advisory</p>
+<p><b>ENSO Alert System Status:</b> El Ni&ntilde;o Advisory&nbsp;</p>
 <p><b>Synopsis:</b> El Niño continues to strengthen, with a strong-to-very strong El Niño likely
 through January-March 2027. More text follows here.</p></body></html>"""
 
