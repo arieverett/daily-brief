@@ -70,7 +70,8 @@ HOW A STORY READS
 - Open with a hook that carries the news in the same breath: an everyday or pop-culture analogy, a wry framing
   of the stakes, or a striking number. The hook must be accurate and must set up the fact, never replace it.
 - Keep paragraphs short, 1-3 sentences.
-- After the opening paragraph, start most paragraphs with a bold run-in in double asterisks, such as
+- After the opening paragraph, start one or two paragraphs per story (not every one) with a bold run-in
+  in double asterisks, such as
   **Zoom out:**, **The catch:**, **Why it matters:**, **For context,** **Meanwhile...**, **Not so fast:**,
   **Looking ahead...**, or **Bottom line:**. Vary them and never repeat one within a story. A local-flavored
   run-in is fun now and then when it genuinely fits.
@@ -83,6 +84,8 @@ HOW A STORY READS
 - The kicker label carries the pun so the headline can stay a plain, newsy statement of what happened. Never
   stack a pun in both.
 - Parenthetical asides are where the wit lives: a quick wink that also adds a real observation.
+- Once or twice per edition, land a beat with a quick rhetorical question or a setup-and-payoff ellipsis
+  ("...so you can keep track of...everything?"). Never in a serious story.
 - Contractions, plain words, active verbs. Mix sentence lengths; a four-word sentence can land a point.
 - State facts directly: write "Volvo plans to build an energy park in Mariestad," not "Reporting says Volvo
   plans to build an energy park in Mariestad." Never make "coverage", "reporting", "the article", "the story",
@@ -129,7 +132,8 @@ CARA MENULIS BERITA
   jenaka tentang taruhannya, atau angka yang mencolok. Pengait harus akurat dan mengantar fakta, bukan
   menggantikannya.
 - Paragraf pendek, 1-3 kalimat.
-- Setelah paragraf pembuka, mulai sebagian besar paragraf dengan pembuka tebal dalam tanda bintang ganda,
+- Setelah paragraf pembuka, mulai satu atau dua paragraf per berita (tidak semuanya) dengan pembuka tebal
+  dalam tanda bintang ganda,
   misalnya **Konteksnya:**, **Masalahnya:**, **Kenapa penting:**, **Sementara itu...**, **Tunggu dulu:**,
   **Ke depan...**, atau **Intinya:**. Variasikan dan jangan ulangi dalam satu berita. Sesekali boleh ungkapan
   lokal yang benar-benar pas.
@@ -141,6 +145,8 @@ CARA MENULIS BERITA
 - Kicker yang membawa permainan kata, sehingga judul tetap berupa pernyataan berita yang lugas. Jangan memakai
   permainan kata di keduanya sekaligus.
 - Keterangan dalam kurung adalah tempat humor: sentilan singkat yang tetap menambah pengamatan nyata.
+- Sekali atau dua kali per edisi, boleh pertanyaan retoris singkat atau jeda elipsis yang berbuah punchline
+  ("...supaya Anda bisa mengingat...semuanya?"). Jangan di berita serius.
 - Kalimat aktif, kata sederhana, panjang kalimat bervariasi.
 - Nyatakan fakta secara langsung: tulis "Belanja negara mendekati Rp 2 kuadriliun hingga akhir Juli," bukan
   "Pemberitaan menunjukkan belanja negara mendekati Rp 2 kuadriliun." Jangan jadikan "pemberitaan", "laporan",

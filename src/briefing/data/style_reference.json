@@ -1,0 +1,34 @@
+{
+  "issues": [
+    {
+      "date": "2026-10-15",
+      "subject": "☕️ Piping hot",
+      "added": "2026-10-16",
+      "metrics": {
+        "words_per_sentence": 18.0,
+        "words_per_paragraph": 32.0,
+        "run_in_share_pct": 11.5,
+        "asides_per_1000_words": 2.8,
+        "questions_per_1000_words": 0.9,
+        "ellipses_per_1000_words": 0.5,
+        "numbers_per_100_words": 2.4,
+        "contractions_per_100_words": 2.4
+      }
+    },
+    {
+      "date": "2026-10-16",
+      "subject": "☕️ Rubber meets the Roadster",
+      "added": "2026-10-16",
+      "metrics": {
+        "words_per_sentence": 18.3,
+        "words_per_paragraph": 33.5,
+        "run_in_share_pct": 16.7,
+        "asides_per_1000_words": 5.5,
+        "questions_per_1000_words": 1.5,
+        "ellipses_per_1000_words": 1.0,
+        "numbers_per_100_words": 3.3,
+        "contractions_per_100_words": 2.2
+      }
+    }
+  ]
+}

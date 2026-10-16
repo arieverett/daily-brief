@@ -352,6 +352,8 @@ def el_nino(ctx: TopicContext) -> Topic | None:
             "inconsistent."),
             ("Global average temperatures tend to run higher during and just after strong El "
             "Niños: 2016 and 2024 set global heat records after the 2015-16 and 2023-24 events."),
+            ("Forecasters usually call an El Niño 'strong' when Niño-3.4 runs about 1.5°C or more "
+            "above normal, and 'very strong' (popularly 'super') at about 2.0°C or more."),
             "The 1997-98 and 2015-16 El Niños are the usual benchmarks for 'super' events.",
         ],
         notable="advisory" in status,

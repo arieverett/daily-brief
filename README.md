@@ -184,6 +184,12 @@ Generated HTML and text files are written to `out/`.
 - **Weather cities:** edit the `weather:` block at the bottom of `config/sources.yml` or
   `config/indonesia_sources.yml` (featured cities get a widget and climate comparisons; `around`
   cities get a grid cell; `topics` lists the special topics that edition rotates through). The Feed check workflow then fetches them all from GitHub.
+- **Morning Brew references:** when a new reference issue comes in, run
+  `python -m briefing.reference add issue.eml`. It stores only numbers (sentence and paragraph
+  length, run-in rate, asides, questions, figures, contractions) in
+  `src/briefing/data/style_reference.json`, never the issue's text. Every run posts a
+  "Voice vs Morning Brew" notice comparing that day's edition with the reference averages, next
+  to the "House style" scorecard; use both to tune the prompts in `editor.py`/`editorial.py`.
 - **Past editions:** each run that generated a brief keeps the HTML and text for 90 days under
   Actions → the run → Artifacts (`edition-<edition>-<date>`).
 

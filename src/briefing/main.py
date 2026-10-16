@@ -24,6 +24,7 @@ from .config import DEFAULT_OUT_DIR, DEFAULT_SOURCES_PATH, Settings
 from .delivery import parse_clock, scheduled_send_time
 from .editor import create_edition, create_indonesia_edition
 from .models import Candidate, NewsletterEdition, edition_from_dict
+from .reference import compare_to_reference
 from .render import render_html, render_indonesia_text, render_text
 from .send import SendResult, send_email
 from .style_check import score_edition
@@ -352,6 +353,9 @@ def main() -> None:
         edition = _add_images(edition, candidates, args.edition)
         edition = _add_weather(edition, args, settings, day)
         _annotate_notice("House style", score_edition(edition).report())
+        voice = compare_to_reference(edition)
+        if voice:
+            _annotate_notice("Voice vs Morning Brew", voice)
 
     with stage("Rendering the email"):
         html_path, html, text = write_outputs(edition, args.out, args.edition)

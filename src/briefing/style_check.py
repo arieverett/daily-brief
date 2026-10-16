@@ -69,9 +69,10 @@ def _story(card: Scorecard, story: Story, where: str, low: int, high: int, kicke
     later = paragraphs(story.summary)[1:]
     if later:
         with_run_in = sum(bool(RUN_IN_RE.match(part)) for part in later)
+        # One or two per story, like Morning Brew (~13% of its paragraphs), not every one.
         card.check(
-            with_run_in * 2 >= len(later),
-            f"{where}: only {with_run_in} of {len(later)} later paragraphs open with a run-in",
+            1 <= with_run_in <= 2,
+            f"{where}: {with_run_in} of {len(later)} later paragraphs open with a run-in (aim 1-2)",
         )
     text = " ".join([story.headline, story.summary, *story.highlights])
     card.check("—" not in text, f"{where}: em dash")

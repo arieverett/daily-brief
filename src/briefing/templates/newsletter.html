@@ -165,8 +165,10 @@
     .wx-grid-title { padding: 11px 2px 2px; font-size: 11px; line-height: 14px; font-weight: 900; letter-spacing: 1.2px; text-transform: uppercase; color: #111111; }
     .wx-grid { font-size: 0; }
     .wx-cell { display: inline-block; width: 33.33%; vertical-align: top; box-sizing: border-box; padding: 6px 2px 5px; border-bottom: 1px solid #e6e6e6; }
-    .wx-cname { font-size: 13px; line-height: 17px; font-weight: 700; color: #111111; }
-    .wx-ctemp { font-size: 13px; line-height: 17px; color: #111111; white-space: nowrap; }
+    /* Fixed line boxes so emoji (images in Gmail) and tags can't make one cell taller than its row. */
+    .wx-cname { font-size: 13px; line-height: 18px; height: 18px; overflow: hidden; white-space: nowrap; font-weight: 700; color: #111111; }
+    .wx-ctemp { font-size: 13px; line-height: 18px; height: 18px; overflow: hidden; white-space: nowrap; color: #111111; }
+    .wx-cname img, .wx-ctemp img { height: 14px !important; width: 14px !important; vertical-align: -2px; }
     .wx-calt { color: #6b6b6b; }
     .wx-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.4px; color: #6b6b6b; text-transform: uppercase; }
     .wx-copy { padding-top: 11px; }
