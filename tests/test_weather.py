@@ -309,3 +309,21 @@ def test_rate_limits_wait_for_the_api_before_retrying(monkeypatch):
     response = weather._get(client, weather.ARCHIVE_URL, {}, weather.REQUEST_TIMEOUT)
     assert response.status_code == 200
     assert waits == [7.0, weather.RATE_LIMIT_WAIT]
+
+
+def test_weather_step_reports_what_it_produced(monkeypatch, capsys):
+    data = build_weather(CONFIG, READER_TIME, client=_client(FakeOpenMeteo()))
+    monkeypatch.setattr("briefing.main.build_weather", lambda config, reader_time: data)
+    monkeypatch.setattr(
+        "briefing.main.write_weather_summary", lambda *args, **kwargs: "**Today:** 59°F."
+    )
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    args = SimpleNamespace(sources=ROOT / "config" / "sources.yml")
+    settings = SimpleNamespace(
+        send_at="", delivery_nonce="", timezone="America/New_York",
+        openai_api_key="x", openai_model="gpt-5-mini",
+    )
+    edition = _add_weather(replace(load_sample(), weather=None), args, settings, DAY)
+    assert edition.weather is not None and edition.weather.summary == "**Today:** 59°F."
+    out = capsys.readouterr().out
+    assert "::notice title=Weather::Widgets: Stockholm" in out and "%0AWrite-up: **Today:**" in out

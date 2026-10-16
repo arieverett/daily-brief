@@ -59,6 +59,14 @@ def _annotate_warning(label: str, exc: BaseException) -> None:
         print(f"::warning title={label} skipped::{escaped}", flush=True)
 
 
+def _annotate_notice(label: str, message: str) -> None:
+    """What a best-effort step produced, readable on the run page without the raw log."""
+    print(message, flush=True)
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        escaped = message[:3000].replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+        print(f"::notice title={label}::{escaped}", flush=True)
+
+
 @contextmanager
 def stage(label: str) -> Iterator[None]:
     """Log a pipeline stage with elapsed time and preserve the original exception."""
@@ -309,6 +317,20 @@ def _add_weather(
         )
     if not summary:
         print("  Weather write-up unavailable; showing forecasts only", flush=True)
+    _annotate_notice(
+        "Weather",
+        "\n".join(
+            [
+                "Widgets: " + ", ".join(
+                    f"{city.name} ({city.day_label.lower()}) {city.high}°/{city.low}°{config.unit}"
+                    for city in data.report.featured
+                ),
+                f"Other cities: {len(data.report.around)}",
+                *data.notes,
+                "Write-up: " + (summary or "none (forecasts only)"),
+            ]
+        ),
+    )
     return replace(edition, weather=replace(data.report, summary=summary))
 
 
