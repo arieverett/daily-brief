@@ -129,6 +129,11 @@ class FakeOpenMeteo:
 
 
 @pytest.fixture(autouse=True)
+def no_retry_waits(monkeypatch):
+    monkeypatch.setattr(weather.time, "sleep", lambda seconds: None)
+
+
+@pytest.fixture(autouse=True)
 def weather_cache(tmp_path, monkeypatch):
     monkeypatch.setenv(weather.CACHE_ENV, str(tmp_path / "weather-cache"))
     return tmp_path / "weather-cache"
@@ -191,6 +196,24 @@ def test_no_comparisons_without_enough_days_to_calibrate():
     assert data is not None
     assert all("climate" not in fact for fact in data.facts["featured_cities"])
     assert all("daylight" in fact for fact in data.facts["featured_cities"])
+
+
+def test_transient_failures_are_retried():
+    fake = FakeOpenMeteo()
+    failures = iter([httpx.ConnectTimeout("handshake"), httpx.Response(503)])
+
+    def flaky(request: httpx.Request) -> httpx.Response:
+        if request.url.host.startswith("archive") and fake.history_calls == 0:
+            failure = next(failures, None)
+            if isinstance(failure, Exception):
+                raise failure
+            if failure is not None:
+                return httpx.Response(failure.status_code, request=request)
+        return fake(request)
+
+    client = httpx.Client(transport=httpx.MockTransport(flaky))
+    data = build_weather(replace(CONFIG, featured=CONFIG.featured[:1]), READER_TIME, client=client)
+    assert data is not None and "climate" in data.facts["featured_cities"][0]
 
 
 def test_missing_climate_history_still_gives_forecasts():

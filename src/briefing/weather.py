@@ -20,6 +20,7 @@ import json
 import os
 import re
 import sys
+import time
 from dataclasses import dataclass, field, replace
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -44,7 +45,7 @@ PAST_DAYS = 30
 # over, so the forecast leads with tomorrow (Indonesia is late afternoon at 06:00 ET).
 LATE_LOCAL_HOUR = 15
 REQUEST_TIMEOUT = httpx.Timeout(20.0, connect=10.0)
-ARCHIVE_TIMEOUT = httpx.Timeout(90.0, connect=10.0)
+ARCHIVE_TIMEOUT = httpx.Timeout(60.0, connect=10.0)
 CACHE_ENV = "BRIEF_WEATHER_CACHE"
 DEFAULT_CACHE_DIR = Path(".cache") / "weather"
 
@@ -178,6 +179,24 @@ class DailySeries:
         return series[index] if 0 <= index < len(series) else None
 
 
+RETRY_DELAYS = (1.0, 4.0)
+
+
+def _get(client: httpx.Client, url: str, params: dict[str, Any], timeout: httpx.Timeout):
+    """GET with two quick retries for timeouts, dropped connections, 429 and 5xx."""
+    for delay in (*RETRY_DELAYS, None):
+        try:
+            response = client.get(url, params=params, timeout=timeout)
+        except httpx.TransportError:
+            if delay is None:
+                raise
+        else:
+            if response.status_code != 429 and response.status_code < 500 or delay is None:
+                return response
+        time.sleep(delay)
+    raise AssertionError("unreachable")
+
+
 def _as_list(payload: Any) -> list[dict[str, Any]]:
     """Open-Meteo returns an object for one location and a list for several."""
     return payload if isinstance(payload, list) else [payload]
@@ -213,7 +232,7 @@ def fetch_forecasts(
         "forecast_days": WEEK_DAYS + 1,
         "past_days": PAST_DAYS + 7 if featured else 1,
     }
-    response = client.get(FORECAST_URL, params=params, timeout=REQUEST_TIMEOUT)
+    response = _get(client, FORECAST_URL, params, REQUEST_TIMEOUT)
     response.raise_for_status()
     items = _as_list(response.json())
     if len(items) != len(places):
@@ -249,7 +268,7 @@ def load_history(client: httpx.Client, place: Place, last_year: int) -> DailySer
         "daily": ",".join(ARCHIVE_DAILY),
         "timezone": "auto",
     }
-    response = client.get(ARCHIVE_URL, params=params, timeout=ARCHIVE_TIMEOUT)
+    response = _get(client, ARCHIVE_URL, params, ARCHIVE_TIMEOUT)
     response.raise_for_status()
     payload = response.json()
     series = _series(payload, ARCHIVE_DAILY)  # validate before caching
@@ -278,7 +297,7 @@ def fetch_recent(client: httpx.Client, place: Place, local_today: date) -> Daily
             "daily": ",".join(ARCHIVE_DAILY),
             "timezone": "auto",
         }
-        response = client.get(ARCHIVE_URL, params=params, timeout=REQUEST_TIMEOUT)
+        response = _get(client, ARCHIVE_URL, params, REQUEST_TIMEOUT)
         if response.status_code != 400:
             break
     assert response is not None
