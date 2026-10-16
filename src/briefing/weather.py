@@ -781,7 +781,8 @@ FACTS
   season start, cause, or comparison. Every figure you write must appear in the data (as rounded there).
 - "normal" means the 1991-2020 average for the same time of year. warmth_rank 1 means the warmest of all
   years compared; most_recent_warmer_year / most_recent_cooler_year support lines like "the warmest
-  mid-October week since 2018". Only call something a record if warmth_rank is 1 or equals years_compared.
+  mid-October week since 2018". Only call something a record if warmth_rank is 1 or equals years_compared,
+  and since week_ahead is a forecast, say it's "on track to be" or "set to be", never that it was.
   latest_30_days is the most recent month of observations (it ends a few days ago); call it "the past
   month" or name its dates. A city without "climate" has no comparisons: don't make any for it.
 - headline_day says whether a city's headline is today or tomorrow (Indonesia is already evening when the
@@ -807,7 +808,8 @@ FAKTA
   penyebab, atau perbandingan. Setiap angka yang Anda tulis harus ada di data (dengan pembulatan yang sama).
 - "normal" berarti rata-rata 1991-2020 untuk waktu yang sama dalam setahun. warmth_rank 1 berarti terhangat
   dari semua tahun yang dibandingkan; most_recent_warmer_year / most_recent_cooler_year mendukung kalimat
-  seperti "minggu terhangat sejak 2018". Sebut rekor hanya bila warmth_rank 1 atau sama dengan years_compared.
+  seperti "minggu terhangat sejak 2018". Sebut rekor hanya bila warmth_rank 1 atau sama dengan years_compared,
+  dan karena week_ahead adalah prakiraan, tulis "berpotensi menjadi" atau "diperkirakan", bukan "telah menjadi".
   latest_30_days adalah pengamatan sebulan terakhir (berakhir beberapa hari lalu); sebut "sebulan terakhir"
   atau tanggalnya. Kota tanpa "climate" tidak punya perbandingan: jangan membuat perbandingan untuknya.
 - headline_day menunjukkan apakah prakiraan utama sebuah kota untuk hari ini atau besok (di Indonesia
