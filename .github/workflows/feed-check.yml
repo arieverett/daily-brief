@@ -44,6 +44,28 @@ jobs:
         run: >-
           uv run --no-sync python -m briefing.feedcheck config/indonesia_sources.yml
           --max-candidates 60
+      # Same yearly climate-history cache idea as the morning run (it's a big download that
+      # Open-Meteo rate-limits), saved even if the check fails so partial progress is kept.
+      - name: Weather cache key
+        id: wxkey
+        run: echo "year=$(date -u +%Y)" >> "$GITHUB_OUTPUT"
+      - name: Restore weather history
+        id: wxcache
+        continue-on-error: true
+        uses: actions/cache/restore@v6
+        with:
+          path: .cache/weather
+          key: weather-history-v1-check-${{ steps.wxkey.outputs.year }}-${{ hashFiles('config/*.yml') }}
+          restore-keys: weather-history-v1-check-${{ steps.wxkey.outputs.year }}-
       - name: Weather
         if: ${{ !cancelled() }}
+        env:
+          BRIEF_WEATHER_CACHE: .cache/weather
         run: uv run --no-sync python -m briefing.weather config/sources.yml config/indonesia_sources.yml
+      - name: Save weather history
+        if: ${{ !cancelled() && steps.wxcache.outputs.cache-hit != 'true' && hashFiles('.cache/weather/*.json') != '' }}
+        continue-on-error: true
+        uses: actions/cache/save@v6
+        with:
+          path: .cache/weather
+          key: weather-history-v1-check-${{ steps.wxkey.outputs.year }}-${{ hashFiles('config/*.yml') }}-${{ github.run_id }}

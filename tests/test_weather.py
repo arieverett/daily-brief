@@ -294,3 +294,18 @@ def test_footer_has_no_divider_rule():
     html = render_html(load_sample())
     footer_css = next(line for line in html.splitlines() if line.strip().startswith(".footer {"))
     assert "border" not in footer_css
+
+
+def test_rate_limits_wait_for_the_api_before_retrying(monkeypatch):
+    waits: list[float] = []
+    monkeypatch.setattr(weather.time, "sleep", waits.append)
+    replies = iter([httpx.Response(429, headers={"retry-after": "7"}), httpx.Response(429)])
+
+    def limited(request: httpx.Request) -> httpx.Response:
+        reply = next(replies, None)
+        return reply if reply is not None else httpx.Response(200, json={"ok": True})
+
+    client = httpx.Client(transport=httpx.MockTransport(limited))
+    response = weather._get(client, weather.ARCHIVE_URL, {}, weather.REQUEST_TIMEOUT)
+    assert response.status_code == 200
+    assert waits == [7.0, weather.RATE_LIMIT_WAIT]

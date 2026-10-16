@@ -180,19 +180,33 @@ class DailySeries:
 
 
 RETRY_DELAYS = (1.0, 4.0)
+# Open-Meteo's free tier limits weighted calls per minute, and one 35-year history download
+# weighs as much as hundreds of forecasts. A 429 right after one clears within the minute.
+RATE_LIMIT_WAIT = 65.0
+
+
+def _retry_after(response: httpx.Response) -> float:
+    try:
+        return min(max(float(response.headers.get("retry-after", "")), 1.0), RATE_LIMIT_WAIT)
+    except ValueError:
+        return RATE_LIMIT_WAIT
 
 
 def _get(client: httpx.Client, url: str, params: dict[str, Any], timeout: httpx.Timeout):
-    """GET with two quick retries for timeouts, dropped connections, 429 and 5xx."""
-    for delay in (*RETRY_DELAYS, None):
+    """GET with two retries: quick for blips and 5xx, a minute's wait for rate limits."""
+    for attempt, delay in enumerate((*RETRY_DELAYS, None)):
         try:
             response = client.get(url, params=params, timeout=timeout)
         except httpx.TransportError:
             if delay is None:
                 raise
         else:
-            if response.status_code != 429 and response.status_code < 500 or delay is None:
+            retryable = response.status_code == 429 or response.status_code >= 500
+            if not retryable or delay is None:
                 return response
+            if response.status_code == 429:
+                delay = _retry_after(response)
+                print(f"  Weather API rate limit; waiting {delay:.0f}s (attempt {attempt + 1})")
         time.sleep(delay)
     raise AssertionError("unreachable")
 
@@ -655,6 +669,7 @@ def build_weather(
         featured: list[CityForecast] = []
         featured_facts: list[dict[str, Any]] = []
         notes: list[str] = []
+        pending: list[tuple[Place, DailySeries, int, datetime, dict[str, Any]]] = []
         for place, series in zip(config.featured, featured_series, strict=True):
             built = city_forecast(place, series, reader_time, config, with_strip=True)
             if built is None:
@@ -672,9 +687,23 @@ def build_weather(
             daylight = daylight_facts(series, lead_index)
             if daylight:
                 fact["daylight"] = daylight
+            pending.append((place, series, lead_index, local_now, fact))
+            featured_facts.append(fact)
+
+        # Light requests first, then the (normally cached) heavy history downloads, so a
+        # rate limit after a history download can only delay the next one.
+        recents: dict[str, DailySeries | Exception] = {}
+        for place, _, _, local_now, _ in pending:
             try:
+                recents[place.name] = fetch_recent(client, place, local_now.date())
+            except (httpx.HTTPError, ValueError, KeyError) as exc:
+                recents[place.name] = exc
+        for place, series, lead_index, local_now, fact in pending:
+            try:
+                recent = recents[place.name]
+                if isinstance(recent, Exception):
+                    raise recent
                 climate = Climate(load_history(client, place, local_now.year - 1))
-                recent = fetch_recent(client, place, local_now.date())
                 calibration = calibrate(series, recent)
                 comparison = climate_facts(series, lead_index, climate, recent, config)
                 if comparison:
@@ -688,7 +717,6 @@ def build_weather(
                     notes.append(f"{place.name}: too little overlap to calibrate; no comparisons")
             except (httpx.HTTPError, ValueError, KeyError, OSError) as exc:
                 notes.append(f"{place.name}: climate history unavailable: {exc}")
-            featured_facts.append(fact)
 
         around: list[CityForecast] = []
         other_facts: list[dict[str, Any]] = []
