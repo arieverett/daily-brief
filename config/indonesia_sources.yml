@@ -108,6 +108,8 @@ feeds:
 weather:
   language: id
   unit: celsius
+  # One topic is picked each day for the write-up (src/briefing/weather_topics.py).
+  topics: [climate_context, rain_check, on_this_day, around_the_world, daylight, uv, air_quality, el_nino]
   featured:
     - {name: Bandung, country: Indonesia, flag: "🇮🇩", latitude: -6.9175, longitude: 107.6191}
   around:
@@ -119,3 +121,4 @@ weather:
     - {name: Singapura, country: Singapore, flag: "🇸🇬", latitude: 1.3521, longitude: 103.8198}
     - {name: Tokyo, country: Japan, flag: "🇯🇵", latitude: 35.6762, longitude: 139.6503}
     - {name: Stockholm, country: Sweden, flag: "🇸🇪", latitude: 59.3293, longitude: 18.0686}
+    - {name: New York, country: Amerika Serikat, flag: "🇺🇸", latitude: 40.7128, longitude: -74.0060}

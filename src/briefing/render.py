@@ -85,35 +85,35 @@ def _story_text(story: Story, *, source_prefix: str) -> str:
 def _weather_text(weather: WeatherReport | None, *, indonesian: bool) -> list[str]:
     if not weather or not weather.featured:
         return []
+    unit, alt = f"°{weather.unit}", f"°{weather.alt_unit}"
     low = "min" if indonesian else "low"
     blocks = ["", "CUACA" if indonesian else "WEATHER"]
     for city in weather.featured:
         days = "  ".join(f"{day.label} {day.high}°/{day.low}°" for day in city.days)
         blocks.append(
-            f"{city.name}, {city.day_label.lower()}: {city.condition}, {city.high}° "
-            f"({low} {city.low}°)\n{days}"
+            f"{city.name}, {city.day_label.lower()}: {city.condition}, {city.high}{unit} "
+            f"({city.high_alt}{alt}), {low} {city.low}{unit} ({city.low_alt}{alt})\n{days}"
         )
-    if weather.summary:
-        blocks.append(plain(weather.summary))
     if weather.around:
         blocks.append(
             "\n".join(
                 f"{city.name}{' (' + city.day_tag.lower() + ')' if city.day_tag else ''}: "
-                f"{city.condition}, {city.high}°/{city.low}°"
+                f"{city.condition}, {city.high}°/{city.low}°{unit[-1]} "
+                f"({city.high_alt}°/{city.low_alt}°{alt[-1]})"
                 for city in weather.around
             )
         )
-    unit = f"°{weather.unit}"
+    if weather.summary:
+        blocks.append(plain(weather.summary))
     blocks.append(
-        f"Suhu dalam {unit}. Data cuaca: Open-Meteo.com"
-        if indonesian
-        else f"Temperatures in {unit}. Weather data: Open-Meteo.com"
+        "Data cuaca: Open-Meteo.com" if indonesian else "Weather data: Open-Meteo.com"
     )
     return blocks
 
 
 def render_text(edition: Edition) -> str:
     blocks = ["DAILY BRIEF", edition.date_label, "", "THE SETUP", plain(edition.setup)]
+    blocks.extend(_weather_text(edition.weather, indonesian=False))
     for heading, section in (("SWEDEN", edition.sweden), ("INDONESIA", edition.indonesia)):
         blocks.extend(("", heading, _story_text(section.lead, source_prefix="Read more")))
         blocks.extend(
@@ -123,7 +123,6 @@ def render_text(edition: Edition) -> str:
         blocks.extend(
             _story_text(story, source_prefix="Read article") for story in section.quick_hits
         )
-    blocks.extend(_weather_text(edition.weather, indonesian=False))
     return "\n\n".join(blocks)
 
 
@@ -135,6 +134,7 @@ def render_indonesia_text(edition: IndonesiaEdition) -> str:
         "",
         "DALAM EDISI HARI INI",
         plain(edition.setup),
+        *_weather_text(edition.weather, indonesian=True),
         "",
         "INDONESIA",
         _story_text(section.lead, source_prefix="Baca selengkapnya"),
@@ -147,6 +147,5 @@ def render_indonesia_text(edition: IndonesiaEdition) -> str:
             _story_text(story, source_prefix="Baca artikel")
             for story in section.quick_hits
         ),
-        *_weather_text(edition.weather, indonesian=True),
     ]
     return "\n\n".join(blocks)

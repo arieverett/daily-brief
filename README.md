@@ -15,10 +15,12 @@ and plain-text editions, and send through Resend.
 - Stricter Indonesia bullet filtering, with priority for unused counts, percentages, and currency data
 - Exact, validated source links on every item
 - Publisher article images when they can be fetched within the image time budget
-- A weather section closing each edition: Apple Weather-style 5-day widgets for featured cities
-  (Stockholm + Jakarta in °F; Bandung in °C for Nusantara Daily), a short write-up comparing the
-  week with 1991-2020 normals, past years, and the last 30 days, and a table of other cities.
-  Forecasts lead with tomorrow wherever it's already past 15:00 when the email lands.
+- A weather card right after the setup (where Morning Brew puts Markets): side-by-side 5-day
+  widgets (Stockholm + Jakarta; Bandung for Nusantara Daily) in °F and °C, a grid of other cities
+  including New York, and a two-paragraph write-up: the day ahead plus one rotating special topic
+  (vs normal, rain check, on this day, around the world, daylight, UV, air quality, El Niño,
+  northern lights). Forecasts lead with tomorrow wherever it's past 15:00 when the email lands.
+- A house-style scorecard for every edition on the run page (see `style_check.py`)
 - Duplicate-send protection through retry-stable Resend idempotency keys
 - Responsive HTML email plus a plain-text fallback
 - Automated tests, linting, and a no-API sample renderer
@@ -130,8 +132,10 @@ Generated HTML and text files are written to `out/`.
 6. **Enrich:** fetch publisher social images concurrently under a fixed time budget, with RSS images
    as the fallback.
 7. **Weather:** fetch forecasts from Open-Meteo (free, no key) for the cities in the edition's
-   `weather:` config block, compare them with climate history (ERA5, cached per city and year),
-   and have the editor write a short summary. Any number in that summary that isn't in the data
+   `weather:` config block, calibrate climate history (ERA5, cached per city and year) against
+   the forecast model, gather the special topics that have data today (NOAA for El Niño and
+   aurora), pick one (weighted toward newsworthy ones, never yesterday's), and have the editor
+   write the day ahead plus that topic. Any number in that summary that isn't in the data
    triggers one rewrite, then the summary is dropped. The whole step is best-effort: if anything
    fails the edition goes out without (part of) the weather.
 8. **Render:** build one responsive email template and the edition-specific plain-text fallback.
@@ -152,6 +156,8 @@ Generated HTML and text files are written to `out/`.
 - `src/briefing/delivery.py` — delivery window, delivery records, and failure alerts (stdlib only;
   the workflows run it before installing dependencies)
 - `src/briefing/weather.py` — forecasts, climate comparisons, and the weather write-up
+- `src/briefing/weather_topics.py` — the rotating special topics and how one is picked
+- `src/briefing/style_check.py` — the daily house-style scorecard shown on the run page
   (`python -m briefing.weather config/sources.yml` prints what a morning run would show)
 - `src/briefing/templates/newsletter.html` — email-safe responsive presentation
 - `src/briefing/feedcheck.py` — checks every configured feed and the resulting candidate pool
@@ -177,7 +183,7 @@ Generated HTML and text files are written to `out/`.
   fails the check. You can also run it from the Actions tab at any time.
 - **Weather cities:** edit the `weather:` block at the bottom of `config/sources.yml` or
   `config/indonesia_sources.yml` (featured cities get a widget and climate comparisons; `around`
-  cities get a table row). The Feed check workflow then fetches them all from GitHub.
+  cities get a grid cell; `topics` lists the special topics that edition rotates through). The Feed check workflow then fetches them all from GitHub.
 - **Past editions:** each run that generated a brief keeps the HTML and text for 90 days under
   Actions → the run → Artifacts (`edition-<edition>-<date>`).
 

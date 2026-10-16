@@ -64,19 +64,21 @@ class CountrySection:
 
 @dataclass(frozen=True)
 class ForecastDay:
-    """One column of a forecast widget."""
+    """One column of a forecast widget. Temperatures in the edition's unit, then the other."""
 
     date: str
     label: str
     icon: str
     high: int
     low: int
+    high_alt: int = 0
+    low_alt: int = 0
     rain_chance: int | None = None
 
 
 @dataclass(frozen=True)
 class CityForecast:
-    """A featured city's widget (with `days`) or one row of the other-cities table."""
+    """A featured city's widget (with `days`) or one cell of the other-cities grid."""
 
     name: str
     country: str
@@ -86,21 +88,28 @@ class CityForecast:
     theme: str
     high: int
     low: int
+    high_alt: int = 0
+    low_alt: int = 0
     flag: str = ""
     rain_chance: int | None = None
     days: list[ForecastDay] = field(default_factory=list)
-    # Short "tomorrow" marker for a table row whose day differs from the others.
+    # Short "tomorrow" marker for a grid cell whose day differs from the others.
     day_tag: str = ""
 
 
 @dataclass(frozen=True)
 class WeatherReport:
-    unit: str  # "F" or "C"
+    unit: str  # the edition's main unit, "F" or "C"
     summary: str
     featured: list[CityForecast] = field(default_factory=list)
     around: list[CityForecast] = field(default_factory=list)
-    # Said once in the table title when every row is for the same (non-today) day.
+    # Said once in the grid title when every cell is for the same (non-today) day.
     around_note: str = ""
+    topic: str = ""  # which rotating topic the write-up covers (for logs and tests)
+
+    @property
+    def alt_unit(self) -> str:
+        return "C" if self.unit == "F" else "F"
 
 
 @dataclass(frozen=True)
@@ -170,6 +179,7 @@ def weather_from_dict(value: dict[str, Any] | None) -> WeatherReport | None:
         featured=[city_forecast_from_dict(item) for item in value.get("featured", [])],
         around=[city_forecast_from_dict(item) for item in value.get("around", [])],
         around_note=value.get("around_note", ""),
+        topic=value.get("topic", ""),
     )
 
 

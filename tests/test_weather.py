@@ -35,6 +35,8 @@ CONFIG = WeatherConfig(
         weather.Place("Jakarta", "Indonesia", -6.2088, 106.8456, "🇮🇩"),
     ],
     around=[weather.Place("Gothenburg", "Sweden", 57.7089, 11.9746, "🇸🇪")],
+    # Topics that need no extra request; the network ones have their own tests below.
+    topics=["climate_context", "rain_check", "on_this_day", "around_the_world", "daylight", "uv"],
 )
 
 
@@ -53,6 +55,9 @@ def _forecast_item(latitude: str, past_days: int, forecast_days: int) -> dict:
             "precipitation_probability_max": [40] * count,
             "precipitation_sum": [2.0] * count,
             "daylight_duration": [36000.0 - 300 * index for index in range(count)],
+            "uv_index_max": [3.0] * count,
+            "sunrise": [f"{day.isoformat()}T07:30" for day in days],
+            "sunset": [f"{day.isoformat()}T17:45" for day in days],
         },
     }
 
@@ -165,22 +170,32 @@ def test_build_weather_makes_widgets_rows_and_climate_facts(weather_cache):
     assert [city.name for city in data.report.around] == ["Gothenburg"]
     assert data.report.around_note == "" and data.report.around[0].day_tag == ""
 
-    stockholm_facts = data.facts["featured_cities"][0]
-    climate = stockholm_facts["climate"]
+    assert (stockholm.high_alt, stockholm.low_alt) == (15, 5)  # the other unit
+    assert stockholm.days[0].high_alt == 15
+
     # The forecast model runs 2°C warmer than the reanalysis on recent days, so the
     # 10°C normal is read as 12°C: the 15°C forecast is 3°C above normal, not 5°C.
-    assert climate["normal_high"] == 54  # 12°C
-    assert climate["headline_high_vs_normal"] == 5.4  # 3°C, in °F
-    week = climate["week_ahead"]
+    context = data.topics["climate_context"].facts["cities"][0]
+    assert context["normal_high"] == {"°F": 54, "°C": 12}
+    assert context["high_vs_normal"] == {"°F": 5.4, "°C": 3.0}
+    week = context["week_ahead"]
     assert week["years_compared"] == 35 and week["first_year_compared"] == 1991
     assert week["warmth_rank"] == 2 and week["most_recent_warmer_year"] == 2023
-    assert week["vs_normal"] == 5.4
-    month = climate["latest_30_days"]
-    assert month["temp_vs_normal"] == 3.6  # reanalysis 8°C mean vs 6°C normal
+    assert week["vs_normal"] == {"°F": 5.4, "°C": 3.0}
+    month = data.topics["rain_check"].facts["cities"][0]
+    assert month["temperature_vs_normal"] == {"°F": 3.6, "°C": 2.0}  # 8°C vs 6°C normal
     assert month["rain_pct_of_normal"] == 200
-    assert stockholm_facts["daylight"]["change_vs_week_ago_minutes"] == -35  # 5 min/day shorter
-    assert data.facts["featured_cities"][1]["headline_day"] == "tomorrow"
+    history = data.topics["on_this_day"].facts["cities"][0]
+    assert history["warmest_high"]["year"] == 2023 and history["years_on_record"] == 35
+    light = data.topics["daylight"].facts["cities"][0]
+    assert light["change_vs_week_ago_minutes"] == -35 and light["sunset"] == "17:45"
     assert any("highs +2.0°C" in note for note in data.notes)
+
+    # The editor gets the day ahead plus exactly one special topic.
+    assert [city["day"] for city in data.facts["day_ahead"]] == ["today", "tomorrow"]
+    assert data.facts["day_ahead"][0]["high"] == {"°F": 59, "°C": 15}
+    assert data.facts["temperature_style"].startswith("°F first")
+    assert data.facts["special_topic"]["topic"] == data.report.topic in data.topics
 
     # Climate history is cached: a second run only asks for the recent days again.
     assert (fake.history_calls, fake.recent_calls) == (2, 2)
@@ -194,8 +209,8 @@ def test_no_comparisons_without_enough_days_to_calibrate():
         CONFIG, READER_TIME, client=_client(FakeOpenMeteo(recent_days_available=5))
     )
     assert data is not None
-    assert all("climate" not in fact for fact in data.facts["featured_cities"])
-    assert all("daylight" in fact for fact in data.facts["featured_cities"])
+    assert not {"climate_context", "rain_check", "on_this_day"} & set(data.topics)
+    assert {"around_the_world", "daylight", "uv"} <= set(data.topics)
 
 
 def test_transient_failures_are_retried():
@@ -213,14 +228,15 @@ def test_transient_failures_are_retried():
 
     client = httpx.Client(transport=httpx.MockTransport(flaky))
     data = build_weather(replace(CONFIG, featured=CONFIG.featured[:1]), READER_TIME, client=client)
-    assert data is not None and "climate" in data.facts["featured_cities"][0]
+    assert data is not None and "climate_context" in data.topics
 
 
 def test_missing_climate_history_still_gives_forecasts():
     data = build_weather(CONFIG, READER_TIME, client=_client(FakeOpenMeteo(archive_status=503)))
     assert data is not None
     assert len(data.report.featured) == 2
-    assert all("climate" not in fact for fact in data.facts["featured_cities"])
+    assert not {"climate_context", "rain_check", "on_this_day"} & set(data.topics)
+    assert data.report.topic in data.topics
 
 
 def test_forecast_outage_skips_the_section_without_failing_the_edition(monkeypatch, tmp_path):
@@ -273,21 +289,25 @@ def test_edition_configs_have_the_agreed_cities_and_units():
     assert len(mom.around) >= 3
 
 
-def test_weather_section_renders_after_the_news_and_only_when_present():
+def test_weather_card_is_the_second_section_with_both_units():
     edition = load_sample()
     html = render_html(edition)
     body = html.split("<body>")[1]
-    assert body.index("🇮🇩 Indonesia</span>") < body.index("🌤 Weather") < body.index("Coded by Ari")
+    assert body.index("The setup") < body.index("🌤 Weather") < body.index("🇸🇪 Sweden</span>")
     assert body.count('class="wx-card"') == 2
     assert body.count('class="wx-day"') == 10
-    assert "Open-Meteo.com" in body and "Around the map" in body
-    assert "TMRW".lower() in body.lower()
+    assert body.count('class="wx-cell"') == 7 and "🇺🇸 New York" in body
+    assert "16°C" in body and "61°" in body  # both units
+    assert "Open-Meteo.com" in body and ", NOAA" in body  # El Niño topic credits NOAA
+    # Gmail swaps emoji for <img>; a global block rule would put every flag on its own line.
+    assert "img { display: block" not in html and ".story-image { display: block; }" in html
 
     text = render_text(edition)
-    assert "WEATHER" in text and "Stockholm, today: Partly cloudy, 61°" in text
+    assert text.index("WEATHER") < text.index("SWEDEN")
+    assert "Stockholm, today: Partly cloudy, 61°F (16°C)" in text
 
     bare = render_html(replace(edition, weather=None)).split("<body>")[1]
-    assert "Weather" not in bare and "wx-card" not in bare
+    assert "🌤 Weather" not in bare and "wx-card" not in bare
 
 
 def test_footer_has_no_divider_rule():

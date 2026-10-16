@@ -74,7 +74,7 @@
   "setup": "**Big spending, bigger ambitions.** Sweden is pairing a brighter growth outlook with a long-term defense buildout. Indonesia wants faster growth too, and its new central-bank chief now has to deliver it without letting inflation or the rupiah wobble.",
   "weather": {
     "unit": "F",
-    "summary": "**Stockholm:** Grab a jacket. Today tops out at 61°F under broken clouds, then Saturday's rain knocks the high down to 55°F.\n\n**Zoom out:** The week ahead runs 3.6°F warmer than the 1991-2020 normal for early September, the mildest start to the month since 2016.\n\n**Meanwhile in Jakarta:** Tomorrow brings thunderstorms and 91°F, and Bandung's highlands offer the cool escape at 79°F.",
+    "summary": "**The day ahead:** Stockholm tops out at 61°F (16°C) under broken clouds, while Jakarta's thunderstorms tomorrow make an umbrella the accessory of the day at 91°F (33°C).\n\n**El Niño watch:** NOAA says a strong-to-very strong El Niño is underway, with the Pacific's key patch running 2.1°C above normal. For Indonesia that typically means a drier stretch, in line with Bandung's past month bringing just 26% of its usual rain.",
     "featured": [
       {
         "name": "Stockholm",
@@ -94,7 +94,9 @@
             "icon": "⛅",
             "high": 61,
             "low": 48,
-            "rain_chance": 20
+            "rain_chance": 20,
+            "high_alt": 16,
+            "low_alt": 9
           },
           {
             "date": "2026-09-02",
@@ -102,7 +104,9 @@
             "icon": "🌧️",
             "high": 55,
             "low": 47,
-            "rain_chance": 80
+            "rain_chance": 80,
+            "high_alt": 13,
+            "low_alt": 8
           },
           {
             "date": "2026-09-03",
@@ -110,7 +114,9 @@
             "icon": "🌦️",
             "high": 57,
             "low": 45,
-            "rain_chance": 40
+            "rain_chance": 40,
+            "high_alt": 14,
+            "low_alt": 7
           },
           {
             "date": "2026-09-04",
@@ -118,7 +124,9 @@
             "icon": "🌤️",
             "high": 60,
             "low": 44,
-            "rain_chance": 10
+            "rain_chance": 10,
+            "high_alt": 16,
+            "low_alt": 7
           },
           {
             "date": "2026-09-05",
@@ -126,9 +134,13 @@
             "icon": "☀️",
             "high": 63,
             "low": 46,
-            "rain_chance": 0
+            "rain_chance": 0,
+            "high_alt": 17,
+            "low_alt": 8
           }
-        ]
+        ],
+        "high_alt": 16,
+        "low_alt": 9
       },
       {
         "name": "Jakarta",
@@ -149,7 +161,9 @@
             "icon": "⛈️",
             "high": 91,
             "low": 78,
-            "rain_chance": 70
+            "rain_chance": 70,
+            "high_alt": 33,
+            "low_alt": 26
           },
           {
             "date": "2026-09-03",
@@ -157,7 +171,9 @@
             "icon": "⛅",
             "high": 92,
             "low": 78,
-            "rain_chance": 30
+            "rain_chance": 30,
+            "high_alt": 33,
+            "low_alt": 26
           },
           {
             "date": "2026-09-04",
@@ -165,7 +181,9 @@
             "icon": "⛈️",
             "high": 90,
             "low": 77,
-            "rain_chance": 60
+            "rain_chance": 60,
+            "high_alt": 32,
+            "low_alt": 25
           },
           {
             "date": "2026-09-05",
@@ -173,7 +191,9 @@
             "icon": "🌦️",
             "high": 91,
             "low": 78,
-            "rain_chance": 40
+            "rain_chance": 40,
+            "high_alt": 33,
+            "low_alt": 26
           },
           {
             "date": "2026-09-06",
@@ -181,9 +201,13 @@
             "icon": "☀️",
             "high": 93,
             "low": 79,
-            "rain_chance": 10
+            "rain_chance": 10,
+            "high_alt": 34,
+            "low_alt": 26
           }
-        ]
+        ],
+        "high_alt": 33,
+        "low_alt": 26
       }
     ],
     "around": [
@@ -197,7 +221,9 @@
         "theme": "rain",
         "high": 59,
         "low": 50,
-        "rain_chance": 75
+        "rain_chance": 75,
+        "high_alt": 15,
+        "low_alt": 10
       },
       {
         "name": "Kiruna",
@@ -209,7 +235,9 @@
         "theme": "overcast",
         "high": 46,
         "low": 36,
-        "rain_chance": 30
+        "rain_chance": 30,
+        "high_alt": 8,
+        "low_alt": 2
       },
       {
         "name": "Bandung",
@@ -222,7 +250,9 @@
         "high": 79,
         "low": 63,
         "rain_chance": 65,
-        "day_tag": "Tmrw"
+        "day_tag": "Tmrw",
+        "high_alt": 26,
+        "low_alt": 17
       },
       {
         "name": "Denpasar",
@@ -235,7 +265,9 @@
         "high": 86,
         "low": 75,
         "rain_chance": 10,
-        "day_tag": "Tmrw"
+        "day_tag": "Tmrw",
+        "high_alt": 30,
+        "low_alt": 24
       },
       {
         "name": "London",
@@ -247,7 +279,9 @@
         "theme": "overcast",
         "high": 68,
         "low": 55,
-        "rain_chance": 20
+        "rain_chance": 20,
+        "high_alt": 20,
+        "low_alt": 13
       },
       {
         "name": "Tokyo",
@@ -260,9 +294,26 @@
         "high": 88,
         "low": 75,
         "rain_chance": 10,
-        "day_tag": "Tmrw"
+        "day_tag": "Tmrw",
+        "high_alt": 31,
+        "low_alt": 24
+      },
+      {
+        "name": "New York",
+        "country": "United States",
+        "flag": "🇺🇸",
+        "day_label": "Today",
+        "condition": "Sunny",
+        "icon": "☀️",
+        "theme": "clear",
+        "high": 77,
+        "low": 63,
+        "high_alt": 25,
+        "low_alt": 17,
+        "rain_chance": 0
       }
     ],
-    "around_note": ""
+    "around_note": "",
+    "topic": "el_nino"
   }
 }

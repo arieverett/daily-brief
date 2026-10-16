@@ -26,6 +26,7 @@ from .editor import create_edition, create_indonesia_edition
 from .models import Candidate, NewsletterEdition, edition_from_dict
 from .render import render_html, render_indonesia_text, render_text
 from .send import SendResult, send_email
+from .style_check import score_edition
 from .weather import build_weather, load_weather_config, write_weather_summary
 
 COUNTRIES = ("Sweden", "Indonesia")
@@ -326,6 +327,7 @@ def _add_weather(
                     for city in data.report.featured
                 ),
                 f"Other cities: {len(data.report.around)}",
+                f"Special topic: {data.report.topic or 'none'}",
                 *data.notes,
                 "Write-up: " + (summary or "none (forecasts only)"),
             ]
@@ -349,6 +351,7 @@ def main() -> None:
         edition, candidates = _generate_live_edition(args, settings, day)
         edition = _add_images(edition, candidates, args.edition)
         edition = _add_weather(edition, args, settings, day)
+        _annotate_notice("House style", score_edition(edition).report())
 
     with stage("Rendering the email"):
         html_path, html, text = write_outputs(edition, args.out, args.edition)
