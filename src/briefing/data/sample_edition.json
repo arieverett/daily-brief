@@ -74,7 +74,7 @@
   "setup": "**Big spending, bigger ambitions.** Sweden is pairing a brighter growth outlook with a long-term defense buildout. Indonesia wants faster growth too, and its new central-bank chief now has to deliver it without letting inflation or the rupiah wobble.",
   "weather": {
     "unit": "F",
-    "summary": "**The day ahead:** Stockholm tops out at 61°F (16°C) under broken clouds, while Jakarta's thunderstorms tomorrow make an umbrella the accessory of the day at 91°F (33°C).\n\n**El Niño watch:** NOAA says a strong-to-very strong El Niño is underway, with the Pacific's key patch running 2.1°C above normal. For Indonesia that typically means a drier stretch, in line with Bandung's past month bringing just 26% of its usual rain.",
+    "summary": "**The day ahead:** Stockholm tops out at 61°F under broken clouds, while Jakarta's thunderstorms tomorrow make an umbrella the accessory of the day at 91°F.\n\n**El Niño watch:** NOAA says a strong-to-very strong El Niño is underway, with the Pacific's key patch running 2.1°C above normal. For Indonesia that typically means a drier stretch, in line with Bandung's past month bringing just 26% of its usual rain.",
     "featured": [
       {
         "name": "Stockholm",
@@ -212,9 +212,9 @@
     ],
     "around": [
       {
-        "name": "Gothenburg",
-        "country": "Sweden",
-        "flag": "🇸🇪",
+        "name": "Oslo",
+        "country": "Norway",
+        "flag": "🇳🇴",
         "day_label": "Today",
         "condition": "Rain",
         "icon": "🌧️",
@@ -253,21 +253,6 @@
         "day_tag": "Tmrw",
         "high_alt": 26,
         "low_alt": 17
-      },
-      {
-        "name": "Denpasar",
-        "country": "Indonesia",
-        "flag": "🇮🇩",
-        "day_label": "Tomorrow",
-        "condition": "Mostly sunny",
-        "icon": "🌤️",
-        "theme": "clear",
-        "high": 86,
-        "low": 75,
-        "rain_chance": 10,
-        "day_tag": "Tmrw",
-        "high_alt": 30,
-        "low_alt": 24
       },
       {
         "name": "London",

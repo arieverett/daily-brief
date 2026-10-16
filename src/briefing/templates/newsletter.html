@@ -71,10 +71,10 @@
       {% endfor %}
     </tr></table>
     {% if wx.around %}
-    <div class="wx-grid-title">🗺 {{ 'Kota lain' if indonesia_only else 'Around the map' }}{% if wx.around_note %} · {{ wx.around_note }}{% endif %}</div>
+    <div class="wx-grid-title">{{ 'Kota lain' if indonesia_only else 'Around the map' }}{% if wx.around_note %} · {{ wx.around_note }}{% endif %}</div>
     <div class="wx-grid">
       {%- for city in wx.around -%}
-      <div class="wx-cell"><div class="wx-cname">{{ city.flag }} {{ city.name }}{% if city.day_tag %} <span class="wx-tag">{{ city.day_tag }}</span>{% endif %}</div><div class="wx-ctemp">{{ city.icon }} <strong>{{ city.high }}°</strong>/{{ city.low }}°{{ wx.unit }} <span class="wx-calt">{{ city.high_alt }}°/{{ city.low_alt }}°{{ wx.alt_unit }}</span></div></div>
+      <div class="wx-cell"><div class="wx-cname">{{ city.flag }} {{ city.name }}{% if city.day_tag %} <span class="wx-tag">{{ city.day_tag }}</span>{% endif %}</div><div class="wx-ctemp">{{ city.icon }} <strong>{{ city.high }}°</strong>/{{ city.low }}°</div></div>
       {%- endfor -%}
     </div>
     {% endif %}
@@ -162,7 +162,8 @@
     .wx-dtemp { font-size: 13px; line-height: 17px; white-space: nowrap; }
     .wx-dlo { color: #dbe6f1; }
     .wx-dalt { font-size: 11px; line-height: 14px; color: #dbe6f1; white-space: nowrap; }
-    .wx-grid-title { padding: 11px 2px 2px; font-size: 11px; line-height: 14px; font-weight: 900; letter-spacing: 1.2px; text-transform: uppercase; color: #111111; }
+    /* Same look as the write-up's bold run-ins ("The day ahead:"). */
+    .wx-grid-title { padding: 12px 2px 2px; font-size: 16px; line-height: 22px; font-weight: 700; color: #111111; }
     .wx-grid { font-size: 0; }
     .wx-cell { display: inline-block; width: 33.33%; vertical-align: top; box-sizing: border-box; padding: 6px 2px 5px; border-bottom: 1px solid #e6e6e6; }
     /* Fixed line boxes so emoji (images in Gmail) and tags can't make one cell taller than its row. */

@@ -825,11 +825,8 @@ def build_weather(
         topic=topic or "",
     )
     facts: dict[str, Any] = {
-        "temperature_style": (
-            "°F first, °C in parentheses: 55°F (13°C)"
-            if config.unit == "F"
-            else "°C first, °F in parentheses: 13°C (55°F)"
-        ),
+        # The widgets show both units; the prose uses only the edition's own.
+        "temperature_style": "°F only, e.g. 55°F" if config.unit == "F" else "°C only, e.g. 13°C",
         "day_ahead": [day_facts(city) for city in featured],
     }
     if topic:
@@ -864,7 +861,7 @@ with a short bold run-in in double asterisks:
 FACTS
 - Use only the data. Every number you write must appear in it. Background lines are vetted general
   knowledge: use them as written, never stretch them into new claims.
-- Temperatures follow temperature_style, e.g. 55°F (13°C). Use each city's "day" (today/tomorrow)
+- Temperatures follow temperature_style: only one unit, never the other in parentheses. Use each city's "day" (today/tomorrow)
   and never mention the time of day.
 - Never blame a single day's weather on El Niño or climate change. You may say a pattern is in line
   with what El Niño typically brings when the background says so.
@@ -895,7 +892,7 @@ diawali pembuka tebal singkat dalam tanda bintang ganda:
 FAKTA
 - Gunakan hanya data. Setiap angka yang Anda tulis harus ada di data. Baris background adalah
   pengetahuan umum yang sudah diperiksa: pakai sesuai isinya, jangan dikembangkan menjadi klaim baru.
-- Suhu mengikuti temperature_style, misalnya 24°C (75°F). Pakai "day" setiap kota (today = hari ini,
+- Suhu mengikuti temperature_style: satu satuan saja, tanpa satuan lain dalam kurung. Pakai "day" setiap kota (today = hari ini,
   tomorrow = besok) dan jangan menyebut waktu dalam sehari.
 - Jangan menyalahkan cuaca satu hari pada El Niño atau perubahan iklim. Boleh menyebut suatu pola
   sejalan dengan dampak El Niño yang biasa terjadi bila background menyebutkannya.
@@ -985,9 +982,17 @@ def write_weather_summary(
 SUMMARY_MAX_WORDS = 80
 
 
+OTHER_UNIT_RE = re.compile(r"\s*\(\s*-?\d+(?:[.,]\d+)?\s*°\s*[CF]\s*\)")
+
+
 def normalize_summary(summary: str) -> str:
-    """Models sometimes split paragraphs with a single (markdown) line break; make it a blank line."""
+    """Tidy the editor's write-up.
+
+    - Paragraphs split by a single (markdown) line break become blank-line paragraphs.
+    - A second unit in parentheses, e.g. "55°F (13°C)", is dropped: the widgets above show both.
+    """
     summary = re.sub(r"[ \t]*\n\s*(?=\*\*)", "\n\n", summary.strip())
+    summary = OTHER_UNIT_RE.sub("", summary)
     return re.sub(r"[ \t]+\n", "\n", summary)
 
 

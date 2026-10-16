@@ -194,7 +194,7 @@ def test_build_weather_makes_widgets_rows_and_climate_facts(weather_cache):
     # The editor gets the day ahead plus exactly one special topic.
     assert [city["day"] for city in data.facts["day_ahead"]] == ["today", "tomorrow"]
     assert data.facts["day_ahead"][0]["high"] == {"°F": 59, "°C": 15}
-    assert data.facts["temperature_style"].startswith("°F first")
+    assert data.facts["temperature_style"] == "°F only, e.g. 55°F"
     assert data.facts["special_topic"]["topic"] == data.report.topic in data.topics
 
     # Climate history is cached: a second run only asks for the recent days again.
@@ -296,7 +296,7 @@ def test_weather_card_is_the_second_section_with_both_units():
     assert body.index("The setup") < body.index("🌤 Weather") < body.index("🇸🇪 Sweden</span>")
     assert body.count('class="wx-card"') == 2
     assert body.count('class="wx-day"') == 10
-    assert body.count('class="wx-cell"') == 7 and "🇺🇸 New York" in body
+    assert body.count('class="wx-cell"') == 6 and "🇺🇸 New York" in body
     assert "16°C" in body and "61°" in body  # both units
     assert "Open-Meteo.com" in body and ", NOAA" in body  # El Niño topic credits NOAA
     # Gmail swaps emoji for <img>; a global block rule would put every flag on its own line.
@@ -360,3 +360,19 @@ def test_write_up_paragraphs_are_normalized_and_overlong_drafts_retried(monkeypa
     summary = write_weather_summary(data, api_key="x", model="m", language="en", day=DAY)
     assert summary == "**Today:** 59°F and bright.\n\n**Air check:** Jakarta's AQI hits 223, so mask up."
     assert weather.summary_shape_problems(summary) == []
+
+
+def test_write_up_keeps_one_temperature_unit():
+    text = "**Today:** Stockholm hits 55°F (13°C), Jakarta 98°F ( 36 °C ).\n**Hari ini:** 33°C (92°F)."
+    assert weather.normalize_summary(text) == (
+        "**Today:** Stockholm hits 55°F, Jakarta 98°F.\n\n**Hari ini:** 33°C."
+    )
+
+
+def test_city_grids_fill_whole_rows():
+    # Three per row on desktop, two on phones: six cities leave no orphan in either.
+    for name in ("sources.yml", "indonesia_sources.yml"):
+        config = load_weather_config(ROOT / "config" / name)
+        assert config is not None and len(config.around) == 6, name
+    standard = load_weather_config(ROOT / "config" / "sources.yml")
+    assert "Denpasar" not in [place.name for place in standard.around]

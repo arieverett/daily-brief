@@ -205,10 +205,9 @@ weather:
     - {name: Stockholm, country: Sweden, flag: "🇸🇪", latitude: 59.3293, longitude: 18.0686}
     - {name: Jakarta, country: Indonesia, flag: "🇮🇩", latitude: -6.2088, longitude: 106.8456}
   around:
-    - {name: Gothenburg, country: Sweden, flag: "🇸🇪", latitude: 57.7089, longitude: 11.9746}
+    - {name: Oslo, country: Norway, flag: "🇳🇴", latitude: 59.9139, longitude: 10.7522}
     - {name: Kiruna, country: Sweden, flag: "🇸🇪", latitude: 67.8558, longitude: 20.2253}
     - {name: Bandung, country: Indonesia, flag: "🇮🇩", latitude: -6.9175, longitude: 107.6191}
-    - {name: Denpasar, country: Indonesia, flag: "🇮🇩", latitude: -8.6705, longitude: 115.2126}
     - {name: London, country: United Kingdom, flag: "🇬🇧", latitude: 51.5074, longitude: -0.1278}
     - {name: Tokyo, country: Japan, flag: "🇯🇵", latitude: 35.6762, longitude: 139.6503}
     - {name: New York, country: United States, flag: "🇺🇸", latitude: 40.7128, longitude: -74.0060}
