@@ -852,18 +852,20 @@ WEATHER_PROMPT_EN = """You write the short weather blurb in a Morning Brew-style
 Sweden and Indonesia. It sits inside a weather card, right under forecast widgets and a table of
 cities the reader has just looked at, so never recite forecasts day by day.
 
-Write exactly two short paragraphs, 35-75 words in total, each starting with a short bold run-in in
-double asterisks:
-1. The day ahead: one sentence on the featured cities in day_ahead, with a practical nudge (umbrella,
-   sunscreen, layers) only when the data supports it.
-2. Today's special topic: follow its angle, using its facts and background. Give it a playful run-in
-   that names it (for example **El Niño watch:**, **Daylight check:**, **On this day:**).
+Write exactly two short paragraphs separated by a blank line, 35-70 words in total, each starting
+with a short bold run-in in double asterisks:
+1. The day ahead: ONE sentence, at most 25 words. Give each featured city its high and at most one
+   other detail, plus a practical nudge (umbrella, sunscreen, layers) only when the data supports it.
+2. Today's special topic: 2-3 sentences, at most 45 words, following its angle with its facts and
+   background. Pick the one or two most striking figures and say why they matter to the reader.
+   Never list more than three numbers. Give it a playful run-in that names it (for example
+   **El Niño watch:**, **Daylight check:**, **On this day:**).
 
 FACTS
 - Use only the data. Every number you write must appear in it. Background lines are vetted general
   knowledge: use them as written, never stretch them into new claims.
-- Temperatures follow temperature_style, e.g. 55°F (13°C). Use each city's "day" (today/tomorrow);
-  Indonesia is already evening when the email lands.
+- Temperatures follow temperature_style, e.g. 55°F (13°C). Use each city's "day" (today/tomorrow)
+  and never mention the time of day.
 - Never blame a single day's weather on El Niño or climate change. You may say a pattern is in line
   with what El Niño typically brings when the background says so.
 - A forecast can be "on track" for a record but has not set one. Only call something a record when
@@ -872,6 +874,7 @@ FACTS
 VOICE
 - Morning Brew: wry, warm, useful. At most one light joke. Dangerous weather (storms, floods, extreme
   heat or cold) gets a plain, careful tone and no jokes.
+- Short sentences (under 20 words on average) and natural contractions (it's, don't, you'll).
 - No other markdown, no emoji, no greeting, and never an em dash.
 """
 
@@ -879,18 +882,21 @@ WEATHER_PROMPT_ID = """Anda menulis blurb cuaca singkat untuk newsletter berbaha
 Morning Brew. Blurb ini ada di dalam kartu cuaca, tepat di bawah widget prakiraan dan tabel kota yang
 baru dilihat pembaca, jadi jangan membacakan prakiraan hari demi hari.
 
-Tulis tepat dua paragraf pendek, total 35-75 kata, masing-masing diawali pembuka tebal singkat dalam
-tanda bintang ganda:
-1. Hari yang dibahas: satu kalimat tentang kota utama di day_ahead, dengan saran praktis (payung, tabir
-   surya, jaket) hanya bila datanya mendukung.
-2. Topik khusus hari ini: ikuti angle-nya, pakai facts dan background-nya. Beri pembuka yang jenaka
-   dan menyebut topiknya (misalnya **Kabar El Niño:**, **Cek siang hari:**, **Hari ini dulu:**).
+Tulis tepat dua paragraf pendek yang dipisahkan satu baris kosong, total 35-70 kata, masing-masing
+diawali pembuka tebal singkat dalam tanda bintang ganda:
+1. Hari yang dibahas: SATU kalimat, maksimal 25 kata. Untuk tiap kota utama sebut suhu tertinggi dan
+   paling banyak satu detail lain, plus saran praktis (payung, tabir surya, jaket) hanya bila datanya
+   mendukung.
+2. Topik khusus hari ini: 2-3 kalimat, maksimal 45 kata, mengikuti angle-nya dengan facts dan
+   background-nya. Pilih satu atau dua angka paling mencolok dan jelaskan artinya bagi pembaca. Jangan
+   mendaftar lebih dari tiga angka. Beri pembuka yang jenaka dan menyebut topiknya (misalnya
+   **Kabar El Niño:**, **Cek siang hari:**, **Hari ini dulu:**).
 
 FAKTA
 - Gunakan hanya data. Setiap angka yang Anda tulis harus ada di data. Baris background adalah
   pengetahuan umum yang sudah diperiksa: pakai sesuai isinya, jangan dikembangkan menjadi klaim baru.
 - Suhu mengikuti temperature_style, misalnya 24°C (75°F). Pakai "day" setiap kota (today = hari ini,
-  tomorrow = besok); di Indonesia email ini tiba sore hari.
+  tomorrow = besok) dan jangan menyebut waktu dalam sehari.
 - Jangan menyalahkan cuaca satu hari pada El Niño atau perubahan iklim. Boleh menyebut suatu pola
   sejalan dengan dampak El Niño yang biasa terjadi bila background menyebutkannya.
 - Prakiraan bisa "berpotensi" memecahkan rekor tetapi belum memecahkannya. Sebut rekor hanya bila
@@ -899,6 +905,7 @@ FAKTA
 SUARA
 - Morning Brew: hangat, jenaka secukupnya, berguna. Paling banyak satu lelucon ringan. Cuaca berbahaya
   (badai, banjir, panas atau dingin ekstrem) ditulis lugas dan hati-hati tanpa lelucon.
+- Kalimat pendek (rata-rata di bawah 20 kata).
 - Tanpa markdown lain, tanpa emoji, tanpa salam, dan jangan pernah memakai em dash.
 """
 
@@ -958,16 +965,41 @@ def write_weather_summary(
         except Exception as exc:  # noqa: BLE001 - the weather must never block the send
             print(f"  WARNING: weather write-up failed: {type(exc).__name__}: {exc}")
             return ""
-        summary = strip_em_dashes(str(payload.get("summary", "")).strip())
+        summary = normalize_summary(strip_em_dashes(str(payload.get("summary", ""))))
         unknown = unsupported_numbers(summary, data.facts)
-        if summary and not unknown:
+        if not summary or unknown:
+            print(
+                f"  Weather write-up attempt {attempt} cited numbers not in the data: "
+                f"{sorted(unknown)}",
+                flush=True,
+            )
+            continue
+        shape = summary_shape_problems(summary)
+        if not shape or attempt == attempts:
+            # A slightly long or oddly split write-up beats none; invented numbers never pass.
             return summary
-        print(
-            f"  Weather write-up attempt {attempt} cited numbers not in the data: "
-            f"{sorted(unknown)}",
-            flush=True,
-        )
+        print(f"  Weather write-up attempt {attempt} off-shape: {'; '.join(shape)}", flush=True)
     return ""
+
+
+SUMMARY_MAX_WORDS = 80
+
+
+def normalize_summary(summary: str) -> str:
+    """Models sometimes split paragraphs with a single (markdown) line break; make it a blank line."""
+    summary = re.sub(r"[ \t]*\n\s*(?=\*\*)", "\n\n", summary.strip())
+    return re.sub(r"[ \t]+\n", "\n", summary)
+
+
+def summary_shape_problems(summary: str) -> list[str]:
+    parts = [part for part in re.split(r"\n\s*\n", summary) if part.strip()]
+    words = len(re.findall(r"[\w'’°%.-]+", summary.replace("**", "")))
+    problems = []
+    if len(parts) != 2:
+        problems.append(f"{len(parts)} paragraphs, want 2")
+    if words > SUMMARY_MAX_WORDS:
+        problems.append(f"{words} words, want at most {SUMMARY_MAX_WORDS}")
+    return problems
 
 
 # ---------------------------------------------------------------------------

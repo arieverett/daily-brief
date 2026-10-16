@@ -347,3 +347,16 @@ def test_weather_step_reports_what_it_produced(monkeypatch, capsys):
     assert edition.weather is not None and edition.weather.summary == "**Today:** 59°F."
     out = capsys.readouterr().out
     assert "::notice title=Weather::Widgets: Stockholm" in out and "%0AWrite-up: **Today:**" in out
+
+
+def test_write_up_paragraphs_are_normalized_and_overlong_drafts_retried(monkeypatch):
+    data = weather.WeatherData(report=None, facts={"high": 59, "aqi": 223})  # type: ignore[arg-type]
+    long_draft = "**Today:** " + "Warm and bright out there today. " * 20 + "\n**Air:** AQI 223."
+    tidy = "**Today:** 59°F and bright.  \n**Air check:** Jakarta's AQI hits 223, so mask up."
+    replies = iter([{"summary": long_draft}, {"summary": tidy}])
+    monkeypatch.setattr(
+        "briefing.editor._generate_structured_output", lambda **kwargs: next(replies)
+    )
+    summary = write_weather_summary(data, api_key="x", model="m", language="en", day=DAY)
+    assert summary == "**Today:** 59°F and bright.\n\n**Air check:** Jakarta's AQI hits 223, so mask up."
+    assert weather.summary_shape_problems(summary) == []

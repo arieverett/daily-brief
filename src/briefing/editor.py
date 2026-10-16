@@ -86,7 +86,8 @@ HOW A STORY READS
 - Parenthetical asides are where the wit lives: a quick wink that also adds a real observation.
 - Once or twice per edition, land a beat with a quick rhetorical question or a setup-and-payoff ellipsis
   ("...so you can keep track of...everything?"). Never in a serious story.
-- Contractions, plain words, active verbs. Mix sentence lengths; a four-word sentence can land a point.
+- Contractions (it's, don't, they're), plain words, active verbs. Keep sentences short: average under
+  20 words, split anything over 30. Mix lengths; a four-word sentence can land a point.
 - State facts directly: write "Volvo plans to build an energy park in Mariestad," not "Reporting says Volvo
   plans to build an energy park in Mariestad." Never make "coverage", "reporting", "the article", "the story",
   "the report", or "the announcement" the narrator or subject of a sentence.
@@ -147,7 +148,8 @@ CARA MENULIS BERITA
 - Keterangan dalam kurung adalah tempat humor: sentilan singkat yang tetap menambah pengamatan nyata.
 - Sekali atau dua kali per edisi, boleh pertanyaan retoris singkat atau jeda elipsis yang berbuah punchline
   ("...supaya Anda bisa mengingat...semuanya?"). Jangan di berita serius.
-- Kalimat aktif, kata sederhana, panjang kalimat bervariasi.
+- Kalimat aktif, kata sederhana. Kalimat pendek: rata-rata di bawah 20 kata, pecah yang lebih dari 30.
+  Panjang kalimat bervariasi.
 - Nyatakan fakta secara langsung: tulis "Belanja negara mendekati Rp 2 kuadriliun hingga akhir Juli," bukan
   "Pemberitaan menunjukkan belanja negara mendekati Rp 2 kuadriliun." Jangan jadikan "pemberitaan", "laporan",
   "artikel", "berita", atau "pengumuman" sebagai narator atau subjek kalimat.
