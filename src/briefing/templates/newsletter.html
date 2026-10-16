@@ -21,6 +21,50 @@
   </td></tr>
 </table>
 {%- endmacro %}
+{# Sky colors per condition: (top, bottom). All widget text stays at or above 4.5:1 contrast on both. #}
+{% set wx_sky = {
+  'clear': ('#17589f', '#1f64b0'),
+  'cloudy': ('#2a5585', '#336394'),
+  'overcast': ('#434f60', '#4f5d6f'),
+  'fog': ('#4a5562', '#56616f'),
+  'rain': ('#32435a', '#3d4f66'),
+  'snow': ('#375474', '#426184'),
+  'storm': ('#262f3d', '#3c4759'),
+} %}
+{% macro weather_widget(city) -%}
+{% set sky = wx_sky.get(city.theme, wx_sky['overcast']) %}
+<table role="presentation" class="wx-card" width="100%" cellspacing="0" cellpadding="0" bgcolor="{{ sky[0] }}" style="background-color:{{ sky[0] }};background-image:linear-gradient(180deg,{{ sky[0] }} 0%,{{ sky[1] }} 100%);">
+  <tr><td class="wx-head">
+    <table role="presentation" width="100%"><tr>
+      <td valign="top">
+        <div class="wx-city">{{ city.flag }} {{ city.name }}</div>
+        <div class="wx-when">{{ city.day_label }}</div>
+        <div class="wx-big">{{ city.high }}°</div>
+      </td>
+      <td valign="top" align="right" class="wx-now">
+        <div class="wx-icon">{{ city.icon }}</div>
+        <div class="wx-cond">{{ city.condition }}</div>
+        <div class="wx-hl">{{ 'Min' if indonesia_only else 'Low' }} {{ city.low }}°{% if city.rain_chance is not none and city.rain_chance >= 20 %} · {{ '💧' }}{{ city.rain_chance }}%{% endif %}</div>
+      </td>
+    </tr></table>
+  </td></tr>
+  {% if city.days %}
+  <tr><td class="wx-strip">
+    <table role="presentation" width="100%"><tr>
+      {% for d in city.days %}
+      <td class="wx-day" align="center" valign="top" width="{{ (100 / city.days | length) | round(0, 'floor') | int }}%">
+        <div class="wx-dname">{{ d.label }}</div>
+        <div class="wx-dicon">{{ d.icon }}</div>
+        <div class="wx-rain">{% if d.rain_chance is not none and d.rain_chance >= 30 %}{{ d.rain_chance }}%{% else %}&nbsp;{% endif %}</div>
+        <div class="wx-dhi">{{ d.high }}°</div>
+        <div class="wx-dlo">{{ d.low }}°</div>
+      </td>
+      {% endfor %}
+    </tr></table>
+  </td></tr>
+  {% endif %}
+</table>
+{%- endmacro %}
 <!doctype html>
 <html lang="{{ 'id' if indonesia_only else 'en' }}">
 <head>
@@ -51,7 +95,7 @@
     .section-wrap { padding-top: 14px; padding-bottom: 4px; }
     .section-heading { margin: 0 0 10px; font-family: Arial Black, Arial, sans-serif; font-size: 26px; line-height: 31px; font-weight: 900; letter-spacing: -0.8px; text-transform: uppercase; }
     .section-heading .underline { display: inline-block; border-bottom: 6px solid {{ accent }}; padding-bottom: 2px; }
-    .module, .story-card { width: 100%; border: 1px solid #b6b6b6; border-radius: 10px; border-collapse: separate; overflow: hidden; }
+    .module, .story-card { width: 100%; border: 1px solid #b6b6b6; border-radius: 10px; border-collapse: separate; border-spacing: 0; overflow: hidden; }
     .story-card { margin-bottom: 8px; }
     .story-body { padding: 15px 18px; }
     .story-header { padding-bottom: 0; }
@@ -75,8 +119,35 @@
     .setup-card { margin: 0; }
     .setup-copy { padding: 14px 18px 15px; font-size: 16px; line-height: 22px; }
     .setup-para { margin: 0 0 12px; }
-    .footer { padding-top: 16px; padding-bottom: 28px; border-top: 2px solid #171717; text-align: center; font-size: 11px; line-height: 17px; color: #252525; }
+    .wx-card { width: 100%; border-radius: 14px; border-collapse: separate; overflow: hidden; margin-bottom: 8px; color: #ffffff; }
+    .wx-head { padding: 15px 18px 12px; }
+    .wx-city { font-size: 16px; line-height: 20px; font-weight: 800; color: #ffffff; }
+    .wx-when { font-size: 12px; line-height: 16px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #e6eef7; }
+    .wx-big { font-size: 46px; line-height: 50px; font-weight: 300; letter-spacing: -1.5px; color: #ffffff; }
+    .wx-now { font-size: 14px; line-height: 19px; color: #ffffff; }
+    .wx-icon { font-size: 28px; line-height: 34px; }
+    .wx-cond { font-weight: 700; }
+    .wx-hl { color: #e6eef7; }
+    .wx-strip { padding: 10px 10px 13px; border-top: 1px solid rgba(255,255,255,0.28); }
+    .wx-day { padding: 0 2px; color: #ffffff; }
+    .wx-dname { font-size: 12px; line-height: 16px; font-weight: 800; letter-spacing: 0.3px; color: #e6eef7; }
+    .wx-dicon { font-size: 22px; line-height: 28px; }
+    .wx-rain { font-size: 11px; line-height: 14px; font-weight: 800; color: #c6e6ff; }
+    .wx-dhi { font-size: 16px; line-height: 20px; font-weight: 800; }
+    .wx-dlo { font-size: 14px; line-height: 18px; color: #dbe6f1; }
+    .wx-row td { padding: 9px 18px; font-size: 15px; line-height: 20px; }
+    .wx-row.rule td { border-top: 1px solid #e6e6e6; }
+    .wx-row.last td { padding-bottom: 12px; }
+    .wx-place { font-weight: 700; }
+    .wx-tag { font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: #6b6b6b; text-transform: uppercase; }
+    .wx-temps { white-space: nowrap; }
+    .wx-lo { color: #6b6b6b; }
+    .wx-credit { padding-top: 7px; font-size: 11px; line-height: 15px; color: #6b6b6b; }
+    .wx-credit a { color: #6b6b6b; text-decoration-color: #b6b6b6; text-decoration-thickness: 1px; }
+    .wx-copy { margin-bottom: 8px; }
+    .footer { padding-top: 26px; padding-bottom: 32px; text-align: center; font-size: 11px; line-height: 17px; color: #4a4a4a; }
     @media only screen and (max-width: 650px) {
+      .email { width: 100% !important; }
       .inset { padding-left: 18px !important; padding-right: 18px !important; }
       .brand { font-size: 29px !important; line-height: 33px !important; }
       .story-card h2 { font-size: 23px !important; line-height: 27px !important; }
@@ -84,6 +155,10 @@
       .story-body { padding-left: 15px !important; padding-right: 15px !important; }
       .speed-row td { padding-left: 15px !important; padding-right: 15px !important; }
       .speed-title, .setup-title, .setup-copy { padding-left: 15px !important; padding-right: 15px !important; }
+      .wx-head { padding-left: 15px !important; padding-right: 15px !important; }
+      .wx-strip { padding-left: 4px !important; padding-right: 4px !important; }
+      .wx-row td { padding-left: 15px !important; padding-right: 15px !important; }
+      .wx-cond-text { display: none !important; }
     }
   </style>
 </head>
@@ -125,6 +200,32 @@
           </table>
         </td></tr>
         {% endfor %}
+
+        {% if edition.weather and edition.weather.featured %}
+        {% set wx = edition.weather %}
+        <tr><td class="inset section-wrap">
+          <h2 class="section-heading"><span class="underline">🌤 {{ 'Cuaca' if indonesia_only else 'Weather' }}</span></h2>
+          {% for city in wx.featured %}{{ weather_widget(city) }}{% endfor %}
+          {% if wx.summary %}
+          <table role="presentation" class="module wx-copy" width="100%">
+            <tr><td class="setup-copy">{{ wx.summary | rich_paragraphs('setup-para', true) }}</td></tr>
+          </table>
+          {% endif %}
+          {% if wx.around %}
+          <table role="presentation" class="module" width="100%">
+            <tr><td class="speed-title" colspan="3">🗺 {{ 'Kota lain' if indonesia_only else 'Around the map' }}{% if wx.around_note %} · {{ wx.around_note }}{% endif %}</td></tr>
+            {% for city in wx.around %}
+            <tr class="wx-row{% if not loop.first %} rule{% endif %}{% if loop.last %} last{% endif %}">
+              <td class="wx-place">{{ city.flag }} {{ city.name }}{% if city.day_tag %} <span class="wx-tag">{{ city.day_tag }}</span>{% endif %}</td>
+              <td class="wx-sky">{{ city.icon }} <span class="wx-cond-text">{{ city.condition }}</span></td>
+              <td class="wx-temps" align="right"><strong>{{ city.high }}°</strong> <span class="wx-lo">{{ city.low }}°</span></td>
+            </tr>
+            {% endfor %}
+          </table>
+          {% endif %}
+          <div class="wx-credit">{{ 'Suhu dalam' if indonesia_only else 'Temperatures in' }} °{{ wx.unit }}. {{ 'Data cuaca:' if indonesia_only else 'Weather data:' }} <a href="https://open-meteo.com/">Open-Meteo.com</a>{{ ', normal = rata-rata 1991-2020.' if indonesia_only else ', normals are 1991-2020 averages.' }}</div>
+        </td></tr>
+        {% endif %}
 
         <tr><td class="inset footer">
           {% if indonesia_only %}Curated for Mom by Ari &lt;3{% else %}Coded by Ari with &lt;3 to educate, inform, and enable.{% endif %}

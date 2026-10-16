@@ -102,3 +102,20 @@ feeds:
     country: Indonesia
     tier: backup
     url: "https://www.republika.co.id/rss"
+
+# Bagian cuaca (src/briefing/weather.py). Kota utama mendapat widget prakiraan dan
+# perbandingan iklim; kota lain mendapat satu baris di tabel.
+weather:
+  language: id
+  unit: celsius
+  featured:
+    - {name: Bandung, country: Indonesia, flag: "🇮🇩", latitude: -6.9175, longitude: 107.6191}
+  around:
+    - {name: Jakarta, country: Indonesia, flag: "🇮🇩", latitude: -6.2088, longitude: 106.8456}
+    - {name: Surabaya, country: Indonesia, flag: "🇮🇩", latitude: -7.2575, longitude: 112.7521}
+    - {name: Medan, country: Indonesia, flag: "🇮🇩", latitude: 3.5952, longitude: 98.6722}
+    - {name: Denpasar, country: Indonesia, flag: "🇮🇩", latitude: -8.6705, longitude: 115.2126}
+    - {name: Makassar, country: Indonesia, flag: "🇮🇩", latitude: -5.1477, longitude: 119.4327}
+    - {name: Singapura, country: Singapore, flag: "🇸🇬", latitude: 1.3521, longitude: 103.8198}
+    - {name: Tokyo, country: Japan, flag: "🇯🇵", latitude: 35.6762, longitude: 139.6503}
+    - {name: Stockholm, country: Sweden, flag: "🇸🇪", latitude: 59.3293, longitude: 18.0686}

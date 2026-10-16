@@ -3,6 +3,7 @@ name: Feed check
 # Fetches every configured feed from GitHub's network (the same place the morning run
 # fetches from) whenever the feed list or collection code changes, and on demand.
 # A dead feed shows as a warning; a country left with too few stories to publish fails.
+# It also fetches both editions' weather (forecasts + climate history) the same way.
 
 on:
   push:
@@ -12,11 +13,13 @@ on:
       - "config/**"
       - "src/briefing/collect.py"
       - "src/briefing/feedcheck.py"
+      - "src/briefing/weather.py"
   pull_request:
     paths:
       - "config/**"
       - "src/briefing/collect.py"
       - "src/briefing/feedcheck.py"
+      - "src/briefing/weather.py"
   workflow_dispatch:
 
 jobs:
@@ -41,3 +44,6 @@ jobs:
         run: >-
           uv run --no-sync python -m briefing.feedcheck config/indonesia_sources.yml
           --max-candidates 60
+      - name: Weather
+        if: ${{ !cancelled() }}
+        run: uv run --no-sync python -m briefing.weather config/sources.yml config/indonesia_sources.yml

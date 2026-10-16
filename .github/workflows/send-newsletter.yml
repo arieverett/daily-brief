@@ -78,6 +78,25 @@ jobs:
         if: steps.guard.outputs.any == 'true'
         run: uv sync --locked --python 3.12
 
+      - name: Weather cache key
+        id: wxkey
+        if: steps.guard.outputs.any == 'true'
+        env:
+          EDITION_DATE: ${{ steps.guard.outputs.date }}
+        run: echo "year=${EDITION_DATE%%-*}" >> "$GITHUB_OUTPUT"
+
+      # Climate history (1991 through last year) behind the weather section's "vs normal"
+      # comparisons. It only changes once a year, so it's fetched once and reused. A cache
+      # failure just means a fresh fetch; a fetch failure just drops the comparisons.
+      - name: Restore weather history
+        if: steps.guard.outputs.any == 'true'
+        continue-on-error: true
+        uses: actions/cache@v6
+        with:
+          path: .cache/weather
+          key: weather-history-v1-${{ inputs.edition }}-${{ steps.wxkey.outputs.year }}-${{ hashFiles('config/*.yml') }}
+          restore-keys: weather-history-v1-${{ inputs.edition }}-${{ steps.wxkey.outputs.year }}-
+
       - name: Generate and send newsletter
         if: steps.guard.outputs.any == 'true'
         env:
@@ -90,6 +109,7 @@ jobs:
           BRIEF_TIMEZONE: America/New_York
           BRIEF_MAX_CANDIDATES: ${{ inputs.edition == 'indonesia' && '60' || '40' }}
           BRIEF_EDITION_DATE: ${{ steps.guard.outputs.date }}
+          BRIEF_WEATHER_CACHE: .cache/weather
           # Automatic runs are handed to Resend to land at exactly 06:00 New York time
           # (or immediately if it is already past 06:00).
           BRIEF_SEND_AT: ${{ !inputs.force && '06:00' || '' }}

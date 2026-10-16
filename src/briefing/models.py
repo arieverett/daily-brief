@@ -63,6 +63,47 @@ class CountrySection:
 
 
 @dataclass(frozen=True)
+class ForecastDay:
+    """One column of a forecast widget."""
+
+    date: str
+    label: str
+    icon: str
+    high: int
+    low: int
+    rain_chance: int | None = None
+
+
+@dataclass(frozen=True)
+class CityForecast:
+    """A featured city's widget (with `days`) or one row of the other-cities table."""
+
+    name: str
+    country: str
+    day_label: str
+    condition: str
+    icon: str
+    theme: str
+    high: int
+    low: int
+    flag: str = ""
+    rain_chance: int | None = None
+    days: list[ForecastDay] = field(default_factory=list)
+    # Short "tomorrow" marker for a table row whose day differs from the others.
+    day_tag: str = ""
+
+
+@dataclass(frozen=True)
+class WeatherReport:
+    unit: str  # "F" or "C"
+    summary: str
+    featured: list[CityForecast] = field(default_factory=list)
+    around: list[CityForecast] = field(default_factory=list)
+    # Said once in the table title when every row is for the same (non-today) day.
+    around_note: str = ""
+
+
+@dataclass(frozen=True)
 class Edition:
     edition_date: str
     date_label: str
@@ -71,6 +112,7 @@ class Edition:
     sweden: CountrySection
     indonesia: CountrySection
     setup: str
+    weather: WeatherReport | None = None
 
     def asdict(self) -> dict[str, Any]:
         return asdict(self)
@@ -84,6 +126,7 @@ class IndonesiaEdition:
     preview_text: str
     indonesia: CountrySection
     setup: str
+    weather: WeatherReport | None = None
 
     def asdict(self) -> dict[str, Any]:
         return asdict(self)
@@ -112,6 +155,24 @@ def country_from_dict(value: dict[str, Any]) -> CountrySection:
     )
 
 
+def city_forecast_from_dict(value: dict[str, Any]) -> CityForecast:
+    data = dict(value)
+    data["days"] = [ForecastDay(**item) for item in value.get("days", [])]
+    return CityForecast(**data)
+
+
+def weather_from_dict(value: dict[str, Any] | None) -> WeatherReport | None:
+    if not value:
+        return None
+    return WeatherReport(
+        unit=value["unit"],
+        summary=value.get("summary", ""),
+        featured=[city_forecast_from_dict(item) for item in value.get("featured", [])],
+        around=[city_forecast_from_dict(item) for item in value.get("around", [])],
+        around_note=value.get("around_note", ""),
+    )
+
+
 def edition_from_dict(value: dict[str, Any]) -> Edition:
     return Edition(
         edition_date=value["edition_date"],
@@ -121,6 +182,7 @@ def edition_from_dict(value: dict[str, Any]) -> Edition:
         sweden=country_from_dict(value["sweden"]),
         indonesia=country_from_dict(value["indonesia"]),
         setup=value["setup"],
+        weather=weather_from_dict(value.get("weather")),
     )
 
 
@@ -132,4 +194,5 @@ def indonesia_edition_from_dict(value: dict[str, Any]) -> IndonesiaEdition:
         preview_text=value["preview_text"],
         indonesia=country_from_dict(value["indonesia"]),
         setup=value["setup"],
+        weather=weather_from_dict(value.get("weather")),
     )

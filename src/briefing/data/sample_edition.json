@@ -71,5 +71,198 @@
       }
     ]
   },
-  "setup": "**Big spending, bigger ambitions.** Sweden is pairing a brighter growth outlook with a long-term defense buildout. Indonesia wants faster growth too, and its new central-bank chief now has to deliver it without letting inflation or the rupiah wobble."
+  "setup": "**Big spending, bigger ambitions.** Sweden is pairing a brighter growth outlook with a long-term defense buildout. Indonesia wants faster growth too, and its new central-bank chief now has to deliver it without letting inflation or the rupiah wobble.",
+  "weather": {
+    "unit": "F",
+    "summary": "**Stockholm:** Grab a jacket. Today tops out at 61°F under broken clouds, then Saturday's rain knocks the high down to 55°F.\n\n**Zoom out:** The week ahead runs 3.6°F warmer than the 1991-2020 normal for early September, the mildest start to the month since 2016.\n\n**Meanwhile in Jakarta:** Tomorrow brings thunderstorms and 91°F, and Bandung's highlands offer the cool escape at 79°F.",
+    "featured": [
+      {
+        "name": "Stockholm",
+        "country": "Sweden",
+        "flag": "🇸🇪",
+        "day_label": "Today",
+        "condition": "Partly cloudy",
+        "icon": "⛅",
+        "theme": "cloudy",
+        "high": 61,
+        "low": 48,
+        "rain_chance": 20,
+        "days": [
+          {
+            "date": "2026-09-01",
+            "label": "Today",
+            "icon": "⛅",
+            "high": 61,
+            "low": 48,
+            "rain_chance": 20
+          },
+          {
+            "date": "2026-09-02",
+            "label": "Wed",
+            "icon": "🌧️",
+            "high": 55,
+            "low": 47,
+            "rain_chance": 80
+          },
+          {
+            "date": "2026-09-03",
+            "label": "Thu",
+            "icon": "🌦️",
+            "high": 57,
+            "low": 45,
+            "rain_chance": 40
+          },
+          {
+            "date": "2026-09-04",
+            "label": "Fri",
+            "icon": "🌤️",
+            "high": 60,
+            "low": 44,
+            "rain_chance": 10
+          },
+          {
+            "date": "2026-09-05",
+            "label": "Sat",
+            "icon": "☀️",
+            "high": 63,
+            "low": 46,
+            "rain_chance": 0
+          }
+        ]
+      },
+      {
+        "name": "Jakarta",
+        "country": "Indonesia",
+        "flag": "🇮🇩",
+        "day_label": "Tomorrow",
+        "condition": "Thunderstorms",
+        "icon": "⛈️",
+        "theme": "storm",
+        "high": 91,
+        "low": 78,
+        "rain_chance": 70,
+        "day_tag": "Tmrw",
+        "days": [
+          {
+            "date": "2026-09-02",
+            "label": "Tmrw",
+            "icon": "⛈️",
+            "high": 91,
+            "low": 78,
+            "rain_chance": 70
+          },
+          {
+            "date": "2026-09-03",
+            "label": "Thu",
+            "icon": "⛅",
+            "high": 92,
+            "low": 78,
+            "rain_chance": 30
+          },
+          {
+            "date": "2026-09-04",
+            "label": "Fri",
+            "icon": "⛈️",
+            "high": 90,
+            "low": 77,
+            "rain_chance": 60
+          },
+          {
+            "date": "2026-09-05",
+            "label": "Sat",
+            "icon": "🌦️",
+            "high": 91,
+            "low": 78,
+            "rain_chance": 40
+          },
+          {
+            "date": "2026-09-06",
+            "label": "Sun",
+            "icon": "☀️",
+            "high": 93,
+            "low": 79,
+            "rain_chance": 10
+          }
+        ]
+      }
+    ],
+    "around": [
+      {
+        "name": "Gothenburg",
+        "country": "Sweden",
+        "flag": "🇸🇪",
+        "day_label": "Today",
+        "condition": "Rain",
+        "icon": "🌧️",
+        "theme": "rain",
+        "high": 59,
+        "low": 50,
+        "rain_chance": 75
+      },
+      {
+        "name": "Kiruna",
+        "country": "Sweden",
+        "flag": "🇸🇪",
+        "day_label": "Today",
+        "condition": "Cloudy",
+        "icon": "☁️",
+        "theme": "overcast",
+        "high": 46,
+        "low": 36,
+        "rain_chance": 30
+      },
+      {
+        "name": "Bandung",
+        "country": "Indonesia",
+        "flag": "🇮🇩",
+        "day_label": "Tomorrow",
+        "condition": "Showers",
+        "icon": "🌦️",
+        "theme": "rain",
+        "high": 79,
+        "low": 63,
+        "rain_chance": 65,
+        "day_tag": "Tmrw"
+      },
+      {
+        "name": "Denpasar",
+        "country": "Indonesia",
+        "flag": "🇮🇩",
+        "day_label": "Tomorrow",
+        "condition": "Mostly sunny",
+        "icon": "🌤️",
+        "theme": "clear",
+        "high": 86,
+        "low": 75,
+        "rain_chance": 10,
+        "day_tag": "Tmrw"
+      },
+      {
+        "name": "London",
+        "country": "United Kingdom",
+        "flag": "🇬🇧",
+        "day_label": "Today",
+        "condition": "Cloudy",
+        "icon": "☁️",
+        "theme": "overcast",
+        "high": 68,
+        "low": 55,
+        "rain_chance": 20
+      },
+      {
+        "name": "Tokyo",
+        "country": "Japan",
+        "flag": "🇯🇵",
+        "day_label": "Tomorrow",
+        "condition": "Sunny",
+        "icon": "☀️",
+        "theme": "clear",
+        "high": 88,
+        "low": 75,
+        "rain_chance": 10,
+        "day_tag": "Tmrw"
+      }
+    ],
+    "around_note": ""
+  }
 }

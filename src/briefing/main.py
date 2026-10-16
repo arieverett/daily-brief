@@ -9,6 +9,7 @@ import os
 import time
 from collections.abc import Iterator
 from contextlib import contextmanager
+from dataclasses import replace
 from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -25,6 +26,7 @@ from .editor import create_edition, create_indonesia_edition
 from .models import Candidate, NewsletterEdition, edition_from_dict
 from .render import render_html, render_indonesia_text, render_text
 from .send import SendResult, send_email
+from .weather import build_weather, load_weather_config, write_weather_summary
 
 COUNTRIES = ("Sweden", "Indonesia")
 FRESH_STORY_TARGET = 3
@@ -46,6 +48,15 @@ def _annotate_error(label: str, exc: BaseException) -> None:
     # Workflow-command escaping so newlines and percent signs survive.
     message = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
     print(f"::error title={label} failed::{message}", flush=True)
+
+
+def _annotate_warning(label: str, exc: BaseException) -> None:
+    """A visible warning on the run page for something skipped, not failed."""
+    message = f"{type(exc).__name__}: {exc}"
+    print(f"  WARNING: {label} skipped: {message}", flush=True)
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        escaped = message[:1500].replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+        print(f"::warning title={label} skipped::{escaped}", flush=True)
 
 
 @contextmanager
@@ -258,6 +269,49 @@ def _add_images(
         )
 
 
+def _add_weather(
+    edition: NewsletterEdition,
+    args: argparse.Namespace,
+    settings: Settings,
+    day: date,
+) -> NewsletterEdition:
+    """Attach the weather section. Best-effort: any failure leaves the edition as it was."""
+    try:
+        config = load_weather_config(args.sources)
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        _annotate_warning("Weather", exc)
+        return edition
+    if config is None:
+        return edition
+
+    # Forecasts lead with the day the reader is in when the email lands.
+    reader_time = delivery_time(settings, day) or datetime.now(ZoneInfo(settings.timezone))
+    # Not `stage()`: that marks failures as errors, and a missing forecast isn't one.
+    print("→ Fetching the weather...", flush=True)
+    started = time.monotonic()
+    try:
+        data = build_weather(config, reader_time)
+    except Exception as exc:  # noqa: BLE001 - the weather must never block the send
+        _annotate_warning("Weather", exc)
+        return edition
+    print(f"✓ Fetching the weather ({time.monotonic() - started:.1f}s)", flush=True)
+    if data is None:
+        print("  No forecast available; sending without the weather section", flush=True)
+        return edition
+
+    with stage("Writing the weather"):
+        summary = write_weather_summary(
+            data,
+            api_key=settings.openai_api_key,
+            model=settings.openai_model,
+            language=config.language,
+            day=day,
+        )
+    if not summary:
+        print("  Weather write-up unavailable; showing forecasts only", flush=True)
+    return replace(edition, weather=replace(data.report, summary=summary))
+
+
 def main() -> None:
     args = parse_args()
     settings: Settings | None = None
@@ -272,6 +326,7 @@ def main() -> None:
         print(f"  Edition date: {day.isoformat()}", flush=True)
         edition, candidates = _generate_live_edition(args, settings, day)
         edition = _add_images(edition, candidates, args.edition)
+        edition = _add_weather(edition, args, settings, day)
 
     with stage("Rendering the email"):
         html_path, html, text = write_outputs(edition, args.out, args.edition)

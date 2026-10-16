@@ -74,6 +74,13 @@ def test_delivery_job_serializes_per_edition_and_rechecks_before_sending():
     assert send["env"]["BRIEF_SEND_AT"] == "${{ !inputs.force && '06:00' || '' }}"
     assert "inputs.force" in send["env"]["BRIEF_DELIVERY_NONCE"]
 
+    # The weather's climate history is cached between runs and can never block a send.
+    cache = steps["Restore weather history"]
+    assert cache["uses"].startswith("actions/cache@")
+    assert cache["continue-on-error"] is True
+    assert cache["with"]["path"] == send["env"]["BRIEF_WEATHER_CACHE"]
+    assert "${{ inputs.edition }}" in cache["with"]["key"]
+
     record = steps["Record delivery"]
     assert record["with"]["name"] == (
         "delivered-${{ inputs.edition }}-${{ steps.guard.outputs.date }}"
