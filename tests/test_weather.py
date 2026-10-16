@@ -76,20 +76,51 @@ def _archive_item(latitude: str) -> dict:
     }
 
 
+def _recent_item(latitude: str, start: str, end: str, *, days_available: int) -> dict:
+    """Recent reanalysis: 2°C cooler highs and lows than the forecast model, wetter than normal."""
+    first, last = date.fromisoformat(start), date.fromisoformat(end)
+    days = [first + timedelta(days=offset) for offset in range((last - first).days + 1)]
+    have = [index < days_available for index in range(len(days))]
+    return {
+        "timezone": TIMEZONES[latitude],
+        "daily": {
+            "time": [day.isoformat() for day in days],
+            "temperature_2m_max": [13.0 if ok else None for ok in have],
+            "temperature_2m_min": [3.0 if ok else None for ok in have],
+            "precipitation_sum": [2.0 if ok else None for ok in have],
+        },
+    }
+
+
 class FakeOpenMeteo:
-    def __init__(self, *, archive_status: int = 200, forecast_status: int = 200):
+    def __init__(
+        self,
+        *,
+        archive_status: int = 200,
+        forecast_status: int = 200,
+        recent_days_available: int = 31,
+    ):
         self.archive_status = archive_status
         self.forecast_status = forecast_status
-        self.archive_calls = 0
+        self.recent_days_available = recent_days_available
+        self.history_calls = 0
+        self.recent_calls = 0
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
         query = parse_qs(urlparse(str(request.url)).query)
         latitudes = query["latitude"][0].split(",")
         if request.url.host.startswith("archive"):
-            self.archive_calls += 1
             if self.archive_status != 200:
                 return httpx.Response(self.archive_status, request=request)
-            return httpx.Response(200, json=_archive_item(latitudes[0]), request=request)
+            start, end = query["start_date"][0], query["end_date"][0]
+            if start == "1991-01-01":
+                self.history_calls += 1
+                return httpx.Response(200, json=_archive_item(latitudes[0]), request=request)
+            self.recent_calls += 1
+            item = _recent_item(
+                latitudes[0], start, end, days_available=self.recent_days_available
+            )
+            return httpx.Response(200, json=item, request=request)
         if self.forecast_status != 200:
             return httpx.Response(self.forecast_status, request=request)
         past, ahead = int(query["past_days"][0]), int(query["forecast_days"][0])
@@ -129,21 +160,37 @@ def test_build_weather_makes_widgets_rows_and_climate_facts(weather_cache):
     assert [city.name for city in data.report.around] == ["Gothenburg"]
     assert data.report.around_note == "" and data.report.around[0].day_tag == ""
 
-    climate = data.facts["featured_cities"][0]["climate"]
-    assert climate["normal_high"] == 50  # 10°C
-    assert climate["headline_high_vs_normal"] == 9.0  # 5°C warmer, in °F
+    stockholm_facts = data.facts["featured_cities"][0]
+    climate = stockholm_facts["climate"]
+    # The forecast model runs 2°C warmer than the reanalysis on recent days, so the
+    # 10°C normal is read as 12°C: the 15°C forecast is 3°C above normal, not 5°C.
+    assert climate["normal_high"] == 54  # 12°C
+    assert climate["headline_high_vs_normal"] == 5.4  # 3°C, in °F
     week = climate["week_ahead"]
     assert week["years_compared"] == 35 and week["first_year_compared"] == 1991
     assert week["warmth_rank"] == 2 and week["most_recent_warmer_year"] == 2023
-    assert climate["past_30_days_rain_pct_of_normal"] == 200
-    assert climate["daylight"]["change_vs_week_ago_minutes"] == -35  # 5 min shorter a day
+    assert week["vs_normal"] == 5.4
+    month = climate["latest_30_days"]
+    assert month["temp_vs_normal"] == 3.6  # reanalysis 8°C mean vs 6°C normal
+    assert month["rain_pct_of_normal"] == 200
+    assert stockholm_facts["daylight"]["change_vs_week_ago_minutes"] == -35  # 5 min/day shorter
     assert data.facts["featured_cities"][1]["headline_day"] == "tomorrow"
+    assert any("highs +2.0°C" in note for note in data.notes)
 
-    # Climate history is cached: a second run doesn't hit the archive again.
-    assert fake.archive_calls == 2
+    # Climate history is cached: a second run only asks for the recent days again.
+    assert (fake.history_calls, fake.recent_calls) == (2, 2)
     assert len(list(weather_cache.glob("*.json"))) == 2
     build_weather(CONFIG, READER_TIME, client=_client(fake))
-    assert fake.archive_calls == 2
+    assert (fake.history_calls, fake.recent_calls) == (2, 4)
+
+
+def test_no_comparisons_without_enough_days_to_calibrate():
+    data = build_weather(
+        CONFIG, READER_TIME, client=_client(FakeOpenMeteo(recent_days_available=5))
+    )
+    assert data is not None
+    assert all("climate" not in fact for fact in data.facts["featured_cities"])
+    assert all("daylight" in fact for fact in data.facts["featured_cities"])
 
 
 def test_missing_climate_history_still_gives_forecasts():

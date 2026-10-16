@@ -264,6 +264,28 @@ def load_history(client: httpx.Client, place: Place, last_year: int) -> DailySer
     return series
 
 
+def fetch_recent(client: httpx.Client, place: Place, local_today: date) -> DailySeries:
+    """The latest reanalysis days (it runs about 5 days behind), for calibration."""
+    response: httpx.Response | None = None
+    # Days the reanalysis hasn't reached come back empty; if the API refuses the range
+    # outright, ask again for an older window.
+    for lag in (2, 8):
+        params = {
+            "latitude": f"{place.latitude:.4f}",
+            "longitude": f"{place.longitude:.4f}",
+            "start_date": (local_today - timedelta(days=PAST_DAYS + 7)).isoformat(),
+            "end_date": (local_today - timedelta(days=lag)).isoformat(),
+            "daily": ",".join(ARCHIVE_DAILY),
+            "timezone": "auto",
+        }
+        response = client.get(ARCHIVE_URL, params=params, timeout=REQUEST_TIMEOUT)
+        if response.status_code != 400:
+            break
+    assert response is not None
+    response.raise_for_status()
+    return _series(response.json(), ARCHIVE_DAILY)
+
+
 # ---------------------------------------------------------------------------
 # Climate arithmetic (all in Celsius / millimetres)
 
@@ -439,10 +461,60 @@ def _forecast_facts(
     return facts
 
 
+MIN_CALIBRATION_DAYS = 10
+
+
+@dataclass(frozen=True)
+class Calibration:
+    """How far the forecast model runs from the reanalysis, measured on recent days.
+
+    Forecasts and history come from different models, and in the tropics they can sit a few
+    degrees apart (coastal and mountain grid cells especially). Shifting the history by the
+    offset measured over the same recent days keeps every "vs normal" honest.
+    """
+
+    high: float
+    low: float
+    days: int
+
+
+def calibrate(series: DailySeries, recent: DailySeries) -> Calibration | None:
+    pairs = []
+    for index, day in enumerate(recent.dates):
+        forecast_index = series.index(day)
+        if forecast_index is None:
+            continue
+        values = (
+            series.get("temperature_2m_max", forecast_index),
+            series.get("temperature_2m_min", forecast_index),
+            recent.get("temperature_2m_max", index),
+            recent.get("temperature_2m_min", index),
+        )
+        if None not in values:
+            pairs.append(values)
+    if len(pairs) < MIN_CALIBRATION_DAYS:
+        return None
+    return Calibration(
+        high=mean(pair[0] - pair[2] for pair in pairs),  # type: ignore[operator]
+        low=mean(pair[1] - pair[3] for pair in pairs),  # type: ignore[operator]
+        days=len(pairs),
+    )
+
+
 def climate_facts(
-    series: DailySeries, lead_index: int, climate: Climate, config: WeatherConfig
+    series: DailySeries,
+    lead_index: int,
+    climate: Climate,
+    recent: DailySeries,
+    config: WeatherConfig,
 ) -> dict[str, Any]:
-    """How this week and the past month compare with 1991-2020 and with past years."""
+    """How this week and the past month compare with 1991-2020 and with past years.
+
+    Returns {} when the forecast and history can't be calibrated against each other.
+    """
+    calibration = calibrate(series, recent)
+    if calibration is None:
+        return {}
     unit = config.unit
     lead = series.dates[lead_index]
     facts: dict[str, Any] = {}
@@ -451,14 +523,15 @@ def climate_facts(
     normal_low = climate.normal(lead, LOW)
     lead_high = series.get("temperature_2m_max", lead_index)
     if normal_high is not None and normal_low is not None:
+        normal_high += calibration.high
         facts["normal_high"] = _temp(normal_high, unit)
-        facts["normal_low"] = _temp(normal_low, unit)
+        facts["normal_low"] = _temp(normal_low + calibration.low, unit)
         if lead_high is not None:
             facts["headline_high_vs_normal"] = _temp_delta(lead_high - normal_high, unit)
 
     last_year_high = climate.value(climate._same_day(lead.year - 1, lead), HIGH)
     if last_year_high is not None:
-        facts["same_day_last_year_high"] = _temp(last_year_high, unit)
+        facts["same_day_last_year_high"] = _temp(last_year_high + calibration.high, unit)
 
     # The week ahead against the same calendar week in every year on record.
     week_index = range(lead_index, min(lead_index + WEEK_DAYS, len(series.dates)))
@@ -466,16 +539,16 @@ def climate_facts(
     week_highs = [series.get("temperature_2m_max", index) for index in week_index]
     if len(week_days) == WEEK_DAYS and None not in week_highs:
         week_mean = mean(week_highs)  # type: ignore[arg-type]
-        week_normal = mean(
+        week_normal = calibration.high + mean(
             value for value in (climate.normal(day, HIGH) for day in week_days)
             if value is not None
         )
         past = {
-            year: climate.same_days_mean(year, week_days, HIGH)
+            year: value + calibration.high
             for year in climate.years
             if year < lead.year
+            and (value := climate.same_days_mean(year, week_days, HIGH)) is not None
         }
-        past = {year: value for year, value in past.items() if value is not None}
         if past:
             warmer = sorted(year for year, value in past.items() if value > week_mean)
             cooler = sorted(year for year, value in past.items() if value < week_mean)
@@ -492,44 +565,45 @@ def climate_facts(
                 "most_recent_cooler_year": cooler[-1] if cooler else None,
             }
 
-    # The past 30 days (forecast-model analysis) against normals for those dates.
-    past_index = [index for index in range(lead_index - PAST_DAYS, lead_index) if index >= 0]
-    past_dates = [series.dates[index] for index in past_index]
-    past_means = [
-        (series.get("temperature_2m_max", index), series.get("temperature_2m_min", index))
-        for index in past_index
+    # The latest 30 days of reanalysis against normals from the same reanalysis.
+    rows = [
+        (day, recent.get("temperature_2m_max", index), recent.get("temperature_2m_min", index),
+         recent.get("precipitation_sum", index))
+        for index, day in enumerate(recent.dates)
     ]
-    past_rain = [series.get("precipitation_sum", index) for index in past_index]
-    if len(past_index) == PAST_DAYS and all(
-        high is not None and low is not None for high, low in past_means
-    ):
-        actual = mean((high + low) / 2 for high, low in past_means)  # type: ignore[operator]
-        normals = [
-            (climate.normal(day, HIGH), climate.normal(day, LOW)) for day in past_dates
-        ]
+    rows = [row for row in rows if None not in row][-PAST_DAYS:]
+    if len(rows) >= PAST_DAYS - 5:
+        actual = mean((high + low) / 2 for _, high, low, _ in rows)  # type: ignore[operator]
+        normals = [(climate.normal(day, HIGH), climate.normal(day, LOW)) for day, *_ in rows]
+        stretch: dict[str, Any] = {
+            "first_day": rows[0][0].isoformat(),
+            "last_day": rows[-1][0].isoformat(),
+        }
         if all(high is not None and low is not None for high, low in normals):
             normal = mean((high + low) / 2 for high, low in normals)  # type: ignore[operator]
-            facts["past_30_days_temp_vs_normal"] = _temp_delta(actual - normal, unit)
-        if None not in past_rain:
-            normal_rain = sum(
-                value for value in (climate.normal(day, RAIN) for day in past_dates)
-                if value is not None
-            )
-            total = sum(past_rain)  # type: ignore[arg-type]
-            facts["past_30_days_rain"] = _rain_amount(total, unit)
-            facts["past_30_days_normal_rain"] = _rain_amount(normal_rain, unit)
-            if normal_rain >= 5:
-                facts["past_30_days_rain_pct_of_normal"] = round(100 * total / normal_rain)
+            stretch["temp_vs_normal"] = _temp_delta(actual - normal, unit)
+        total = sum(rain for *_, rain in rows)  # type: ignore[misc]
+        normal_rain = sum(
+            value for value in (climate.normal(day, RAIN) for day, *_ in rows)
+            if value is not None
+        )
+        stretch["rain"] = _rain_amount(total, unit)
+        stretch["normal_rain"] = _rain_amount(normal_rain, unit)
+        if normal_rain >= 5:
+            stretch["rain_pct_of_normal"] = round(100 * total / normal_rain)
+        facts["latest_30_days"] = stretch
+    return facts
 
+
+def daylight_facts(series: DailySeries, lead_index: int) -> dict[str, Any]:
     daylight_now = series.get("daylight_duration", lead_index)
+    if daylight_now is None:
+        return {}
+    minutes = round(daylight_now / 60)
+    facts: dict[str, Any] = {"hours": minutes // 60, "minutes": minutes % 60}
     daylight_before = series.get("daylight_duration", lead_index - WEEK_DAYS)
-    if daylight_now is not None:
-        minutes = round(daylight_now / 60)
-        facts["daylight"] = {"hours": minutes // 60, "minutes": minutes % 60}
-        if daylight_before is not None:
-            facts["daylight"]["change_vs_week_ago_minutes"] = round(
-                (daylight_now - daylight_before) / 60
-            )
+    if daylight_before is not None:
+        facts["change_vs_week_ago_minutes"] = round((daylight_now - daylight_before) / 60)
     return facts
 
 
@@ -537,6 +611,7 @@ def climate_facts(
 class WeatherData:
     report: WeatherReport  # what the template draws
     facts: dict[str, Any]  # what the editor writes from
+    notes: list[str] = field(default_factory=list)  # diagnostics for logs, never published
 
 
 def build_weather(
@@ -560,6 +635,7 @@ def build_weather(
 
         featured: list[CityForecast] = []
         featured_facts: list[dict[str, Any]] = []
+        notes: list[str] = []
         for place, series in zip(config.featured, featured_series, strict=True):
             built = city_forecast(place, series, reader_time, config, with_strip=True)
             if built is None:
@@ -574,11 +650,25 @@ def build_weather(
                 "local_time_when_read": f"{local_now:%H:%M}",
                 "forecast": _forecast_facts(series, lead_index, WEEK_DAYS, config),
             }
+            daylight = daylight_facts(series, lead_index)
+            if daylight:
+                fact["daylight"] = daylight
             try:
                 climate = Climate(load_history(client, place, local_now.year - 1))
-                fact["climate"] = climate_facts(series, lead_index, climate, config)
+                recent = fetch_recent(client, place, local_now.date())
+                calibration = calibrate(series, recent)
+                comparison = climate_facts(series, lead_index, climate, recent, config)
+                if comparison:
+                    fact["climate"] = comparison
+                if calibration:
+                    notes.append(
+                        f"{place.name}: forecast model vs reanalysis over {calibration.days} days: "
+                        f"highs {calibration.high:+.1f}°C, lows {calibration.low:+.1f}°C"
+                    )
+                else:
+                    notes.append(f"{place.name}: too little overlap to calibrate; no comparisons")
             except (httpx.HTTPError, ValueError, KeyError, OSError) as exc:
-                print(f"  WARNING: climate history for {place.name} unavailable: {exc}")
+                notes.append(f"{place.name}: climate history unavailable: {exc}")
             featured_facts.append(fact)
 
         around: list[CityForecast] = []
@@ -627,7 +717,9 @@ def build_weather(
         "featured_cities": featured_facts,
         "other_cities": other_facts,
     }
-    return WeatherData(report=report, facts=facts)
+    for note in notes:
+        print(f"  Weather: {note}", flush=True)
+    return WeatherData(report=report, facts=facts, notes=notes)
 
 
 # ---------------------------------------------------------------------------
@@ -643,6 +735,8 @@ FACTS
 - "normal" means the 1991-2020 average for the same time of year. warmth_rank 1 means the warmest of all
   years compared; most_recent_warmer_year / most_recent_cooler_year support lines like "the warmest
   mid-October week since 2018". Only call something a record if warmth_rank is 1 or equals years_compared.
+  latest_30_days is the most recent month of observations (it ends a few days ago); call it "the past
+  month" or name its dates. A city without "climate" has no comparisons: don't make any for it.
 - headline_day says whether a city's headline is today or tomorrow (Indonesia is already evening when the
   email lands). Say "tomorrow" for those.
 - Temperatures are in the data's unit; write them like 54°F. Rain amounts are in the data's rain unit.
@@ -650,7 +744,7 @@ FACTS
 SHAPE
 - 3 short paragraphs, 60-110 words in total. Start each with a short bold run-in in double asterisks.
   1. The day ahead in the featured cities, with the most useful practical note (umbrella, layers).
-  2. Context: the single most striking comparison (vs normal, vs past years, the past 30 days, daylight).
+  2. Context: the single most striking comparison (vs normal, vs past years, the past month, daylight).
   3. A contrast across the map or the world from the other cities.
 - Morning Brew voice: wry, warm, useful. At most one light joke. Dangerous weather (storms, floods,
   extreme heat or cold) gets a plain, careful tone and no jokes.
@@ -667,6 +761,8 @@ FAKTA
 - "normal" berarti rata-rata 1991-2020 untuk waktu yang sama dalam setahun. warmth_rank 1 berarti terhangat
   dari semua tahun yang dibandingkan; most_recent_warmer_year / most_recent_cooler_year mendukung kalimat
   seperti "minggu terhangat sejak 2018". Sebut rekor hanya bila warmth_rank 1 atau sama dengan years_compared.
+  latest_30_days adalah pengamatan sebulan terakhir (berakhir beberapa hari lalu); sebut "sebulan terakhir"
+  atau tanggalnya. Kota tanpa "climate" tidak punya perbandingan: jangan membuat perbandingan untuknya.
 - headline_day menunjukkan apakah prakiraan utama sebuah kota untuk hari ini atau besok (di Indonesia
   email ini tiba sore hari). Tulis "besok" untuk yang besok.
 - Suhu dalam satuan data; tulis seperti 24°C. Curah hujan dalam mm.
@@ -675,7 +771,7 @@ BENTUK
 - 3 paragraf pendek, total 60-110 kata. Awali setiap paragraf dengan pembuka tebal singkat dalam tanda
   bintang ganda.
   1. Cuaca kota utama untuk hari yang dibahas, dengan catatan praktis paling berguna (payung, jaket).
-  2. Konteks: satu perbandingan paling menarik (dibanding normal, tahun-tahun lalu, 30 hari terakhir).
+  2. Konteks: satu perbandingan paling menarik (dibanding normal, tahun-tahun lalu, sebulan terakhir).
   3. Perbandingan dengan kota lain di Indonesia atau dunia dari tabel.
 - Suara Morning Brew: hangat, jenaka secukupnya, berguna. Paling banyak satu lelucon ringan. Cuaca
   berbahaya (badai, banjir, panas atau dingin ekstrem) ditulis lugas dan hati-hati tanpa lelucon.
@@ -789,6 +885,7 @@ def _check(paths: list[Path]) -> int:
             )
             if not climate:
                 failed = True
+        lines.extend(f"  {note}" for note in data.notes)
         for city in data.report.around:
             lines.append(f"  {city.name}: {city.condition}, {city.high}/{city.low}")
         print("::notice title=Weather::" + "%0A".join(lines))
