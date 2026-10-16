@@ -14,12 +14,14 @@ on:
       - "src/briefing/collect.py"
       - "src/briefing/feedcheck.py"
       - "src/briefing/weather.py"
+      - "src/briefing/weather_topics.py"
   pull_request:
     paths:
       - "config/**"
       - "src/briefing/collect.py"
       - "src/briefing/feedcheck.py"
       - "src/briefing/weather.py"
+      - "src/briefing/weather_topics.py"
   workflow_dispatch:
 
 jobs:
