@@ -107,7 +107,7 @@ feeds:
 # perbandingan iklim; kota lain mendapat satu baris di tabel.
 weather:
   language: id
-  unit: celsius
+  unit: fahrenheit
   # One topic is picked each day for the write-up (src/briefing/weather_topics.py).
   topics: [climate_context, rain_check, on_this_day, around_the_world, daylight, uv, air_quality, el_nino]
   featured:

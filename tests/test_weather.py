@@ -284,7 +284,7 @@ def test_edition_configs_have_the_agreed_cities_and_units():
 
     mom = load_weather_config(ROOT / "config" / "indonesia_sources.yml")
     assert mom is not None
-    assert (mom.language, mom.unit) == ("id", "C")
+    assert (mom.language, mom.unit) == ("id", "F")
     assert [place.name for place in mom.featured] == ["Bandung"]
     assert len(mom.around) >= 3
 
