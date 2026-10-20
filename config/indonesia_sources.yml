@@ -115,7 +115,7 @@ weather:
   around:
     - {name: Jakarta, country: Indonesia, flag: "🇮🇩", latitude: -6.2088, longitude: 106.8456}
     - {name: Surabaya, country: Indonesia, flag: "🇮🇩", latitude: -7.2575, longitude: 112.7521}
-    - {name: Medan, country: Indonesia, flag: "🇮🇩", latitude: 3.5952, longitude: 98.6722}
     - {name: Denpasar, country: Indonesia, flag: "🇮🇩", latitude: -8.6705, longitude: 115.2126}
-    - {name: Stockholm, country: Sweden, flag: "🇸🇪", latitude: 59.3293, longitude: 18.0686}
     - {name: New York, country: Amerika Serikat, flag: "🇺🇸", latitude: 40.7128, longitude: -74.0060}
+    - {name: Phoenix, country: Amerika Serikat, flag: "🇺🇸", latitude: 33.4484, longitude: -112.0740}
+    - {name: Denver, country: Amerika Serikat, flag: "🇺🇸", latitude: 39.7392, longitude: -104.9903}
