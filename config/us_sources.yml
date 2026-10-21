@@ -166,11 +166,8 @@ feeds:
     country: Phoenix
     tier: backup
     url: "https://cronkitenews.azpbs.org/feed/"
-  - name: Colorado Sun
-    source: Colorado Sun
-    country: Denver
-    tier: backup
-    url: "https://coloradosun.com/feed/"
+  # Colorado Sun's own feed (coloradosun.com/feed/) returns 429 to GitHub's runners (Oct 21,
+  # 2026); its stories still arrive through the Google News queries above.
   - name: Denverite
     source: Denverite
     country: Denver
