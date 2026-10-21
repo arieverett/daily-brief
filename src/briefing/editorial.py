@@ -12,7 +12,15 @@ from difflib import SequenceMatcher
 from urllib.parse import parse_qsl, urlparse
 
 from .collect import normalized_title
-from .models import Candidate, CountrySection, Edition, IndonesiaEdition, SourceLink, Story
+from .models import (
+    Candidate,
+    CountrySection,
+    Edition,
+    IndonesiaEdition,
+    RegionalEdition,
+    SourceLink,
+    Story,
+)
 
 SOURCE_LINK_SCHEMA = {
     "type": "object",
@@ -498,8 +506,8 @@ def strip_em_dashes(text: str) -> str:
 
 
 def validate_edition(
-    edition: Edition | IndonesiaEdition, candidates: list[Candidate]
-) -> Edition | IndonesiaEdition:
+    edition: Edition | IndonesiaEdition | RegionalEdition, candidates: list[Candidate]
+) -> Edition | IndonesiaEdition | RegionalEdition:
     """Repair links, remove duplicate topics, and enforce editorial quality gates."""
     by_url, by_title = build_link_index(candidates)
     dropped = 0
@@ -602,6 +610,20 @@ def validate_edition(
         quick_hits = dedupe(quick_hits, [lead, *stories])
         quick_hits = backfill_quick_hits(country, lead, stories, quick_hits, localized)
         return replace(section, lead=lead, stories=stories, quick_hits=quick_hits)
+
+    if isinstance(edition, RegionalEdition):
+        sections = {
+            region.key: fix_section(
+                edition.sections[region.key],
+                region.name,
+                localized=False,
+                strict_indonesia=False,
+            )
+            for region in edition.profile.regions
+        }
+        if dropped:
+            print(f"  Dropped {dropped} story link(s) the editor invented", flush=True)
+        return replace(edition, sections=sections, setup=strip_em_dashes(edition.setup))
 
     indonesia_only = isinstance(edition, IndonesiaEdition)
     indonesia = fix_section(

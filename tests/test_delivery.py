@@ -65,7 +65,10 @@ def test_scheduled_send_time_targets_six_am_only_when_still_ahead():
 
 
 def test_requested_editions():
-    assert requested_editions("both") == ["standard", "indonesia"]
+    assert requested_editions("both") == ["standard", "indonesia", "us"]
+    assert requested_editions("all") == ["standard", "indonesia", "us"]
+    assert requested_editions("") == ["standard", "indonesia", "us"]
+    assert requested_editions("us") == ["us"]
     assert requested_editions("Indonesia") == ["indonesia"]
     with pytest.raises(ValueError):
         requested_editions("sweden")
@@ -82,7 +85,7 @@ def test_gate_sends_only_missing_editions():
         now=ny("2026-09-29T05:45"),
         is_delivered=lambda edition, day: delivered.get((edition, day), False),
     )
-    assert result.send == {"standard": False, "indonesia": True}
+    assert result.send == {"standard": False, "indonesia": True, "us": False}
     assert result.day == date(2026, 9, 29)
 
 
@@ -92,14 +95,14 @@ def test_gate_fails_open_when_records_are_unavailable():
         now=ny("2026-09-29T05:45"),
         is_delivered=lambda edition, day: None,
     )
-    assert result.send == {"standard": True, "indonesia": False}
+    assert result.send == {"standard": True, "indonesia": False, "us": False}
 
 
 def test_gate_skips_sunday_unless_forced():
     sunday = ny("2026-10-04T05:45")
     assert not any(run_gate(editions=["standard"], now=sunday).send.values())
     forced = run_gate(editions=["standard"], now=sunday, force=True)
-    assert forced.send == {"standard": True, "indonesia": False}
+    assert forced.send == {"standard": True, "indonesia": False, "us": False}
 
 
 def test_forced_gate_ignores_delivery_records():
@@ -109,7 +112,7 @@ def test_forced_gate_ignores_delivery_records():
         force=True,
         is_delivered=lambda edition, day: True,
     )
-    assert result.send == {"standard": True, "indonesia": True}
+    assert result.send == {"standard": True, "indonesia": True, "us": False}
 
 
 def test_backstop_waits_then_rechecks_after_primary():
@@ -127,7 +130,7 @@ def test_backstop_waits_then_rechecks_after_primary():
         clock=lambda: after_wait,
     )
     assert slept == [pytest.approx(35 * 60)]
-    assert result.send == {"standard": False, "indonesia": True}
+    assert result.send == {"standard": False, "indonesia": True, "us": False}
 
 
 def test_backstop_outside_window_does_not_check_or_send():
@@ -150,7 +153,13 @@ def test_gate_command_writes_github_outputs(tmp_path, monkeypatch):
     monkeypatch.delenv("GH_TOKEN", raising=False)
     delivery.main(["gate", "--editions", "indonesia", "--now", "2026-09-29T09:50:00+00:00"])
     lines = dict(line.split("=", 1) for line in output.read_text().splitlines())
-    assert lines == {"date": "2026-09-29", "standard": "false", "indonesia": "true", "any": "true"}
+    assert lines == {
+        "date": "2026-09-29",
+        "standard": "false",
+        "indonesia": "true",
+        "us": "false",
+        "any": "true",
+    }
 
 
 def test_artifact_lookup_parses_github_response(monkeypatch):

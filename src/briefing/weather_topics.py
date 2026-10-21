@@ -154,8 +154,12 @@ def daylight(ctx: TopicContext) -> Topic | None:
         facts={"cities": facts},
         background=[
             "Day length changes fastest around the equinoxes and barely changes near the equator.",
-            ("North of the Arctic Circle, as in Kiruna, the sun stays below the horizon for a few "
-            "weeks around the December solstice (polar night)."),
+            *(
+                [("North of the Arctic Circle, as in Kiruna, the sun stays below the horizon for a "
+                  "few weeks around the December solstice (polar night).")]
+                if any(city.place.name == "Kiruna" for city in ctx.cities)
+                else []
+            ),
         ],
         notable=near_turning_point,
     )

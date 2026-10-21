@@ -21,7 +21,7 @@ import httpx
 import yaml
 from dateutil import parser as date_parser
 
-from .models import Candidate, CountrySection, Edition, IndonesiaEdition, Story
+from .models import Candidate, CountrySection, Edition, IndonesiaEdition, RegionalEdition, Story
 
 TAG_RE = re.compile(r"<[^>]+>")
 SPACE_RE = re.compile(r"\s+")
@@ -510,11 +510,7 @@ def _top_up_from_backup(
     target: int = BACKUP_FILL_TARGET,
 ) -> list[Candidate]:
     """Add direct-publisher stories to countries whose primary pool is thin."""
-    countries = [
-        country
-        for country in COUNTRY_ORDER
-        if any(item.country == country for item in [*selected, *backup])
-    ]
+    countries = _ordered_countries([*selected, *backup])
     if not countries:
         return selected
     per_country_cap = max(1, max_candidates // len(countries))
@@ -691,6 +687,32 @@ async def add_indonesia_article_images(
     return replace(
         edition,
         indonesia=_decorate_section(edition.indonesia, image_by_url),
+    )
+
+
+async def add_regional_article_images(
+    edition: RegionalEdition,
+    candidates: list[Candidate],
+    limit: int = 4,
+    image_budget_seconds: float = 30.0,
+) -> RegionalEdition:
+    """Images for each region's lead and secondary stories, the limit split evenly."""
+    named = edition.named_sections()
+    by_region = [[section.lead, *section.stories] for _, section in named]
+    all_stories = [story for stories in by_region for story in stories]
+    discovered = await _discover_story_images(all_stories, candidates, image_budget_seconds)
+
+    image_by_url: dict[str, str] = {}
+    base, extra = divmod(limit, max(1, len(named)))
+    for index, stories in enumerate(by_region):
+        image_by_url.update(
+            _choose_images(stories, discovered, base + (1 if index < extra else 0))
+        )
+    return replace(
+        edition,
+        sections={
+            region.key: _decorate_section(section, image_by_url) for region, section in named
+        },
     )
 
 

@@ -9,7 +9,14 @@ from importlib.resources import files
 from jinja2 import Environment, FileSystemLoader, Template, select_autoescape
 from markupsafe import Markup, escape
 
-from .models import Edition, IndonesiaEdition, NewsletterEdition, Story, WeatherReport
+from .models import (
+    Edition,
+    IndonesiaEdition,
+    NewsletterEdition,
+    RegionalEdition,
+    Story,
+    WeatherReport,
+)
 
 # The editor may bold a short run-in at the start of a paragraph (**Zoom out:**) and separate
 # paragraphs with a blank line. Nothing else is interpreted; everything is HTML-escaped first.
@@ -114,7 +121,13 @@ def _weather_text(weather: WeatherReport | None, *, indonesian: bool) -> list[st
 def render_text(edition: Edition) -> str:
     blocks = ["DAILY BRIEF", edition.date_label, "", "THE SETUP", plain(edition.setup)]
     blocks.extend(_weather_text(edition.weather, indonesian=False))
-    for heading, section in (("SWEDEN", edition.sweden), ("INDONESIA", edition.indonesia)):
+    blocks.extend(_sections_text((("SWEDEN", edition.sweden), ("INDONESIA", edition.indonesia))))
+    return "\n\n".join(blocks)
+
+
+def _sections_text(sections) -> list[str]:
+    blocks: list[str] = []
+    for heading, section in sections:
         blocks.extend(("", heading, _story_text(section.lead, source_prefix="Read more")))
         blocks.extend(
             _story_text(story, source_prefix="Read more") for story in section.stories
@@ -123,6 +136,21 @@ def render_text(edition: Edition) -> str:
         blocks.extend(
             _story_text(story, source_prefix="Read article") for story in section.quick_hits
         )
+    return blocks
+
+
+def render_regional_text(edition: RegionalEdition) -> str:
+    blocks = [
+        edition.profile.title.upper(),
+        edition.date_label,
+        "",
+        "THE SETUP",
+        plain(edition.setup),
+        *_weather_text(edition.weather, indonesian=False),
+        *_sections_text(
+            (region.heading.upper(), section) for region, section in edition.named_sections()
+        ),
+    ]
     return "\n\n".join(blocks)
 
 

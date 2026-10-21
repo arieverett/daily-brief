@@ -12,7 +12,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-from .models import CountrySection, Edition, NewsletterEdition, Story
+from .models import CountrySection, Edition, NewsletterEdition, RegionalEdition, Story
 
 RUN_IN_RE = re.compile(r"^\*\*[^*]{2,40}\*\*")
 NARRATOR_RE = re.compile(
@@ -103,9 +103,13 @@ def score_edition(edition: NewsletterEdition) -> Scorecard:
     card.check(30 <= setup_words <= 80, f"setup is {setup_words} words (aim 35-70)")
     card.check(bool(RUN_IN_RE.match(edition.setup)), "setup doesn't open with a bold run-in")
     card.check(len(edition.subject) <= 70, f"subject is {len(edition.subject)} characters")
-    if isinstance(edition, Edition):
-        _section(card, edition.sweden, "Sweden")
-    _section(card, edition.indonesia, "Indonesia")
+    if isinstance(edition, RegionalEdition):
+        for region, section in edition.named_sections():
+            _section(card, section, region.name)
+    else:
+        if isinstance(edition, Edition):
+            _section(card, edition.sweden, "Sweden")
+        _section(card, edition.indonesia, "Indonesia")
     weather = edition.weather
     if weather is not None:
         card.check(bool(weather.summary), "weather write-up missing (forecasts only)")

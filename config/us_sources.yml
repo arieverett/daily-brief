@@ -1,0 +1,201 @@
+# Two-Mile High: the US regional edition (Phoenix + Denver). Same pipeline as the other
+# editions. Each region is a news section; a feed's `country` names the region it fills.
+# Add a region here (and feeds for it) to extend the edition to another city.
+edition:
+  name: us
+  title: Two-Mile High
+  kicker: Your daily Phoenix + Denver brief
+  intro: Here is what matters today in Phoenix and Denver, without the filler.
+  footer: Coded by Ari with <3 to educate, inform, and enable.
+  accent: "#c2410c"
+  regions:
+    - key: phoenix
+      name: Phoenix
+      state: Arizona
+      emoji: "🌵"
+      focus: >-
+        The Phoenix metro (Phoenix, Tempe, Scottsdale, Mesa, Chandler, Gilbert, Glendale) first,
+        then Arizona statewide: state government, water, growth, the economy, ASU, local sports,
+        food and culture.
+    - key: denver
+      name: Denver
+      state: Colorado
+      emoji: "🏔️"
+      focus: >-
+        Denver and the Front Range (Aurora, Lakewood, Boulder) first, then Colorado statewide:
+        state government, housing, the economy, the mountains and outdoors, local sports, food
+        and culture.
+
+feeds:
+  - name: Google News — Phoenix
+    country: Phoenix
+    url: "https://news.google.com/rss/search?q=%22Phoenix%22%20%28Arizona%20OR%20AZ%20OR%20Valley%29%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: &phoenix_sources
+      - Reuters
+      - AP News
+      - Associated Press
+      - Axios
+      - Bloomberg
+      - NPR
+      - The New York Times
+      - The Wall Street Journal
+      - azcentral
+      - Arizona Republic
+      - AZFamily
+      - Arizona's Family
+      - ABC15
+      - 12News
+      - KJZZ
+      - KTAR
+      - FOX 10
+      - Phoenix New Times
+      - Arizona Mirror
+      - Arizona Capitol Times
+      - Cronkite News
+      - Phoenix Business Journal
+      - Arizona Daily Star
+      - Tucson.com
+      - Arizona Luminaria
+      - Phoenix Magazine
+      - Arizona Sports
+      - ESPN
+      - The Athletic
+      - Arizona State University
+      - City of Phoenix
+      - Office of the Arizona Governor
+
+  - name: Google News — Arizona
+    country: Phoenix
+    url: "https://news.google.com/rss/search?q=%28Arizona%20OR%20Tempe%20OR%20Scottsdale%20OR%20Mesa%20OR%20Chandler%20OR%20Gilbert%20OR%20Glendale%20OR%20Tucson%29%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *phoenix_sources
+
+  - name: Google News — Phoenix economy
+    country: Phoenix
+    url: "https://news.google.com/rss/search?q=%28Phoenix%20OR%20Arizona%29%20%28economy%20OR%20business%20OR%20housing%20OR%20%22real%20estate%22%20OR%20jobs%20OR%20TSMC%20OR%20water%29%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *phoenix_sources
+
+  - name: Google News — Phoenix culture
+    country: Phoenix
+    url: "https://news.google.com/rss/search?q=%28Phoenix%20OR%20Scottsdale%20OR%20Tempe%29%20%28restaurant%20OR%20food%20OR%20music%20OR%20concert%20OR%20festival%20OR%20art%20OR%20museum%20OR%20opening%29%20when%3A3d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *phoenix_sources
+
+  - name: Google News — Phoenix sports
+    country: Phoenix
+    url: "https://news.google.com/rss/search?q=%28Suns%20OR%20%22Arizona%20Cardinals%22%20OR%20Diamondbacks%20OR%20%22Phoenix%20Mercury%22%20OR%20%22Sun%20Devils%22%20OR%20%22Arizona%20Wildcats%22%29%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *phoenix_sources
+
+  - name: Google News — Arizona outlets
+    country: Phoenix
+    url: "https://news.google.com/rss/search?q=Arizona%20%28site%3Aazcentral.com%20OR%20site%3Aazfamily.com%20OR%20site%3Aabc15.com%20OR%20site%3A12news.com%20OR%20site%3Akjzz.org%20OR%20site%3Aazmirror.com%20OR%20site%3Aktar.com%20OR%20site%3Aphoenixnewtimes.com%29%20when%3A3d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *phoenix_sources
+
+  - name: Google News — Denver
+    country: Denver
+    url: "https://news.google.com/rss/search?q=Denver%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: &denver_sources
+      - Reuters
+      - AP News
+      - Associated Press
+      - Axios
+      - Bloomberg
+      - NPR
+      - The New York Times
+      - The Wall Street Journal
+      - Denver Post
+      - Colorado Sun
+      - Denverite
+      - 9NEWS
+      - Denver7
+      - CBS News
+      - CBS Colorado
+      - FOX31
+      - KDVR
+      - Colorado Public Radio
+      - CPR News
+      - Westword
+      - Denver Business Journal
+      - BusinessDen
+      - Colorado Politics
+      - Colorado Newsline
+      - Daily Camera
+      - Boulder Reporting Lab
+      - Out There Colorado
+      - 5280
+      - Denver Gazette
+      - Colorado Springs Gazette
+      - ESPN
+      - The Athletic
+      - DNVR
+      - Mile High Sports
+      - City and County of Denver
+      - Colorado Governor
+
+  - name: Google News — Colorado
+    country: Denver
+    url: "https://news.google.com/rss/search?q=%28Colorado%20OR%20Boulder%20OR%20Aurora%20OR%20Lakewood%20OR%20%22Colorado%20Springs%22%20OR%20%22Fort%20Collins%22%29%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *denver_sources
+
+  - name: Google News — Denver economy
+    country: Denver
+    url: "https://news.google.com/rss/search?q=%28Denver%20OR%20Colorado%29%20%28economy%20OR%20business%20OR%20housing%20OR%20%22real%20estate%22%20OR%20jobs%20OR%20startup%29%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *denver_sources
+
+  - name: Google News — Denver culture
+    country: Denver
+    url: "https://news.google.com/rss/search?q=%28Denver%20OR%20Boulder%29%20%28restaurant%20OR%20food%20OR%20music%20OR%20concert%20OR%20%22Red%20Rocks%22%20OR%20festival%20OR%20art%20OR%20museum%20OR%20opening%29%20when%3A3d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *denver_sources
+
+  - name: Google News — Denver sports
+    country: Denver
+    url: "https://news.google.com/rss/search?q=%28Nuggets%20OR%20Broncos%20OR%20Avalanche%20OR%20Rockies%20OR%20%22Colorado%20Buffaloes%22%29%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *denver_sources
+
+  - name: Google News — Colorado outlets
+    country: Denver
+    url: "https://news.google.com/rss/search?q=Colorado%20%28site%3Adenverpost.com%20OR%20site%3Acoloradosun.com%20OR%20site%3Adenverite.com%20OR%20site%3Acpr.org%20OR%20site%3A9news.com%20OR%20site%3Adenver7.com%20OR%20site%3Awestword.com%20OR%20site%3Aaxios.com%29%20when%3A3d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *denver_sources
+
+  # Backup tier: direct publisher RSS, only used to top a region up when Google News is thin.
+  - name: Arizona Mirror
+    source: Arizona Mirror
+    country: Phoenix
+    tier: backup
+    url: "https://azmirror.com/feed/"
+  - name: Cronkite News
+    source: Cronkite News
+    country: Phoenix
+    tier: backup
+    url: "https://cronkitenews.azpbs.org/feed/"
+  - name: Colorado Sun
+    source: Colorado Sun
+    country: Denver
+    tier: backup
+    url: "https://coloradosun.com/feed/"
+  - name: Denverite
+    source: Denverite
+    country: Denver
+    tier: backup
+    url: "https://denverite.com/feed/"
+  - name: Colorado Newsline
+    source: Colorado Newsline
+    country: Denver
+    tier: backup
+    url: "https://coloradonewsline.com/feed/"
+
+# Weather (src/briefing/weather.py). Widgets for the two featured cities, one grid row for
+# each "around" city. 6:00 AM New York is before dawn in both, so forecasts lead with today.
+weather:
+  language: en
+  unit: fahrenheit
+  about: Phoenix and Denver
+  topics: [climate_context, rain_check, on_this_day, around_the_world, daylight, uv, air_quality]
+  featured:
+    - {name: Phoenix, country: United States, flag: "🌵", latitude: 33.4484, longitude: -112.0740}
+    - {name: Denver, country: United States, flag: "🏔️", latitude: 39.7392, longitude: -104.9903}
+  around:
+    - {name: Tucson, country: United States, flag: "🌵", latitude: 32.2226, longitude: -110.9747}
+    - {name: Flagstaff, country: United States, flag: "🌲", latitude: 35.1983, longitude: -111.6513}
+    - {name: Sedona, country: United States, flag: "🌵", latitude: 34.8697, longitude: -111.7610}
+    - {name: Boulder, country: United States, flag: "🏔️", latitude: 40.0150, longitude: -105.2705}
+    - {name: Colorado Springs, country: United States, flag: "🏔️", latitude: 38.8339, longitude: -104.8214}
+    - {name: Vail, country: United States, flag: "⛷️", latitude: 39.6403, longitude: -106.3742}

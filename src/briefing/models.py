@@ -141,7 +141,62 @@ class IndonesiaEdition:
         return asdict(self)
 
 
-NewsletterEdition = Edition | IndonesiaEdition
+@dataclass(frozen=True)
+class Region:
+    """One news section of a regional edition: a city and the state around it."""
+
+    key: str  # schema/JSON key, e.g. "phoenix"
+    name: str  # matches the `country` of this region's feeds and candidates
+    state: str = ""
+    emoji: str = ""
+    focus: str = ""  # what the section covers, for the editor prompt
+
+    @property
+    def heading(self) -> str:
+        return f"{self.name}, {self.state}" if self.state else self.name
+
+
+@dataclass(frozen=True)
+class RegionalProfile:
+    """Branding and sections of a config-driven English edition (e.g. Two-Mile High)."""
+
+    edition: str  # internal edition name: "us"
+    title: str  # masthead and subject prefix, e.g. "Two-Mile High"
+    kicker: str
+    intro: str
+    footer: str
+    accent: str
+    regions: list[Region] = field(default_factory=list)
+
+    @property
+    def region_names(self) -> list[str]:
+        return [region.name for region in self.regions]
+
+
+@dataclass(frozen=True)
+class RegionalEdition:
+    edition_date: str
+    date_label: str
+    subject: str
+    preview_text: str
+    setup: str
+    profile: RegionalProfile
+    # In the profile's region order, keyed by Region.key.
+    sections: dict[str, CountrySection] = field(default_factory=dict)
+    weather: WeatherReport | None = None
+
+    def named_sections(self) -> list[tuple[Region, CountrySection]]:
+        return [
+            (region, self.sections[region.key])
+            for region in self.profile.regions
+            if region.key in self.sections
+        ]
+
+    def asdict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+NewsletterEdition = Edition | IndonesiaEdition | RegionalEdition
 
 
 def source_link_from_dict(value: dict[str, Any]) -> SourceLink:

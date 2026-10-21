@@ -7,7 +7,20 @@ and plain-text editions, and send through Resend.
 
 ## What ships
 
-- Sweden and Indonesia sections with one lead, concise explainers, and speed reads
+Three editions, all at 6:00 AM New York time, Monday-Saturday:
+
+- **Daily Brief** (`standard`, `config/sources.yml`): Sweden + Indonesia, to Ari.
+- **Nusantara Daily** (`indonesia`, `config/indonesia_sources.yml`): Indonesia in Bahasa
+  Indonesia, to Ari's mom and Ari.
+- **Two-Mile High** (`us`, `config/us_sources.yml`): Phoenix, Arizona + Denver, Colorado, to Ari.
+  Config-driven: its `edition:` block sets the branding and the regions (one news section each),
+  and each feed's `country` names the region it fills. To add a city, add a region entry and a
+  handful of feeds for it (the Feed check workflow then confirms the pool is big enough); the
+  prompts, schema, layout, and images all follow the region list. Code: `src/briefing/regional.py`.
+
+What each edition carries:
+
+- One lead, concise explainers, and speed reads per country/region with one lead, concise explainers, and speed reads
 - Morning Brew voice: a witty, expert "we" talking straight to "you", with hooks, bold run-ins
   (**Zoom out:**, **The catch:**), short paragraphs, and punny kickers, while staying data-forward
 - Editorial preference for significance, authoritative sourcing, and economic/political context
@@ -110,6 +123,9 @@ uv run python -m briefing --send
 
 # Generate and send Nusantara Daily
 uv run python -m briefing --edition indonesia --sources config/indonesia_sources.yml --send
+
+# Generate and send Two-Mile High (Phoenix + Denver)
+uv run python -m briefing --edition us --sources config/us_sources.yml --send
 ```
 
 Generated HTML and text files are written to `out/`.

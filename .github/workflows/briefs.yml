@@ -19,10 +19,11 @@ on:
         description: Which editions to send
         type: choice
         options:
-          - both
+          - all
           - standard
           - indonesia
-        default: both
+          - us
+        default: all
       force:
         description: Send even if today's edition already went out (e.g. to test a revision)
         type: boolean
@@ -36,7 +37,8 @@ on:
 
 jobs:
   standard:
-    if: ${{ inputs.editions != 'indonesia' }}
+    # Pushes and the external trigger carry no inputs, so an empty value means all.
+    if: ${{ !inputs.editions || inputs.editions == 'all' || inputs.editions == 'both' || inputs.editions == 'standard' }}
     permissions:
       contents: read
       actions: read
@@ -52,7 +54,7 @@ jobs:
       BRIEF_TO_EMAIL: ${{ secrets.BRIEF_TO_EMAIL }}
 
   indonesia:
-    if: ${{ inputs.editions != 'standard' }}
+    if: ${{ !inputs.editions || inputs.editions == 'all' || inputs.editions == 'both' || inputs.editions == 'indonesia' }}
     permissions:
       contents: read
       actions: read
@@ -67,3 +69,19 @@ jobs:
       BRIEF_FROM_EMAIL: ${{ secrets.BRIEF_FROM_EMAIL }}
       BRIEF_TO_EMAIL: ${{ secrets.BRIEF_TO_EMAIL }}
       INDONESIA_BRIEF_TO_EMAIL: ${{ secrets.INDONESIA_BRIEF_TO_EMAIL }}
+
+  us:
+    if: ${{ !inputs.editions || inputs.editions == 'all' || inputs.editions == 'us' }}
+    permissions:
+      contents: read
+      actions: read
+    uses: ./.github/workflows/send-newsletter.yml
+    with:
+      edition: us
+      force: ${{ inputs.force == true }}
+      trigger: ${{ github.event_name }}
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      BRIEF_FROM_EMAIL: ${{ secrets.BRIEF_FROM_EMAIL }}
+      BRIEF_TO_EMAIL: ${{ secrets.BRIEF_TO_EMAIL }}

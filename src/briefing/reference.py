@@ -25,7 +25,7 @@ from pathlib import Path
 from statistics import mean, median
 from typing import Any
 
-from .models import Edition, NewsletterEdition
+from .models import Edition, NewsletterEdition, RegionalEdition
 
 REFERENCE_PATH = Path(__file__).with_name("data") / "style_reference.json"
 SENTENCE_RE = re.compile(r"[^.!?…]+[.!?…]+")
@@ -119,10 +119,14 @@ def reference_averages(issues: list[dict[str, Any]]) -> dict[str, float]:
 
 def edition_paragraphs(edition: NewsletterEdition) -> list[str]:
     """English editorial copy only: the voice metrics are calibrated on English text."""
-    if not isinstance(edition, Edition):
+    if isinstance(edition, RegionalEdition):
+        sections = [section for _, section in edition.named_sections()]
+    elif isinstance(edition, Edition):
+        sections = [edition.sweden, edition.indonesia]
+    else:
         return []
     texts = [edition.setup]
-    for section in (edition.sweden, edition.indonesia):
+    for section in sections:
         for story in (section.lead, *section.stories):
             texts.extend(re.split(r"\n\s*\n", story.summary))
             texts.extend(story.highlights)

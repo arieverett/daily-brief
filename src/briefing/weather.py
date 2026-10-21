@@ -135,6 +135,8 @@ class WeatherConfig:
     around: list[Place] = field(default_factory=list)
     # Rotating special topics this edition may pick from (see weather_topics.py).
     topics: list[str] = field(default_factory=list)
+    # What the newsletter is about, for the write-up prompt ("Phoenix and Denver").
+    about: str = ""
 
 
 def _place(raw: dict[str, Any]) -> Place:
@@ -160,6 +162,7 @@ def load_weather_config(sources_path: Path) -> WeatherConfig | None:
         featured=[_place(item) for item in raw["featured"]],
         around=[_place(item) for item in raw.get("around", [])],
         topics=[str(item) for item in raw.get("topics", [])],
+        about=str(raw.get("about", "")),
     )
 
 
@@ -938,12 +941,15 @@ def write_weather_summary(
     language: str,
     day: date,
     attempts: int = 2,
+    about: str = "",
 ) -> str:
     """The editor's write-up, or "" if it can't be produced or keeps citing unknown numbers."""
     from .editor import _generate_structured_output  # local import: editor imports models only
     from .editorial import strip_em_dashes
 
     instructions = WEATHER_PROMPT_ID if language == "id" else WEATHER_PROMPT_EN
+    if about and language != "id":
+        instructions = instructions.replace("newsletter about\nSweden and Indonesia.", f"newsletter about\n{about}.")
     prompt = (
         f"Edition date: {day.isoformat()}. Weather data as JSON:\n\n"
         + json.dumps(data.facts, ensure_ascii=False)

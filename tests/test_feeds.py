@@ -77,6 +77,16 @@ def test_backup_tops_a_thin_country_up_to_the_target_only():
     assert sum(c.source == "SVT Nyheter" for c in sweden) <= collect.SOURCE_STORY_CAP
 
 
+def test_backup_tops_up_regions_of_a_regional_edition_too():
+    primary = distinct("Phx", 3, "azcentral", "Phoenix") + distinct("Den", 15, "Denver Post", "Denver")
+    backup = distinct("Mirror", 20, "Arizona Mirror", "Phoenix") + distinct(
+        "Cronkite", 20, "Cronkite News", "Phoenix"
+    )
+    pool = _top_up_from_backup(primary, backup, 40)
+    assert sum(c.country == "Phoenix" for c in pool) == collect.BACKUP_FILL_TARGET
+    assert sum(c.country == "Denver" for c in pool) == 15
+
+
 def test_backup_skips_stories_primary_already_has():
     primary = [item("Sweden raises its defence budget to record high", "Reuters")]
     backup = [
@@ -157,7 +167,7 @@ def test_feedcheck_flags_a_country_that_cannot_publish():
 def test_every_configured_feed_is_well_formed():
     import yaml
 
-    for path in ("config/sources.yml", "config/indonesia_sources.yml"):
+    for path in ("config/sources.yml", "config/indonesia_sources.yml", "config/us_sources.yml"):
         feeds = yaml.safe_load(Path(path).read_text(encoding="utf-8"))["feeds"]
         for feed in feeds:
             assert {"name", "country", "url"} <= feed.keys(), feed

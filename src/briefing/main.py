@@ -18,14 +18,16 @@ from .collect import (
     add_article_excerpts,
     add_article_images,
     add_indonesia_article_images,
+    add_regional_article_images,
     collect_candidates,
 )
 from .config import DEFAULT_OUT_DIR, DEFAULT_SOURCES_PATH, Settings
 from .delivery import parse_clock, scheduled_send_time
 from .editor import create_edition, create_indonesia_edition
-from .models import Candidate, NewsletterEdition, edition_from_dict
+from .models import Candidate, NewsletterEdition, RegionalEdition, edition_from_dict
 from .reference import compare_to_reference
-from .render import render_html, render_indonesia_text, render_text
+from .regional import create_regional_edition, load_profile
+from .render import render_html, render_indonesia_text, render_regional_text, render_text
 from .send import SendResult, send_email
 from .style_check import score_edition
 from .weather import build_weather, load_weather_config, write_weather_summary
@@ -88,7 +90,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--send", action="store_true", help="Send through Resend after generation")
     parser.add_argument(
         "--edition",
-        choices=("standard", "indonesia"),
+        choices=("standard", "indonesia", "us"),
         default="standard",
         help="Newsletter edition to generate",
     )
@@ -113,10 +115,15 @@ def write_outputs(
     edition_name: str = "standard",
 ) -> tuple[Path, str, str]:
     html = render_html(edition)
-    text = render_indonesia_text(edition) if edition_name == "indonesia" else render_text(edition)
+    if isinstance(edition, RegionalEdition):
+        text = render_regional_text(edition)
+    elif edition_name == "indonesia":
+        text = render_indonesia_text(edition)
+    else:
+        text = render_text(edition)
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    prefix = "indonesia-" if edition_name == "indonesia" else ""
+    prefix = "" if edition_name == "standard" else f"{edition_name}-"
     html_path = out_dir / f"{prefix}{edition.edition_date}.html"
     text_path = out_dir / f"{prefix}{edition.edition_date}.txt"
     html_path.write_text(html, encoding="utf-8")
@@ -124,23 +131,36 @@ def write_outputs(
     return html_path, html, text
 
 
-def country_counts(candidates: list[Candidate]) -> dict[str, int]:
+def edition_countries(edition_name: str, sources: Path | None = None) -> tuple[str, ...]:
+    """The sections (countries or regions) an edition's candidate pool must fill."""
+    if edition_name == "indonesia":
+        return ("Indonesia",)
+    if edition_name == "standard" or sources is None:
+        return COUNTRIES
+    profile = load_profile(sources)
+    return tuple(profile.region_names) if profile else COUNTRIES
+
+
+def country_counts(
+    candidates: list[Candidate], countries: tuple[str, ...] = COUNTRIES
+) -> dict[str, int]:
     return {
         country: sum(candidate.country == country for candidate in candidates)
-        for country in COUNTRIES
+        for country in countries
     }
 
 
-def _relevant_counts(candidates: list[Candidate], edition_name: str) -> list[int]:
-    counts = country_counts(candidates)
-    if edition_name == "indonesia":
-        return [counts["Indonesia"]]
-    return list(counts.values())
+def _relevant_counts(
+    candidates: list[Candidate], edition_name: str, sources: Path | None = None
+) -> list[int]:
+    return list(country_counts(candidates, edition_countries(edition_name, sources)).values())
 
 
-def candidate_pool_is_thin(candidates: list[Candidate], edition_name: str) -> bool:
+def candidate_pool_is_thin(
+    candidates: list[Candidate], edition_name: str, sources: Path | None = None
+) -> bool:
     """Keep enough choices for topic diversity even when only a few are ultimately published."""
-    return min(_relevant_counts(candidates, edition_name)) < EDITORIAL_POOL_TARGET
+    return min(_relevant_counts(candidates, edition_name, sources)) < EDITORIAL_POOL_TARGET
 
 
 def backfill_candidates(
@@ -149,15 +169,15 @@ def backfill_candidates(
     settings: Settings,
     edition_name: str,
 ) -> list[Candidate]:
-    fresh_counts = country_counts(candidates)
-    if min(_relevant_counts(candidates, edition_name)) < FRESH_STORY_TARGET:
+    fresh_counts = country_counts(candidates, edition_countries(edition_name, sources))
+    if min(_relevant_counts(candidates, edition_name, sources)) < FRESH_STORY_TARGET:
         print(
             "  Fresh-story target below 3, activating older-story fallback: "
             f"{fresh_counts}",
             flush=True,
         )
 
-    if not candidate_pool_is_thin(candidates, edition_name):
+    if not candidate_pool_is_thin(candidates, edition_name, sources):
         return candidates
 
     for hours in FALLBACK_LOOKBACK_HOURS:
@@ -165,7 +185,7 @@ def backfill_candidates(
         candidates = asyncio.run(
             collect_candidates(sources, hours, max(settings.max_candidates, 60))
         )
-        if not candidate_pool_is_thin(candidates, edition_name):
+        if not candidate_pool_is_thin(candidates, edition_name, sources):
             break
     return candidates
 
@@ -226,10 +246,11 @@ def _generate_live_edition(
             collect_candidates(args.sources, settings.lookback_hours, settings.max_candidates)
         )
 
-    fresh_counts = country_counts(candidates)
+    countries = edition_countries(args.edition, args.sources)
+    fresh_counts = country_counts(candidates, countries)
     print(f"  Found {len(candidates)} usable fresh stories: {fresh_counts}", flush=True)
     candidates = backfill_candidates(args.sources, candidates, settings, args.edition)
-    print(f"  Publishing candidate pool: {country_counts(candidates)}", flush=True)
+    print(f"  Publishing candidate pool: {country_counts(candidates, countries)}", flush=True)
 
     with stage("Reading article text"):
         candidates = asyncio.run(add_article_excerpts(candidates))
@@ -237,7 +258,16 @@ def _generate_live_edition(
     print(f"  Article text found for {read} of {len(candidates)} candidates", flush=True)
 
     with stage("Writing the edition with OpenAI"):
-        if args.edition == "indonesia":
+        profile = load_profile(args.sources) if args.edition not in ("standard", "indonesia") else None
+        if profile is not None:
+            edition = create_regional_edition(
+                candidates,
+                profile,
+                settings.openai_api_key,
+                settings.openai_model,
+                day,
+            )
+        elif args.edition == "indonesia":
             edition = create_indonesia_edition(
                 candidates,
                 settings.openai_api_key,
@@ -260,6 +290,15 @@ def _add_images(
     edition_name: str,
 ) -> NewsletterEdition:
     with stage("Fetching publisher images"):
+        if isinstance(edition, RegionalEdition):
+            return asyncio.run(
+                add_regional_article_images(
+                    edition,
+                    candidates,
+                    limit=8,
+                    image_budget_seconds=45.0,
+                )
+            )
         if edition_name == "indonesia":
             return asyncio.run(
                 add_indonesia_article_images(
@@ -316,6 +355,7 @@ def _add_weather(
             model=settings.openai_model,
             language=config.language,
             day=day,
+            about=config.about,
         )
     if not summary:
         print("  Weather write-up unavailable; showing forecasts only", flush=True)

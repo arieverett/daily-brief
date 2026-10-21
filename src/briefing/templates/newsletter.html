@@ -1,5 +1,6 @@
-{% set indonesia_only = edition.sweden is not defined %}
-{% set accent = '#991b1b' if indonesia_only else '#075dcc' %}
+{% set regional = edition.profile is defined %}
+{% set indonesia_only = edition.sweden is not defined and not regional %}
+{% set accent = edition.profile.accent if regional else ('#991b1b' if indonesia_only else '#075dcc') %}
 {% macro source_list(story) -%}
 <div class="source">{{ 'Baca selengkapnya' if indonesia_only else 'Read more' }} ·
   {% if story.source_links %}
@@ -203,13 +204,18 @@
       <table role="presentation" class="email" width="660">
         <tr><td class="inset" style="padding-top:18px;"><div class="top-rule">&nbsp;</div></td></tr>
         <tr><td class="masthead inset">
+          {% if regional %}
+          <div class="brand-kicker">{{ edition.profile.kicker }}</div>
+          <h1 class="brand"><span class="brand-mark">☕</span> {{ edition.profile.title | upper }}</h1>
+          {% else %}
           <div class="brand-kicker">{{ 'Ringkasan berita Indonesia setiap hari' if indonesia_only else 'Your daily country brief' }}</div>
           <h1 class="brand"><span class="brand-mark">☕</span> {{ 'NUSANTARA DAILY' if indonesia_only else 'NORDIC + NUSANTARA' }}</h1>
+          {% endif %}
           <div class="date">{{ edition.date_label }}</div>
         </td></tr>
         <tr><td class="inset"><div class="top-rule">&nbsp;</div></td></tr>
         <tr><td class="inset hello">
-          <p><strong>{{ 'Selamat pagi.' if indonesia_only else 'Good morning.' }}</strong> {{ 'Inilah kabar penting hari ini dari seluruh Indonesia, langsung ke intinya.' if indonesia_only else 'Here is what matters today in Sweden and Indonesia, without the filler.' }}</p>
+          <p><strong>{{ 'Selamat pagi.' if indonesia_only else 'Good morning.' }}</strong> {% if regional %}{{ edition.profile.intro }}{% else %}{{ 'Inilah kabar penting hari ini dari seluruh Indonesia, langsung ke intinya.' if indonesia_only else 'Here is what matters today in Sweden and Indonesia, without the filler.' }}{% endif %}</p>
         </td></tr>
 
         <tr><td class="inset">
@@ -223,10 +229,17 @@
         <tr><td class="inset wx-wrap">{{ weather_card(edition.weather) }}</td></tr>
         {% endif %}
 
-        {% set newsletter_sections = [('Indonesia', edition.indonesia)] if indonesia_only else [('Sweden', edition.sweden), ('Indonesia', edition.indonesia)] %}
-        {% for country_name, section in newsletter_sections %}
+        {% if regional %}
+        {% set newsletter_sections = [] %}
+        {% for region, section in edition.named_sections() %}{% set _ = newsletter_sections.append((region.emoji ~ ' ' ~ region.heading, section)) %}{% endfor %}
+        {% elif indonesia_only %}
+        {% set newsletter_sections = [('🇮🇩 Indonesia', edition.indonesia)] %}
+        {% else %}
+        {% set newsletter_sections = [('🇸🇪 Sweden', edition.sweden), ('🇮🇩 Indonesia', edition.indonesia)] %}
+        {% endif %}
+        {% for section_heading, section in newsletter_sections %}
         <tr><td class="inset section-wrap">
-          <h2 class="section-heading"><span class="underline">{{ '🇸🇪' if country_name == 'Sweden' else '🇮🇩' }} {{ country_name }}</span></h2>
+          <h2 class="section-heading"><span class="underline">{{ section_heading }}</span></h2>
           {{ story_card(section.lead, true) }}
           {% for story in section.stories %}{{ story_card(story) }}{% endfor %}
 
@@ -240,7 +253,7 @@
         {% endfor %}
 
         <tr><td class="inset footer">
-          {% if indonesia_only %}Curated for Mom by Ari &lt;3{% else %}Coded by Ari with &lt;3 to educate, inform, and enable.{% endif %}
+          {% if regional %}{{ edition.profile.footer }}{% elif indonesia_only %}Curated for Mom by Ari &lt;3{% else %}Coded by Ari with &lt;3 to educate, inform, and enable.{% endif %}
         </td></tr>
       </table>
     </td></tr>

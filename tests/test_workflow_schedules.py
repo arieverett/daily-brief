@@ -50,12 +50,36 @@ def test_backstop_polls_from_the_evening_before_through_late_morning():
 def test_every_edition_job_uses_the_shared_delivery_workflow():
     for name in ("briefs.yml", "briefs-backstop.yml"):
         jobs = load(name)["jobs"]
-        for edition in ("standard", "indonesia"):
+        for edition in ("standard", "indonesia", "us"):
             job = jobs[edition]
             assert job["uses"] == "./.github/workflows/send-newsletter.yml"
             assert job["with"]["edition"] == edition
             assert job["permissions"]["actions"] == "read"
         assert "INDONESIA_BRIEF_TO_EMAIL" in jobs["indonesia"]["secrets"]
+        # Two-Mile High goes to Ari only.
+        assert "INDONESIA_BRIEF_TO_EMAIL" not in jobs["us"]["secrets"]
+
+
+def test_untargeted_runs_send_every_edition():
+    # The external trigger and the marker push carry no `editions` input.
+    jobs = load("briefs.yml")["jobs"]
+    for edition in ("standard", "indonesia", "us"):
+        assert jobs[edition]["if"].startswith("${{ !inputs.editions || inputs.editions == 'all'")
+    on = triggers(load("briefs.yml"))
+    assert on["workflow_dispatch"]["inputs"]["editions"]["default"] == "all"
+    backstop = load("briefs-backstop.yml")["jobs"]
+    assert "--editions all" in backstop["gate"]["steps"][-1]["run"]
+    assert backstop["gate"]["outputs"]["us"] == "${{ steps.gate.outputs.us }}"
+
+
+def test_us_edition_uses_its_own_sources_and_only_the_primary_recipient():
+    send = next(
+        step for step in load("send-newsletter.yml")["jobs"]["send"]["steps"]
+        if step.get("name") == "Generate and send newsletter"
+    )
+    us_branch = send["run"].split('== "us" ]]; then', 1)[1].split("else", 1)[0]
+    assert 'BRIEF_TO_EMAIL="${PRIMARY_TO_EMAIL}"' in us_branch
+    assert 'sources="config/us_sources.yml"' in us_branch
 
 
 def test_delivery_job_serializes_per_edition_and_rechecks_before_sending():

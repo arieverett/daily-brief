@@ -31,6 +31,7 @@ jobs:
     outputs:
       standard: ${{ steps.gate.outputs.standard }}
       indonesia: ${{ steps.gate.outputs.indonesia }}
+      us: ${{ steps.gate.outputs.us }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -41,7 +42,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           PYTHONPATH: src
-        run: python3 -m briefing.delivery gate --backstop --editions both
+        run: python3 -m briefing.delivery gate --backstop --editions all
 
   standard:
     needs: gate
@@ -75,3 +76,19 @@ jobs:
       BRIEF_FROM_EMAIL: ${{ secrets.BRIEF_FROM_EMAIL }}
       BRIEF_TO_EMAIL: ${{ secrets.BRIEF_TO_EMAIL }}
       INDONESIA_BRIEF_TO_EMAIL: ${{ secrets.INDONESIA_BRIEF_TO_EMAIL }}
+
+  us:
+    needs: gate
+    if: ${{ needs.gate.outputs.us == 'true' }}
+    permissions:
+      contents: read
+      actions: read
+    uses: ./.github/workflows/send-newsletter.yml
+    with:
+      edition: us
+      trigger: backstop
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      BRIEF_FROM_EMAIL: ${{ secrets.BRIEF_FROM_EMAIL }}
+      BRIEF_TO_EMAIL: ${{ secrets.BRIEF_TO_EMAIL }}

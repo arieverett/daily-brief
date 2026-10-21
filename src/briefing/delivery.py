@@ -38,7 +38,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 TIMEZONE = "America/New_York"
-EDITIONS = ("standard", "indonesia")
+EDITIONS = ("standard", "indonesia", "us")
 
 SEND_AT = clock_time(6, 0)
 BACKSTOP_OPENS = clock_time(5, 0)
@@ -128,11 +128,12 @@ def parse_clock(value: str) -> clock_time | None:
 
 
 def requested_editions(value: str) -> list[str]:
-    value = (value or "both").strip().lower()
+    value = (value or "all").strip().lower()
+    # "both" predates the third edition; it still means every edition.
     if value in ("both", "all", ""):
         return list(EDITIONS)
     if value not in EDITIONS:
-        raise ValueError(f"Unknown edition {value!r}; expected both, standard, or indonesia")
+        raise ValueError(f"Unknown edition {value!r}; expected all, {', '.join(EDITIONS)}")
     return [value]
 
 
@@ -310,7 +311,10 @@ def gate_command(args: argparse.Namespace) -> int:
 
 
 def build_alert(*, edition: str, day: date, run_url: str, trigger: str) -> dict[str, str]:
-    label = "Nusantara Daily (Indonesia)" if edition == "indonesia" else "Daily Brief (standard)"
+    label = {
+        "indonesia": "Nusantara Daily (Indonesia)",
+        "us": "Two-Mile High (Phoenix + Denver)",
+    }.get(edition, "Daily Brief (standard)")
     subject = f"⚠️ {label} did not send for {day:%a %b} {day.day}"
     text = (
         f"The {label} run for {day.isoformat()} failed (trigger: {trigger}).\n\n"

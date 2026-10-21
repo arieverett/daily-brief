@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       edition:
-        description: Newsletter edition to generate (standard or indonesia)
+        description: Newsletter edition to generate (standard, indonesia, or us)
         required: true
         type: string
       force:
@@ -121,6 +121,9 @@ jobs:
           if [[ "${{ inputs.edition }}" == "indonesia" ]]; then
             export BRIEF_TO_EMAIL="${INDONESIA_TO_EMAIL},${PRIMARY_TO_EMAIL}"
             sources="config/indonesia_sources.yml"
+          elif [[ "${{ inputs.edition }}" == "us" ]]; then
+            export BRIEF_TO_EMAIL="${PRIMARY_TO_EMAIL}"
+            sources="config/us_sources.yml"
           else
             export BRIEF_TO_EMAIL="${PRIMARY_TO_EMAIL}"
             sources="config/sources.yml"
