@@ -15,6 +15,7 @@ on:
       - "src/briefing/feedcheck.py"
       - "src/briefing/weather.py"
       - "src/briefing/weather_topics.py"
+      - ".github/workflows/feed-check.yml"
   pull_request:
     paths:
       - "config/**"
@@ -25,6 +26,25 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Its own job: GitHub keeps at most 50 annotations per job, and the weather notices
+  # below would otherwise crowd out this edition's feed report.
+  us-feeds:
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - run: uv sync --locked --python 3.12
+      - name: US edition feeds
+        run: uv run --no-sync python -m briefing.feedcheck config/us_sources.yml --max-candidates 40
+
   feeds:
     permissions:
       contents: read
@@ -46,9 +66,6 @@ jobs:
         run: >-
           uv run --no-sync python -m briefing.feedcheck config/indonesia_sources.yml
           --max-candidates 60
-      - name: US edition feeds
-        if: ${{ !cancelled() }}
-        run: uv run --no-sync python -m briefing.feedcheck config/us_sources.yml --max-candidates 40
       # Same yearly climate-history cache idea as the morning run (it's a big download that
       # Open-Meteo rate-limits), saved even if the check fails so partial progress is kept.
       - name: Weather cache key
