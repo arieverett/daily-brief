@@ -33,19 +33,21 @@
 } %}
 {% macro weather_widget(city, wx) -%}
 {% set sky = wx_sky.get(city.theme, wx_sky['overcast']) %}
-<table role="presentation" class="wx-card" width="100%" cellspacing="0" cellpadding="0" bgcolor="{{ sky[0] }}" style="background-color:{{ sky[0] }};background-image:linear-gradient(180deg,{{ sky[0] }} 0%,{{ sky[1] }} 100%);">
+<table role="presentation" class="wx-card" width="100%" height="100%" cellspacing="0" cellpadding="0" bgcolor="{{ sky[0] }}" style="background-color:{{ sky[0] }};background-image:linear-gradient(180deg,{{ sky[0] }} 0%,{{ sky[1] }} 100%);">
   <tr><td class="wx-head">
     <div class="wx-city">{{ city.flag }} {{ city.name }} <span class="wx-when">· {{ city.day_label }}</span></div>
     <table role="presentation" width="100%"><tr>
       <td valign="bottom" class="wx-now-temp"><span class="wx-big">{{ city.high }}°</span><span class="wx-big-unit">{{ wx.unit }}</span> <span class="wx-big-alt">{{ city.high_alt }}°{{ wx.alt_unit }}</span></td>
       <td valign="bottom" align="right" class="wx-now">
         <div class="wx-cond">{{ city.icon }} {{ city.condition }}</div>
-        <div class="wx-hl">{{ 'Min' if indonesia_only else 'Low' }} {{ city.low }}°{{ wx.unit }} · {{ city.low_alt }}°{{ wx.alt_unit }}{% if city.rain_chance is not none and city.rain_chance >= 20 %} · 💧{{ city.rain_chance }}%{% endif %}</div>
+        <div class="wx-hl">{{ 'Min' if indonesia_only else 'Low' }} {{ city.low }}°{{ wx.unit }} · {{ city.low_alt }}°{{ wx.alt_unit }}</div>
+        {# Always rendered (blank when dry) so side-by-side widgets keep the same header height. #}
+        <div class="wx-hl wx-hl-rain">{% if city.rain_chance is not none and city.rain_chance >= 20 %}💧 {{ city.rain_chance }}%{% else %}&nbsp;{% endif %}</div>
       </td>
     </tr></table>
   </td></tr>
   {% if city.days %}
-  <tr><td class="wx-strip">
+  <tr><td class="wx-strip" valign="top">
     <table role="presentation" width="100%"><tr>
       {% for d in city.days %}
       <td class="wx-day" align="center" valign="top" width="{{ (100 / city.days | length) | int }}%">
@@ -67,7 +69,7 @@
   <tr><td class="wx-body">
     <table role="presentation" width="100%"><tr>
       {% for city in wx.featured %}
-      <td class="wx-col{% if not loop.first %} wx-col-next{% endif %}{% if not loop.last %} wx-col-first{% endif %}" valign="top" width="{{ (100 / wx.featured | length) | int }}%">{{ weather_widget(city, wx) }}</td>
+      <td class="wx-col{% if not loop.first %} wx-col-next{% endif %}{% if not loop.last %} wx-col-first{% endif %}" valign="top" height="100%" width="{{ (100 / wx.featured | length) | int }}%">{{ weather_widget(city, wx) }}</td>
       {% endfor %}
     </tr></table>
     {% if wx.around %}
@@ -143,7 +145,7 @@
     .wx-body { padding: 12px 12px 13px; }
     .wx-col-first { padding-right: 4px; }
     .wx-col-next { padding-left: 4px; }
-    .wx-card { width: 100%; border-radius: 12px; border-collapse: separate; overflow: hidden; color: #ffffff; }
+    .wx-card { width: 100%; height: 100%; border-radius: 12px; border-collapse: separate; overflow: hidden; color: #ffffff; }
     .wx-head { padding: 11px 13px 9px; }
     .wx-city { font-size: 15px; line-height: 19px; font-weight: 800; color: #ffffff; }
     .wx-when { font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #e6eef7; }
@@ -153,8 +155,9 @@
     .wx-big-alt { font-size: 14px; font-weight: 700; color: #e6eef7; }
     .wx-now { font-size: 13px; line-height: 17px; color: #ffffff; padding-bottom: 4px; }
     .wx-cond { font-weight: 700; }
-    .wx-hl { color: #e6eef7; }
-    .wx-strip { padding: 7px 4px 9px; border-top: 1px solid rgba(255,255,255,0.28); }
+    .wx-hl { color: #e6eef7; white-space: nowrap; }
+    .wx-hl-rain { color: #c6e6ff; font-weight: 700; }
+    .wx-strip { height: 100%; padding: 7px 4px 9px; border-top: 1px solid rgba(255,255,255,0.28); }
     .wx-day { padding: 0 1px; color: #ffffff; }
     .wx-dname { font-size: 11px; line-height: 14px; font-weight: 800; color: #e6eef7; }
     .wx-dicon { font-size: 18px; line-height: 23px; }
