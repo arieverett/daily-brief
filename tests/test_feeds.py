@@ -172,6 +172,8 @@ def test_every_configured_feed_is_well_formed():
         for feed in feeds:
             assert {"name", "country", "url"} <= feed.keys(), feed
             assert feed.get("tier", "primary") in {"primary", "backup"}, feed
+            # YAML reads bare numbers (e.g. 5280) as ints, which the source filter can't match.
+            assert all(isinstance(name, str) for name in feed.get("allowed_sources", [])), feed
             if feed.get("tier") == "backup":
                 assert feed.get("source"), f"backup feed needs a source label: {feed['name']}"
         assert any(feed.get("tier") == "backup" for feed in feeds), path
