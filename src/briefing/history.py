@@ -12,6 +12,7 @@ any failure just leaves the section out.
 from __future__ import annotations
 
 import argparse
+import os
 import random
 import re
 import sys
@@ -195,6 +196,13 @@ def build_history(
     return pick(fetch_events(day, client), config, day)
 
 
+def _annotate(level: str, title: str, message: str) -> None:
+    print(message, flush=True)
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        escaped = message[:3000].replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+        print(f"::{level} title={title}::{escaped}", flush=True)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Preview the Today in history picks")
     parser.add_argument("sources", type=Path)
@@ -203,14 +211,21 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     config = load_history_config(args.sources)
     if config is None:
-        print(f"{args.sources}: no history block")
+        _annotate("error", "Today in history", f"{args.sources}: no history block")
         return 1
     day = date.fromisoformat(args.date)
-    events = fetch_events(day)
+    try:
+        events = fetch_events(day)
+    except Exception as exc:  # noqa: BLE001 - report whatever went wrong on the run page
+        _annotate("error", "Today in history", f"{type(exc).__name__}: {exc}")
+        return 1
     items = pick(events, config, day)
-    print(f"{len(events)} Wikipedia events for {day:%B} {day.day}; picked {len(items)}:")
-    for item in items:
-        print(f"  {item.emoji} {item.year_label}: {item.text} <{item.url}>".replace("   ", "  "))
+    lines = [f"{len(events)} Wikipedia events for {day:%B} {day.day}; picked {len(items)}:"]
+    lines += [
+        f"  {item.emoji + ' ' if item.emoji else ''}{item.year_label}: {item.text} <{item.url}>"
+        for item in items
+    ]
+    _annotate("notice" if items else "error", "Today in history", "\n".join(lines))
     return 0 if items else 1
 
 
