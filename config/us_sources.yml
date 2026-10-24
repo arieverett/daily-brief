@@ -196,3 +196,17 @@ weather:
     - {name: Boulder, country: United States, flag: "🏔️", latitude: 40.0150, longitude: -105.2705}
     - {name: Colorado Springs, country: United States, flag: "🏔️", latitude: 38.8339, longitude: -104.8214}
     - {name: Vail, country: United States, flag: "⛷️", latitude: 39.6403, longitude: -106.3742}
+
+# "Today in history" bonus at the end (src/briefing/history.py): Wikipedia's "On this day"
+# events, short ones only. Up to max_local events from these states go first, marked with
+# the state's emoji; the rest are spread across the centuries.
+history:
+  count: 4
+  max_local: 2
+  local:
+    - emoji: "🌵"
+      terms: [Arizona, Phoenix, Tucson, Flagstaff, Tempe, Scottsdale, Yuma, Tombstone, Sedona,
+              Grand Canyon, Navajo, Hopi, Gila, Salt River, Hoover Dam]
+    - emoji: "🏔️"
+      terms: [Colorado, Denver, Boulder, Aspen, Vail, Pikes Peak, Rocky Mountain, Pueblo,
+              Durango, Mesa Verde, Fort Collins]

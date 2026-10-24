@@ -24,6 +24,7 @@ from .collect import (
 from .config import DEFAULT_OUT_DIR, DEFAULT_SOURCES_PATH, Settings
 from .delivery import parse_clock, scheduled_send_time
 from .editor import create_edition, create_indonesia_edition
+from .history import build_history, load_history_config
 from .models import Candidate, NewsletterEdition, RegionalEdition, edition_from_dict
 from .reference import compare_to_reference
 from .regional import create_regional_edition, load_profile
@@ -377,6 +378,29 @@ def _add_weather(
     return replace(edition, weather=replace(data.report, summary=summary))
 
 
+def _add_history(
+    edition: NewsletterEdition, args: argparse.Namespace, day: date
+) -> NewsletterEdition:
+    """Attach the Today in history bonus. Best-effort: any failure leaves it out."""
+    if not isinstance(edition, RegionalEdition):
+        return edition
+    try:
+        config = load_history_config(args.sources)
+        if config is None:
+            return edition
+        print("→ Fetching Today in history...", flush=True)
+        items = build_history(config, day)
+    except Exception as exc:  # noqa: BLE001 - a bonus section must never block the send
+        _annotate_warning("Today in history", exc)
+        return edition
+    _annotate_notice(
+        "Today in history",
+        "\n".join(f"{item.emoji} {item.year_label}: {item.text}".strip() for item in items)
+        or "No events picked",
+    )
+    return replace(edition, history=items)
+
+
 def main() -> None:
     args = parse_args()
     settings: Settings | None = None
@@ -392,6 +416,7 @@ def main() -> None:
         edition, candidates = _generate_live_edition(args, settings, day)
         edition = _add_images(edition, candidates, args.edition)
         edition = _add_weather(edition, args, settings, day)
+        edition = _add_history(edition, args, day)
         _annotate_notice("House style", score_edition(edition).report())
         voice = compare_to_reference(edition)
         if voice:

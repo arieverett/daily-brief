@@ -151,6 +151,12 @@ def render_regional_text(edition: RegionalEdition) -> str:
             (region.heading.upper(), section) for region, section in edition.named_sections()
         ),
     ]
+    if edition.history:
+        blocks.extend(("", "TODAY IN HISTORY"))
+        blocks.extend(
+            f"{item.year_label}: {item.text}\nWikipedia | {item.url}" for item in edition.history
+        )
+        blocks.append("From Wikipedia's \"On this day\" (CC BY-SA 4.0)")
     return "\n\n".join(blocks)
 
 

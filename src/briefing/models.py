@@ -174,6 +174,20 @@ class RegionalProfile:
 
 
 @dataclass(frozen=True)
+class HistoryItem:
+    """One "Today in history" line (Wikipedia's own summary of the event)."""
+
+    year: int
+    text: str
+    url: str
+    emoji: str = ""  # the region's emoji when the event is from one of its states
+
+    @property
+    def year_label(self) -> str:
+        return f"{-self.year} BC" if self.year < 0 else str(self.year)
+
+
+@dataclass(frozen=True)
 class RegionalEdition:
     edition_date: str
     date_label: str
@@ -184,6 +198,8 @@ class RegionalEdition:
     # In the profile's region order, keyed by Region.key.
     sections: dict[str, CountrySection] = field(default_factory=dict)
     weather: WeatherReport | None = None
+    # The fun bonus at the end; empty when Wikipedia couldn't be reached.
+    history: list[HistoryItem] = field(default_factory=list)
 
     def named_sections(self) -> list[tuple[Region, CountrySection]]:
         return [

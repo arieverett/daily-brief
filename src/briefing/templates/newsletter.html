@@ -180,6 +180,8 @@
     .wx-para { margin: 0 0 10px; font-size: 16px; line-height: 22px; }
     .wx-credit { padding-top: 8px; font-size: 11px; line-height: 15px; color: #6b6b6b; }
     .wx-credit a { color: #6b6b6b; text-decoration-color: #b6b6b6; text-decoration-thickness: 1px; }
+    .history-credit { padding: 6px 18px 12px; font-size: 11px; line-height: 15px; color: #6b6b6b; }
+    .history-credit a { color: #6b6b6b; text-decoration-color: #b6b6b6; text-decoration-thickness: 1px; }
     .footer { padding-top: 26px; padding-bottom: 32px; text-align: center; font-size: 11px; line-height: 17px; color: #4a4a4a; }
     @media only screen and (max-width: 650px) {
       .email { width: 100% !important; }
@@ -189,6 +191,7 @@
       .story-card h3 { font-size: 20px !important; line-height: 24px !important; }
       .story-body { padding-left: 15px !important; padding-right: 15px !important; }
       .speed-row td { padding-left: 15px !important; padding-right: 15px !important; }
+      .history-credit { padding-left: 15px !important; padding-right: 15px !important; }
       .speed-title, .setup-title, .setup-copy { padding-left: 15px !important; padding-right: 15px !important; }
       .wx-col { display: block !important; width: 100% !important; padding: 0 !important; }
       .wx-col-next { padding-top: 8px !important; }
@@ -251,6 +254,18 @@
           </table>
         </td></tr>
         {% endfor %}
+
+        {% if regional and edition.history %}
+        <tr><td class="inset section-wrap">
+          <table role="presentation" class="module" width="100%">
+            <tr><td class="speed-title">📜 Today in history</td></tr>
+            {% for item in edition.history %}
+            <tr class="speed-row{% if loop.first %} first{% else %} rule{% endif %}{% if loop.last %} last{% endif %}"><td>{% if item.emoji %}{{ item.emoji }} {% endif %}<strong>{{ item.year_label }}:</strong> {{ item.text }} <a href="{{ item.url }}">Wikipedia →</a></td></tr>
+            {% endfor %}
+            <tr><td class="history-credit">From Wikipedia's "On this day," <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.</td></tr>
+          </table>
+        </td></tr>
+        {% endif %}
 
         <tr><td class="inset footer">
           {% if regional %}{{ edition.profile.footer }}{% elif indonesia_only %}Curated for Mom by Ari &lt;3{% else %}Coded by Ari with &lt;3 to educate, inform, and enable.{% endif %}
