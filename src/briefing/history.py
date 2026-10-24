@@ -31,7 +31,16 @@ FEED_URLS = (
     "https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/{month:02d}/{day:02d}",
     "https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/{month:02d}/{day:02d}",
 )
-HEADERS = {"User-Agent": "daily-brief newsletter (github.com/arieverett/daily-brief)"}
+# Wikimedia's User-Agent policy: tool/version (contact URL) library/version. A UA without a
+# URL is refused with 403 from cloud networks such as GitHub's runners.
+HEADERS = {
+    "User-Agent": (
+        f"DailyBriefNewsletter/1.0 (https://github.com/arieverett/daily-brief) "
+        f"python-httpx/{httpx.__version__}"
+    ),
+    "Api-User-Agent": "DailyBriefNewsletter/1.0 (https://github.com/arieverett/daily-brief)",
+    "Accept": "application/json",
+}
 TIMEOUT = httpx.Timeout(15.0, connect=10.0)
 
 # Speed-read length: Wikipedia's longer entries are skipped when there are shorter ones.
