@@ -37,8 +37,12 @@ on:
 
 jobs:
   standard:
+    # Runs after Nusantara Daily so its Indonesia section can follow the same stories (both
+    # jobs take ~2-3 min, well inside 05:45-06:00). !cancelled() keeps it running when the
+    # indonesia job is skipped or fails; it then picks Indonesia stories on its own.
+    needs: indonesia
     # Pushes and the external trigger carry no inputs, so an empty value means all.
-    if: ${{ !inputs.editions || inputs.editions == 'all' || inputs.editions == 'both' || inputs.editions == 'standard' }}
+    if: ${{ !cancelled() && (!inputs.editions || inputs.editions == 'all' || inputs.editions == 'both' || inputs.editions == 'standard') }}
     permissions:
       contents: read
       actions: read

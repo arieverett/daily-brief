@@ -10,6 +10,7 @@ from typing import Any, TypeVar
 
 from openai import OpenAI
 
+from .alignment import Picks, alignment_prompt, alignment_report
 from .editorial import (
     EDITION_SCHEMA,
     INDONESIA_EDITION_SCHEMA,
@@ -185,13 +186,16 @@ def indonesia_date_label(day: date) -> str:
     return f"{INDONESIAN_DAYS[day.weekday()]}, {day.day} {INDONESIAN_MONTHS[day.month - 1]}"
 
 
-def _standard_prompt(candidates: list[Candidate], day: date) -> str:
+def _standard_prompt(
+    candidates: list[Candidate], day: date, picks: Picks | None = None
+) -> str:
     payload = [candidate.prompt_dict() for candidate in candidates]
     return (
         f"Create the edition for {day.isoformat()}. "
         f"Use date_label '{standard_date_label(day)}'. "
         "Candidate stories follow as JSON.\n\n"
         + json.dumps(payload, ensure_ascii=False)
+        + alignment_prompt(picks)
     )
 
 
@@ -263,18 +267,28 @@ def _country_counts(candidates: list[Candidate]) -> dict[str, int]:
 
 
 def create_edition(
-    candidates: list[Candidate], api_key: str, model: str, day: date
+    candidates: list[Candidate],
+    api_key: str,
+    model: str,
+    day: date,
+    picks: Picks | None = None,
 ) -> Edition:
+    """Write the standard edition. With ``picks`` (today's Nusantara Daily stories) the
+    Indonesia section follows them; a first draft with a different Indonesia lead is
+    regenerated once, and the retry is accepted whatever it leads with."""
     counts = _country_counts(candidates)
     if min(counts.values()) < MIN_CANDIDATES_PER_COUNTRY:
         raise RuntimeError(f"Not enough candidate stories to publish safely: {counts}")
+    attempts = 0
 
     def build() -> Edition:
+        nonlocal attempts
+        attempts += 1
         payload = _generate_structured_output(
             api_key=api_key,
             model=model,
             instructions=f"{SYSTEM_PROMPT}\n\n{ENGLISH_VOICE_GUIDANCE}",
-            prompt=_standard_prompt(candidates, day),
+            prompt=_standard_prompt(candidates, day, picks),
             schema=EDITION_SCHEMA,
             schema_name="daily_brief",
             retries=OPENAI_MAX_RETRIES,
@@ -287,6 +301,12 @@ def create_edition(
         )
         validated = validate_edition(edition, candidates)
         assert isinstance(validated, Edition)
+        if (
+            picks is not None
+            and attempts < GENERATION_ATTEMPTS
+            and not alignment_report(validated.indonesia, picks).lead_matches
+        ):
+            raise ValueError("Indonesia lead differs from Nusantara Daily's")
         return validated
 
     return _with_regeneration(build)

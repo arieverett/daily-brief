@@ -67,6 +67,11 @@ def alert_record_name(edition: str, day: date) -> str:
     return f"alerted-{edition}-{day.isoformat()}"
 
 
+def picks_record_name(day: date) -> str:
+    """Nusantara Daily's story list, which the standard edition's Indonesia section follows."""
+    return f"picks-indonesia-{day.isoformat()}"
+
+
 def _at(day: date, when: clock_time, tzinfo) -> datetime:
     return datetime.combine(day, when, tzinfo=tzinfo)
 
@@ -187,6 +192,57 @@ def artifact_exists(
         item.get("name") == name and not item.get("expired")
         for item in payload.get("artifacts", [])
     )
+
+
+def latest_artifact_run_id(
+    name: str,
+    *,
+    repo: str,
+    token: str,
+    api_url: str = GITHUB_API_URL,
+) -> int | None:
+    """The workflow run that uploaded the newest unexpired artifact with this name."""
+    query = urllib.parse.urlencode({"name": name, "per_page": 10})
+    request = urllib.request.Request(
+        f"{api_url}/repos/{repo}/actions/artifacts?{query}",
+        headers={
+            "Accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {token}",
+            "X-GitHub-Api-Version": "2022-11-28",
+            "User-Agent": "DailyBrief/1.0",
+        },
+    )
+    try:
+        payload = _request_json(request)
+    except Exception as exc:  # noqa: BLE001 - any failure means "none found"
+        print(f"  WARNING: could not look up artifact {name}: {exc}", flush=True)
+        return None
+    matches = [
+        item
+        for item in payload.get("artifacts", [])
+        if item.get("name") == name and not item.get("expired")
+    ]
+    matches.sort(key=lambda item: item.get("created_at") or "", reverse=True)
+    for item in matches:
+        run_id = (item.get("workflow_run") or {}).get("id")
+        if run_id:
+            return int(run_id)
+    return None
+
+
+def picks_command(args: argparse.Namespace) -> int:
+    """Find today's Nusantara Daily picks so the workflow can download them."""
+    day = date.fromisoformat(args.date)
+    name = picks_record_name(day)
+    repo = os.getenv("GITHUB_REPOSITORY", "")
+    token = os.getenv("GITHUB_TOKEN", "") or os.getenv("GH_TOKEN", "")
+    run_id = latest_artifact_run_id(name, repo=repo, token=token) if repo and token else None
+    if run_id is None:
+        print(f"  No {name} artifact; Indonesia stories will be chosen independently", flush=True)
+    else:
+        print(f"  Found {name} from run {run_id}", flush=True)
+    _write_github_output({"name": name, "run_id": str(run_id or "")})
+    return 0
 
 
 # ---------------------------------------------------------------------------
@@ -401,6 +457,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     alert.add_argument("--run-url", default="")
     alert.add_argument("--record-dir", default="out/alert")
     alert.set_defaults(handler=alert_command)
+
+    picks = sub.add_parser("picks", help="Locate today's Nusantara Daily picks artifact")
+    picks.add_argument("--date", required=True)
+    picks.set_defaults(handler=picks_command)
     return parser.parse_args(argv)
 
 

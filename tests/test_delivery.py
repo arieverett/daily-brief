@@ -217,3 +217,33 @@ def test_alert_is_sent_once_per_edition_per_day(tmp_path, monkeypatch):
 
 def test_scheduled_send_lead_time_is_configurable():
     assert scheduled_send_time(ny("2026-09-29T05:58"), min_lead=timedelta(minutes=5)) is None
+
+
+def test_picks_lookup_returns_the_newest_run(monkeypatch):
+    def fake_request(request, timeout=20.0):
+        assert "name=picks-indonesia-2026-10-27" in request.full_url
+        return {
+            "artifacts": [
+                {"name": "picks-indonesia-2026-10-27", "expired": False,
+                 "created_at": "2026-10-27T09:47:00Z", "workflow_run": {"id": 11}},
+                {"name": "picks-indonesia-2026-10-27", "expired": False,
+                 "created_at": "2026-10-27T13:02:00Z", "workflow_run": {"id": 22}},
+                {"name": "picks-indonesia-2026-10-27", "expired": True,
+                 "created_at": "2026-10-27T14:00:00Z", "workflow_run": {"id": 33}},
+            ]
+        }
+
+    monkeypatch.setattr(delivery, "_request_json", fake_request)
+    assert delivery.latest_artifact_run_id(
+        "picks-indonesia-2026-10-27", repo="o/r", token="t"
+    ) == 22
+
+
+def test_picks_command_writes_empty_run_id_without_github(tmp_path, monkeypatch):
+    output = tmp_path / "out.txt"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(output))
+    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+    monkeypatch.delenv("GH_TOKEN", raising=False)
+    assert delivery.main(["picks", "--date", "2026-10-27"]) == 0
+    lines = dict(line.split("=", 1) for line in output.read_text().splitlines())
+    assert lines == {"name": "picks-indonesia-2026-10-27", "run_id": ""}

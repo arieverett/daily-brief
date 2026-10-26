@@ -63,8 +63,12 @@ def test_every_edition_job_uses_the_shared_delivery_workflow():
 def test_untargeted_runs_send_every_edition():
     # The external trigger and the marker push carry no `editions` input.
     jobs = load("briefs.yml")["jobs"]
-    for edition in ("standard", "indonesia", "us"):
+    for edition in ("indonesia", "us"):
         assert jobs[edition]["if"].startswith("${{ !inputs.editions || inputs.editions == 'all'")
+    # The standard job waits for Nusantara Daily but must still run when it's skipped.
+    assert jobs["standard"]["if"].startswith(
+        "${{ !cancelled() && (!inputs.editions || inputs.editions == 'all'"
+    )
     on = triggers(load("briefs.yml"))
     assert on["workflow_dispatch"]["inputs"]["editions"]["default"] == "all"
     backstop = load("briefs-backstop.yml")["jobs"]
@@ -174,3 +178,21 @@ def test_dependabot_groups_weekly_updates():
         assert {"dependency-name": "*", "update-types": ["version-update:semver-major"]} in (
             update["ignore"]
         )
+
+
+def test_standard_edition_runs_after_nusantara_daily_to_share_its_stories():
+    assert load("briefs.yml")["jobs"]["standard"]["needs"] == "indonesia"
+    backstop = load("briefs-backstop.yml")["jobs"]["standard"]
+    assert backstop["needs"] == ["gate", "indonesia"]
+    assert backstop["if"].startswith("${{ !cancelled() && ")
+    # Nusantara Daily never waits on anything but the gate, so Mom's edition isn't delayed.
+    assert load("briefs.yml")["jobs"]["indonesia"].get("needs") is None
+
+    steps = {step.get("name"): step for step in load("send-newsletter.yml")["jobs"]["send"]["steps"]}
+    share = steps["Share today's picks with the standard edition"]
+    assert share["with"]["name"] == "picks-indonesia-${{ steps.guard.outputs.date }}"
+    assert share["continue-on-error"] is True
+    for name in ("Find today's Nusantara Daily picks", "Download today's Nusantara Daily picks"):
+        assert steps[name]["continue-on-error"] is True
+    env = steps["Generate and send newsletter"]["env"]
+    assert "out/picks/indonesia.json" in env["BRIEF_INDONESIA_PICKS"]

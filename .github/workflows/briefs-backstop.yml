@@ -45,8 +45,9 @@ jobs:
         run: python3 -m briefing.delivery gate --backstop --editions all
 
   standard:
-    needs: gate
-    if: ${{ needs.gate.outputs.standard == 'true' }}
+    # After Nusantara Daily, so the Indonesia section can follow its stories (see briefs.yml).
+    needs: [gate, indonesia]
+    if: ${{ !cancelled() && needs.gate.outputs.standard == 'true' }}
     permissions:
       contents: read
       actions: read

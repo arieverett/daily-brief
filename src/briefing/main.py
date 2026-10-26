@@ -14,6 +14,7 @@ from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from .alignment import alignment_report, load_picks, merge_candidates, write_picks
 from .collect import (
     add_article_excerpts,
     add_article_images,
@@ -25,7 +26,14 @@ from .config import DEFAULT_OUT_DIR, DEFAULT_SOURCES_PATH, Settings
 from .delivery import parse_clock, scheduled_send_time
 from .editor import create_edition, create_indonesia_edition
 from .history import build_history, load_history_config
-from .models import Candidate, NewsletterEdition, RegionalEdition, edition_from_dict
+from .models import (
+    Candidate,
+    Edition,
+    IndonesiaEdition,
+    NewsletterEdition,
+    RegionalEdition,
+    edition_from_dict,
+)
 from .reference import compare_to_reference
 from .regional import create_regional_edition, load_profile
 from .render import render_html, render_indonesia_text, render_regional_text, render_text
@@ -102,6 +110,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--sources", type=Path, default=DEFAULT_SOURCES_PATH)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT_DIR)
+    parser.add_argument(
+        "--indonesia-picks",
+        type=Path,
+        default=os.getenv("BRIEF_INDONESIA_PICKS") or None,
+        help="Standard edition: today's Nusantara Daily picks to align the Indonesia section with",
+    )
     return parser.parse_args()
 
 
@@ -258,6 +272,16 @@ def _generate_live_edition(
     read = sum(1 for candidate in candidates if candidate.excerpt)
     print(f"  Article text found for {read} of {len(candidates)} candidates", flush=True)
 
+    picks = None
+    if args.edition == "standard" and getattr(args, "indonesia_picks", None):
+        picks = load_picks(Path(args.indonesia_picks), day)
+        if picks is not None:
+            candidates = merge_candidates(candidates, picks)
+            print(
+                f"  Aligning Indonesia with Nusantara Daily's {len(picks.stories)} stories",
+                flush=True,
+            )
+
     with stage("Writing the edition with OpenAI"):
         profile = load_profile(args.sources) if args.edition not in ("standard", "indonesia") else None
         if profile is not None:
@@ -281,7 +305,21 @@ def _generate_live_edition(
                 settings.openai_api_key,
                 settings.openai_model,
                 day,
+                picks=picks,
             )
+
+    if isinstance(edition, IndonesiaEdition):
+        # Saved for the standard edition, which runs after this one (see briefs.yml).
+        try:
+            path = write_picks(edition, candidates, args.out)
+            print(f"  Saved today's picks for the standard edition: {path}", flush=True)
+        except OSError as exc:
+            _annotate_warning("Saving Nusantara Daily picks", exc)
+    elif isinstance(edition, Edition) and picks is not None:
+        _annotate_notice(
+            "Indonesia vs Nusantara Daily",
+            alignment_report(edition.indonesia, picks).text(),
+        )
     return edition, candidates
 
 
