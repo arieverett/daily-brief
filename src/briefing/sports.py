@@ -48,6 +48,7 @@ COLLEGE_LEAGUES = {"college-football", "mens-college-basketball", "college-baseb
 ACTIVE_PAST_DAYS = 10
 ACTIVE_NEXT_DAYS = 14
 UNRANKED = 99
+PER_FEED_CAP = 15  # Big plays headlines per query
 
 
 # ---------------------------------------------------------------------------
@@ -59,7 +60,7 @@ class TeamConfig:
     label: str
     sport: str
     league: str
-    team: str  # ESPN id or abbreviation
+    team: str  # ESPN id or abbreviation, or "auto" to look it up by `match`
     match: str  # must appear in ESPN's team name: guards against a wrong id
 
     @property
@@ -229,15 +230,39 @@ class TeamData:
     games: list[Game]
 
 
+def find_team_id(config: TeamConfig, client: httpx.Client) -> str:
+    """Look the team up by name in the league's team list (ids differ between sports)."""
+    url = API.format(sport=config.sport, league=config.league, team="").rstrip("/")
+    response = client.get(url, params={"limit": 1000}, headers=HEADERS)
+    response.raise_for_status()
+    teams = [
+        entry.get("team") or {}
+        for sport in response.json().get("sports") or []
+        for league in sport.get("leagues") or []
+        for entry in league.get("teams") or []
+    ]
+    wanted = config.match.lower()
+    matches = [team for team in teams if wanted in str(team.get("displayName", "")).lower()]
+    if len(matches) != 1:
+        names = [team.get("displayName") for team in matches][:5]
+        raise ValueError(f"{len(matches)} ESPN teams match {config.match!r}: {names}")
+    return str(matches[0]["id"])
+
+
 def fetch_team(config: TeamConfig, client: httpx.Client) -> TeamData:
-    base = API.format(sport=config.sport, league=config.league, team=config.team)
-    info = client.get(base, headers=HEADERS)
-    info.raise_for_status()
-    team = info.json().get("team") or {}
-    name = str(team.get("displayName", ""))
-    if config.match.lower() not in name.lower():
-        raise ValueError(f"ESPN team {config.team!r} is {name!r}, expected {config.match!r}")
-    team_id = str(team.get("id", config.team))
+    team_ref = config.team if config.team != "auto" else find_team_id(config, client)
+    for attempt in range(2):
+        base = API.format(sport=config.sport, league=config.league, team=team_ref)
+        info = client.get(base, headers=HEADERS)
+        team = (info.json().get("team") or {}) if info.status_code == 200 else {}
+        name = str(team.get("displayName", ""))
+        if config.match.lower() in name.lower():
+            break
+        if attempt:
+            raise ValueError(f"ESPN team {team_ref!r} is {name!r}, expected {config.match!r}")
+        # Wrong or missing id: find the team by name instead.
+        team_ref = find_team_id(config, client)
+    team_id = str(team.get("id", team_ref))
 
     schedule = client.get(base + "/schedule", headers=HEADERS)
     schedule.raise_for_status()
@@ -471,11 +496,19 @@ def check_big_plays(
 def collect_big_play_candidates(config: BigPlaysConfig, lookback_hours: int) -> list[Candidate]:
     from .collect import deduplicate, fetch_feeds
 
+    def newest_first(items: list[Candidate]) -> list[Candidate]:
+        return sorted(
+            items, key=lambda c: c.published_at or datetime.min.replace(tzinfo=UTC), reverse=True
+        )
+
     results = asyncio.run(fetch_feeds(config.feeds, lookback_hours))
-    candidates = [candidate for result in results for candidate in result.candidates]
-    candidates = deduplicate(candidates)
-    candidates.sort(key=lambda c: c.published_at or datetime.min.replace(tzinfo=UTC), reverse=True)
-    return candidates[:60]
+    # A cap per query, so one busy feed (CHSAA's game listings) can't crowd out the rest.
+    candidates = [
+        candidate
+        for result in results
+        for candidate in newest_first(deduplicate(result.candidates))[:PER_FEED_CAP]
+    ]
+    return newest_first(deduplicate(candidates))
 
 
 def pick_big_plays(

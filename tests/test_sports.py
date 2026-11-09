@@ -138,6 +138,17 @@ ROUTES = {
     "/baseball/mlb/teams/ari": {"team": DBACKS},
     "/baseball/mlb/teams/ari/schedule": DBACKS_SCHEDULE,
     "/basketball/nba/teams/phx": {"team": {"id": "21", "displayName": "Atlanta Hawks"}},
+    "/basketball/nba/teams": {"sports": [{"leagues": [{"teams": [{"team": {"id": "1", "displayName": "Atlanta Hawks"}}]}]}]},
+    # College baseball: the football id is another team; the right one is found by name.
+    "/baseball/college-baseball/teams/9": {"team": {"id": "9", "displayName": "Australia"}},
+    "/baseball/college-baseball/teams": {
+        "sports": [{"leagues": [{"teams": [
+            {"team": {"id": "9", "displayName": "Australia"}},
+            {"team": {"id": "58", "displayName": "Arizona State Sun Devils"}},
+        ]}]}]
+    },
+    "/baseball/college-baseball/teams/58": {"team": {"id": "58", "displayName": "Arizona State Sun Devils"}},
+    "/baseball/college-baseball/teams/58/schedule": {"events": []},
 }
 
 CONFIG = SportsConfig(
@@ -151,6 +162,7 @@ CONFIG = SportsConfig(
                 TeamConfig("Suns", "basketball", "nba", "phx", "Phoenix Suns"),
                 TeamConfig("Diamondbacks", "baseball", "mlb", "ari", "Diamondbacks"),
                 TeamConfig("ASU football", "football", "college-football", "9", "Arizona State"),
+                TeamConfig("ASU baseball", "baseball", "college-baseball", "9", "Arizona State"),
             ],
         )
     ]
@@ -196,8 +208,9 @@ def test_college_line_shows_ranking_and_hides_results_already_reported():
 def test_offseason_teams_and_wrong_ids_are_kept_out_of_the_lines():
     result = board()
     assert [line.team for line in result.groups[0].teams] == ["Cardinals", "ASU football"]
-    assert result.offseason == ["Diamondbacks"]
-    assert any("Atlanta Hawks" in error for error in result.errors)  # match guard
+    # ASU baseball's football id was wrong; found by name, then offseason.
+    assert result.offseason == ["Diamondbacks", "ASU baseball"]
+    assert len(result.errors) == 1 and "Phoenix Suns" in result.errors[0]  # match guard
 
 
 def test_us_config_has_a_sports_block():
@@ -250,7 +263,7 @@ def test_section_renders_before_history_with_credit(monkeypatch):
     assert html.index("Denver, Colorado") < html.index("Scoreboard") < html.index("Coded by Ari")
     assert "Cardinals</a></strong>" in html and "#16 ASU football" in html
     assert "W 27-24 (OT) vs Rams (Sun)" in html and "🔥 Big plays" in html
-    assert "Offseason: Diamondbacks." in html and "from ESPN" in html
+    assert "Offseason: Diamondbacks, ASU baseball." in html and "from ESPN" in html
     text = render_regional_text(edition)
     assert "SCOREBOARD" in text and "Cardinals 5-4, 2nd in NFC West | Last: W 27-24 (OT) vs Rams (Sun)" in text
     assert "Scoreboard" not in render_html(replace(edition, sports=None))

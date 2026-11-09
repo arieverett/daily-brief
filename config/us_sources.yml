@@ -200,8 +200,9 @@ weather:
 # Scoreboard (src/briefing/sports.py), after the news and before Today in history.
 # Teams: record, standing, any new result since the last edition and the next game, all from
 # ESPN's public API. Teams with no game within ~2 weeks are listed once as "Offseason".
-# `team` is ESPN's id or abbreviation; `match` must appear in ESPN's team name (guards against a
-# wrong id). Times show in the group's time zone. The Coyotes left for Utah in 2024, so
+# `team` is ESPN's id or abbreviation (or `auto`: look it up by name; college baseball ids differ
+# from football/basketball); `match` must appear in ESPN's team name, and a wrong id falls back
+# to that lookup. Times show in the group's time zone. The Coyotes left for Utah in 2024, so
 # Arizona has no NHL team.
 sports:
   groups:
@@ -215,10 +216,10 @@ sports:
         - {label: Mercury, sport: basketball, league: wnba, team: phx, match: Phoenix Mercury}
         - {label: ASU football, sport: football, league: college-football, team: "9", match: Arizona State}
         - {label: ASU hoops, sport: basketball, league: mens-college-basketball, team: "9", match: Arizona State}
-        - {label: ASU baseball, sport: baseball, league: college-baseball, team: "9", match: Arizona State}
+        - {label: ASU baseball, sport: baseball, league: college-baseball, team: auto, match: Arizona State}
         - {label: Arizona football, sport: football, league: college-football, team: "12", match: Arizona Wildcats}
         - {label: Arizona hoops, sport: basketball, league: mens-college-basketball, team: "12", match: Arizona Wildcats}
-        - {label: Arizona baseball, sport: baseball, league: college-baseball, team: "12", match: Arizona Wildcats}
+        - {label: Arizona baseball, sport: baseball, league: college-baseball, team: auto, match: Arizona Wildcats}
     - name: Colorado
       emoji: "🏔️"
       timezone: America/Denver
