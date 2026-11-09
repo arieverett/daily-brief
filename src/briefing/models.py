@@ -188,6 +188,51 @@ class HistoryItem:
 
 
 @dataclass(frozen=True)
+class TeamLine:
+    """One team on the Scoreboard: record and standing, plus the latest result and next game.
+
+    Every figure comes from ESPN's data, never from the model.
+    """
+
+    emoji: str  # the sport
+    team: str
+    record: str = ""  # "6-3"
+    standing: str = ""  # "2nd in NFC West"
+    rank: str = ""  # "#12" for ranked college teams
+    last: str = ""  # "W 27-17 vs Rams (Sun)", only when it's new since the last edition
+    next: str = ""  # "Sun vs 49ers, 2:05 PM"
+    url: str = ""
+
+
+@dataclass(frozen=True)
+class TeamGroup:
+    name: str  # "Arizona"
+    emoji: str
+    teams: list[TeamLine] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class BigPlay:
+    """A "something crazy happened" item (high school, other sports), from a news story."""
+
+    emoji: str
+    label: str
+    text: str
+    url: str
+
+
+@dataclass(frozen=True)
+class SportsReport:
+    groups: list[TeamGroup] = field(default_factory=list)
+    big_plays: list[BigPlay] = field(default_factory=list)
+    offseason: list[str] = field(default_factory=list)
+
+    @property
+    def empty(self) -> bool:
+        return not any(group.teams for group in self.groups) and not self.big_plays
+
+
+@dataclass(frozen=True)
 class RegionalEdition:
     edition_date: str
     date_label: str
@@ -200,6 +245,8 @@ class RegionalEdition:
     weather: WeatherReport | None = None
     # The fun bonus at the end; empty when Wikipedia couldn't be reached.
     history: list[HistoryItem] = field(default_factory=list)
+    # Scores, standings and big plays; None when the edition has no sports block or ESPN failed.
+    sports: SportsReport | None = None
 
     def named_sections(self) -> list[tuple[Region, CountrySection]]:
         return [

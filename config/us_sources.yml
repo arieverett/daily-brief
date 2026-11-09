@@ -197,6 +197,58 @@ weather:
     - {name: Colorado Springs, country: United States, flag: "🏔️", latitude: 38.8339, longitude: -104.8214}
     - {name: Vail, country: United States, flag: "⛷️", latitude: 39.6403, longitude: -106.3742}
 
+# Scoreboard (src/briefing/sports.py), after the news and before Today in history.
+# Teams: record, standing, any new result since the last edition and the next game, all from
+# ESPN's public API. Teams with no game within ~2 weeks are listed once as "Offseason".
+# `team` is ESPN's id or abbreviation; `match` must appear in ESPN's team name (guards against a
+# wrong id). Times show in the group's time zone. The Coyotes left for Utah in 2024, so
+# Arizona has no NHL team.
+sports:
+  groups:
+    - name: Arizona
+      emoji: "🌵"
+      timezone: America/Phoenix
+      teams:
+        - {label: Cardinals, sport: football, league: nfl, team: ari, match: Arizona Cardinals}
+        - {label: Suns, sport: basketball, league: nba, team: phx, match: Phoenix Suns}
+        - {label: Diamondbacks, sport: baseball, league: mlb, team: ari, match: Diamondbacks}
+        - {label: Mercury, sport: basketball, league: wnba, team: phx, match: Phoenix Mercury}
+        - {label: ASU football, sport: football, league: college-football, team: "9", match: Arizona State}
+        - {label: ASU hoops, sport: basketball, league: mens-college-basketball, team: "9", match: Arizona State}
+        - {label: ASU baseball, sport: baseball, league: college-baseball, team: "9", match: Arizona State}
+        - {label: Arizona football, sport: football, league: college-football, team: "12", match: Arizona Wildcats}
+        - {label: Arizona hoops, sport: basketball, league: mens-college-basketball, team: "12", match: Arizona Wildcats}
+        - {label: Arizona baseball, sport: baseball, league: college-baseball, team: "12", match: Arizona Wildcats}
+    - name: Colorado
+      emoji: "🏔️"
+      timezone: America/Denver
+      teams:
+        - {label: Broncos, sport: football, league: nfl, team: den, match: Denver Broncos}
+        - {label: Nuggets, sport: basketball, league: nba, team: den, match: Denver Nuggets}
+        - {label: Avalanche, sport: hockey, league: nhl, team: col, match: Colorado Avalanche}
+        - {label: Rockies, sport: baseball, league: mlb, team: col, match: Colorado Rockies}
+        - {label: CU football, sport: football, league: college-football, team: "38", match: Colorado Buffaloes}
+        - {label: CU hoops, sport: basketball, league: mens-college-basketball, team: "38", match: Colorado Buffaloes}
+
+  # Big plays: high school and other sports, only when something big happens. The model picks
+  # 0 to max_items from these headlines (the scoreboard teams are excluded); zero is normal.
+  big_plays:
+    max_items: 3
+    about: Arizona and Colorado
+    feeds:
+      - name: Google News — Arizona high school sports
+        country: Phoenix
+        url: "https://news.google.com/rss/search?q=%28%22high%20school%22%20OR%20prep%20OR%20varsity%29%20%28Arizona%20OR%20Phoenix%20OR%20Scottsdale%20OR%20Mesa%20OR%20Chandler%20OR%20Gilbert%20OR%20Tempe%20OR%20Glendale%20OR%20Peoria%20OR%20Tucson%29%20%28football%20OR%20basketball%20OR%20baseball%20OR%20softball%20OR%20champion%20OR%20championship%20OR%20%22state%20title%22%29%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+      - name: Google News — Colorado high school sports
+        country: Denver
+        url: "https://news.google.com/rss/search?q=%28%22high%20school%22%20OR%20prep%20OR%20varsity%29%20%28Colorado%20OR%20Denver%20OR%20Aurora%20OR%20Littleton%20OR%20%22Highlands%20Ranch%22%20OR%20%22Colorado%20Springs%22%20OR%20%22Fort%20Collins%22%20OR%20Boulder%20OR%20Pueblo%29%20%28football%20OR%20basketball%20OR%20baseball%20OR%20champion%20OR%20championship%20OR%20%22state%20title%22%29%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+      - name: Google News — Arizona other sports
+        country: Phoenix
+        url: "https://news.google.com/rss/search?q=%28Arizona%20OR%20Phoenix%20OR%20Scottsdale%20OR%20Tucson%20OR%20%22Arizona%20State%22%20OR%20%22Northern%20Arizona%22%20OR%20%22Grand%20Canyon%20University%22%29%20%28golf%20OR%20soccer%20OR%20hockey%20OR%20softball%20OR%20wrestling%20OR%20%22Phoenix%20Rising%22%20OR%20Mercury%20OR%20Rattlers%20OR%20Roadrunners%29%20%28wins%20OR%20champion%20OR%20championship%20OR%20record%20OR%20title%20OR%20upset%20OR%20historic%29%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+      - name: Google News — Colorado other sports
+        country: Denver
+        url: "https://news.google.com/rss/search?q=%28Colorado%20OR%20Denver%20OR%20%22Colorado%20State%22%20OR%20%22Air%20Force%22%20OR%20%22University%20of%20Denver%22%20OR%20%22Colorado%20College%22%29%20%28golf%20OR%20soccer%20OR%20hockey%20OR%20skiing%20OR%20Rapids%20OR%20Mammoth%20OR%20lacrosse%20OR%20Pioneers%29%20%28wins%20OR%20champion%20OR%20championship%20OR%20record%20OR%20title%20OR%20upset%20OR%20historic%29%20when%3A2d&hl=en-US&gl=US&ceid=US%3Aen"
+
 # "Today in history" bonus at the end (src/briefing/history.py): Wikipedia's "On this day"
 # events, short ones only. Up to max_local events from these states go first, marked with
 # the state's emoji; the rest are spread across the centuries.

@@ -13,6 +13,10 @@ Three editions, all at 6:00 AM New York time, Monday-Saturday:
 - **Nusantara Daily** (`indonesia`, `config/indonesia_sources.yml`): Indonesia in Bahasa
   Indonesia, to Ari's mom and Ari.
 - **Two-Mile High** (`us`, `config/us_sources.yml`): Phoenix, Arizona + Denver, Colorado, to Ari.
+  Ends with a Scoreboard (pro and college records, standings, new results and next games from
+  ESPN, plus "Big plays" from high school and other sports when something big happens; the
+  `sports:` block, `src/briefing/sports.py`, preview with `python -m briefing.sports
+  config/us_sources.yml`) and Today in history.
   Config-driven: its `edition:` block sets the branding and the regions (one news section each),
   and each feed's `country` names the region it fills. To add a city, add a region entry and a
   handful of feeds for it (the Feed check workflow then confirms the pool is big enough); the

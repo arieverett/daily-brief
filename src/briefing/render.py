@@ -14,9 +14,11 @@ from .models import (
     IndonesiaEdition,
     NewsletterEdition,
     RegionalEdition,
+    SportsReport,
     Story,
     WeatherReport,
 )
+from .sports import format_line
 
 # The editor may bold a short run-in at the start of a paragraph (**Zoom out:**) and separate
 # paragraphs with a blank line. Nothing else is interpreted; everything is HTML-escaped first.
@@ -139,6 +141,21 @@ def _sections_text(sections) -> list[str]:
     return blocks
 
 
+def _sports_text(report: SportsReport) -> list[str]:
+    blocks = ["", "SCOREBOARD"]
+    for group in report.groups:
+        if group.teams:
+            blocks.append(f"{group.emoji} {group.name.upper()}")
+            blocks.append("\n".join(format_line(line) for line in group.teams))
+    if report.big_plays:
+        blocks.append("BIG PLAYS")
+        blocks.extend(f"{play.label}: {play.text}\n{play.url}" for play in report.big_plays)
+    if report.offseason:
+        blocks.append("Offseason: " + ", ".join(report.offseason) + ".")
+    blocks.append("Scores and standings from ESPN; times are local.")
+    return blocks
+
+
 def render_regional_text(edition: RegionalEdition) -> str:
     blocks = [
         edition.profile.title.upper(),
@@ -151,6 +168,8 @@ def render_regional_text(edition: RegionalEdition) -> str:
             (region.heading.upper(), section) for region, section in edition.named_sections()
         ),
     ]
+    if edition.sports:
+        blocks.extend(_sports_text(edition.sports))
     if edition.history:
         blocks.extend(("", "TODAY IN HISTORY"))
         blocks.extend(

@@ -14,6 +14,7 @@ on:
       - "src/briefing/collect.py"
       - "src/briefing/feedcheck.py"
       - "src/briefing/history.py"
+      - "src/briefing/sports.py"
       - "src/briefing/weather.py"
       - "src/briefing/weather_topics.py"
       - ".github/workflows/feed-check.yml"
@@ -23,6 +24,7 @@ on:
       - "src/briefing/collect.py"
       - "src/briefing/feedcheck.py"
       - "src/briefing/history.py"
+      - "src/briefing/sports.py"
       - "src/briefing/weather.py"
       - "src/briefing/weather_topics.py"
   workflow_dispatch:
@@ -49,6 +51,9 @@ jobs:
       - name: US edition Today in history
         if: ${{ !cancelled() }}
         run: uv run --no-sync python -m briefing.history config/us_sources.yml
+      - name: US edition Scoreboard
+        if: ${{ !cancelled() }}
+        run: uv run --no-sync python -m briefing.sports config/us_sources.yml
 
   feeds:
     permissions:

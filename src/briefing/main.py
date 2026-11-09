@@ -38,6 +38,15 @@ from .reference import compare_to_reference
 from .regional import create_regional_edition, load_profile
 from .render import render_html, render_indonesia_text, render_regional_text, render_text
 from .send import SendResult, send_email
+from .sports import (
+    big_plays_lookback,
+    build_scoreboard,
+    build_sports_report,
+    collect_big_play_candidates,
+    load_sports_config,
+    pick_big_plays,
+    scoreboard_report,
+)
 from .style_check import score_edition
 from .weather import build_weather, load_weather_config, write_weather_summary
 
@@ -439,6 +448,52 @@ def _add_history(
     return replace(edition, history=items)
 
 
+def _add_sports(
+    edition: NewsletterEdition, args: argparse.Namespace, settings: Settings, day: date
+) -> NewsletterEdition:
+    """Attach the Scoreboard. Best-effort: any failure leaves (part of) it out."""
+    if not isinstance(edition, RegionalEdition):
+        return edition
+    try:
+        config = load_sports_config(args.sources)
+        if config is None:
+            return edition
+        print("→ Fetching scores and standings...", flush=True)
+        scoreboard = build_scoreboard(config, day)
+    except Exception as exc:  # noqa: BLE001 - a bonus section must never block the send
+        _annotate_warning("Scoreboard", exc)
+        return edition
+    _annotate_notice("Scoreboard", scoreboard_report(scoreboard) or "No teams")
+
+    plays = []
+    if config.big_plays:
+        try:
+            with stage("Picking the big plays"):
+                candidates = collect_big_play_candidates(config.big_plays, big_plays_lookback(day))
+                labels = [team.label for group in config.groups for team in group.teams]
+                plays, dropped = pick_big_plays(
+                    config.big_plays,
+                    candidates,
+                    labels,
+                    api_key=settings.openai_api_key,
+                    model=settings.openai_model,
+                    day=day,
+                )
+            _annotate_notice(
+                "Big plays",
+                "\n".join(
+                    [f"{len(candidates)} headlines; picked {len(plays)}"]
+                    + [f"{play.emoji} {play.label}: {play.text}" for play in plays]
+                    + [f"Dropped: {reason}" for reason in dropped]
+                ),
+            )
+        except Exception as exc:  # noqa: BLE001
+            _annotate_warning("Big plays", exc)
+            plays = []
+    report = build_sports_report(scoreboard, plays)
+    return edition if report.empty else replace(edition, sports=report)
+
+
 def main() -> None:
     args = parse_args()
     settings: Settings | None = None
@@ -454,6 +509,7 @@ def main() -> None:
         edition, candidates = _generate_live_edition(args, settings, day)
         edition = _add_images(edition, candidates, args.edition)
         edition = _add_weather(edition, args, settings, day)
+        edition = _add_sports(edition, args, settings, day)
         edition = _add_history(edition, args, day)
         _annotate_notice("House style", score_edition(edition).report())
         voice = compare_to_reference(edition)

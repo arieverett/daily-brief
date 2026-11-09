@@ -180,6 +180,14 @@
     .wx-para { margin: 0 0 10px; font-size: 16px; line-height: 22px; }
     .wx-credit { padding-top: 8px; font-size: 11px; line-height: 15px; color: #6b6b6b; }
     .wx-credit a { color: #6b6b6b; text-decoration-color: #b6b6b6; text-decoration-thickness: 1px; }
+    .sb-group td { padding: 12px 18px 2px; font-size: 16px; line-height: 22px; font-weight: 700; color: #111111; }
+    .sb-row td { padding: 7px 18px; font-size: 15px; line-height: 20px; border-top: 1px solid #e6e6e6; }
+    .sb-group + .sb-row td { border-top: 0; }
+    .sb-team a { color: #111111; text-decoration: none; }
+    .sb-meta { color: #4a4a4a; }
+    .sb-detail { font-size: 13px; line-height: 18px; color: #4a4a4a; }
+    .sb-detail strong { color: #111111; }
+    .sb-off td { padding: 9px 18px 4px; font-size: 13px; line-height: 18px; color: #6b6b6b; border-top: 1px solid #e6e6e6; }
     .history-credit { padding: 6px 18px 12px; font-size: 11px; line-height: 15px; color: #6b6b6b; }
     .history-credit a { color: #6b6b6b; text-decoration-color: #b6b6b6; text-decoration-thickness: 1px; }
     .footer { padding-top: 26px; padding-bottom: 32px; text-align: center; font-size: 11px; line-height: 17px; color: #4a4a4a; }
@@ -192,6 +200,7 @@
       .story-body { padding-left: 15px !important; padding-right: 15px !important; }
       .speed-row td { padding-left: 15px !important; padding-right: 15px !important; }
       .history-credit { padding-left: 15px !important; padding-right: 15px !important; }
+      .sb-group td, .sb-row td, .sb-off td { padding-left: 15px !important; padding-right: 15px !important; }
       .speed-title, .setup-title, .setup-copy { padding-left: 15px !important; padding-right: 15px !important; }
       .wx-col { display: block !important; width: 100% !important; padding: 0 !important; }
       .wx-col-next { padding-top: 8px !important; }
@@ -254,6 +263,34 @@
           </table>
         </td></tr>
         {% endfor %}
+
+        {% if regional and edition.sports %}
+        <tr><td class="inset section-wrap">
+          <table role="presentation" class="module" width="100%">
+            <tr><td class="speed-title">🏆 Scoreboard</td></tr>
+            {% for group in edition.sports.groups if group.teams %}
+            <tr class="sb-group"><td>{{ group.emoji }} {{ group.name }}</td></tr>
+            {% for line in group.teams %}
+            <tr class="sb-row"><td>
+              <span class="sb-team">{{ line.emoji }} <strong>{% if line.rank %}{{ line.rank }} {% endif %}{% if line.url %}<a href="{{ line.url }}">{{ line.team }}</a>{% else %}{{ line.team }}{% endif %}</strong></span>
+              {% if line.record or line.standing %}<span class="sb-meta">{{ line.record }}{% if line.record and line.standing %} · {% endif %}{{ line.standing }}</span>{% endif %}
+              {% if line.last or line.next %}<br><span class="sb-detail">{% if line.last %}<strong>Last:</strong> {{ line.last }}{% endif %}{% if line.last and line.next %} · {% endif %}{% if line.next %}<strong>Next:</strong> {{ line.next }}{% endif %}</span>{% endif %}
+            </td></tr>
+            {% endfor %}
+            {% endfor %}
+            {% if edition.sports.big_plays %}
+            <tr class="sb-group"><td>🔥 Big plays</td></tr>
+            {% for play in edition.sports.big_plays %}
+            <tr class="sb-row"><td>{{ play.emoji }} <strong>{{ play.label }}:</strong> {{ play.text }} <a href="{{ play.url }}">Read article →</a></td></tr>
+            {% endfor %}
+            {% endif %}
+            {% if edition.sports.offseason %}
+            <tr class="sb-off"><td>Offseason: {{ edition.sports.offseason | join(', ') }}.</td></tr>
+            {% endif %}
+            <tr><td class="history-credit">Scores and standings from ESPN; times are local.</td></tr>
+          </table>
+        </td></tr>
+        {% endif %}
 
         {% if regional and edition.history %}
         <tr><td class="inset section-wrap">
