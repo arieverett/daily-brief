@@ -97,6 +97,18 @@ jobs:
           key: weather-history-v1-${{ inputs.edition }}-${{ steps.wxkey.outputs.year }}-${{ hashFiles('config/*.yml') }}
           restore-keys: weather-history-v1-${{ inputs.edition }}-${{ steps.wxkey.outputs.year }}-
 
+      # The last good forecast, the weather section's last resort when both Open-Meteo and
+      # MET Norway are unreachable (it covers a week ahead, so yesterday's still has today).
+      # Each run saves a new entry; restore-keys picks the newest one.
+      - name: Restore last forecast
+        if: steps.guard.outputs.any == 'true'
+        continue-on-error: true
+        uses: actions/cache/restore@v6
+        with:
+          path: .cache/forecast
+          key: weather-forecast-v1-${{ inputs.edition }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: weather-forecast-v1-${{ inputs.edition }}-
+
       # The standard edition's Indonesia section follows Nusantara Daily's stories, so Ari
       # and his mom read about the same news. briefs.yml runs Nusantara Daily first; when
       # it already went out earlier today, its picks come from that earlier run. No picks
@@ -133,6 +145,7 @@ jobs:
           BRIEF_MAX_CANDIDATES: ${{ inputs.edition == 'indonesia' && '60' || '40' }}
           BRIEF_EDITION_DATE: ${{ steps.guard.outputs.date }}
           BRIEF_WEATHER_CACHE: .cache/weather
+          BRIEF_FORECAST_CACHE: .cache/forecast
           # Automatic runs are handed to Resend to land at exactly 06:00 New York time
           # (or immediately if it is already past 06:00).
           BRIEF_SEND_AT: ${{ !inputs.force && '06:00' || '' }}
@@ -155,6 +168,14 @@ jobs:
           fi
           echo "Trigger: ${{ inputs.trigger }}"
           uv run --no-sync python -m briefing --send --edition "${{ inputs.edition }}" --sources "$sources"
+
+      - name: Save last forecast
+        if: ${{ !cancelled() && steps.guard.outputs.any == 'true' && hashFiles('.cache/forecast/*.json') != '' }}
+        continue-on-error: true
+        uses: actions/cache/save@v6
+        with:
+          path: .cache/forecast
+          key: weather-forecast-v1-${{ inputs.edition }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       # Nusantara Daily's story list, for the standard edition's Indonesia section.
       - name: Share today's picks with the standard edition

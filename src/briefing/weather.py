@@ -45,6 +45,7 @@ PAST_DAYS = 30
 # over, so the forecast leads with tomorrow (Indonesia is late afternoon at 06:00 ET).
 LATE_LOCAL_HOUR = 15
 REQUEST_TIMEOUT = httpx.Timeout(20.0, connect=10.0)
+FORECAST_TIMEOUT = httpx.Timeout(20.0, connect=15.0)
 ARCHIVE_TIMEOUT = httpx.Timeout(60.0, connect=10.0)
 CACHE_ENV = "BRIEF_WEATHER_CACHE"
 DEFAULT_CACHE_DIR = Path(".cache") / "weather"
@@ -121,6 +122,8 @@ class Place:
     latitude: float
     longitude: float
     flag: str = ""
+    # IANA zone. Open-Meteo works it out itself; the backup forecast (MET Norway) needs it.
+    timezone: str = ""
 
     @property
     def slug(self) -> str:
@@ -146,6 +149,7 @@ def _place(raw: dict[str, Any]) -> Place:
         latitude=float(raw["latitude"]),
         longitude=float(raw["longitude"]),
         flag=str(raw.get("flag", "")),
+        timezone=str(raw.get("timezone", "")),
     )
 
 
@@ -202,9 +206,19 @@ def _retry_after(response: httpx.Response) -> float:
         return RATE_LIMIT_WAIT
 
 
-def _get(client: httpx.Client, url: str, params: dict[str, Any], timeout: httpx.Timeout):
-    """GET with two retries: quick for blips and 5xx, a minute's wait for rate limits."""
-    for attempt, delay in enumerate((*RETRY_DELAYS, None)):
+# The forecast is what the weather section can't do without, so it gets more patience.
+FORECAST_RETRY_DELAYS = (2.0, 6.0, 15.0)
+
+
+def _get(
+    client: httpx.Client,
+    url: str,
+    params: dict[str, Any],
+    timeout: httpx.Timeout,
+    delays: tuple[float, ...] = RETRY_DELAYS,
+):
+    """GET with retries: quick for blips and 5xx, a minute's wait for rate limits."""
+    for attempt, delay in enumerate((*delays, None)):
         try:
             response = client.get(url, params=params, timeout=timeout)
         except httpx.TransportError:
@@ -256,12 +270,225 @@ def fetch_forecasts(
         "forecast_days": WEEK_DAYS + 1,
         "past_days": PAST_DAYS + 7 if featured else 1,
     }
-    response = _get(client, FORECAST_URL, params, REQUEST_TIMEOUT)
+    response = _get(client, FORECAST_URL, params, FORECAST_TIMEOUT, FORECAST_RETRY_DELAYS)
     response.raise_for_status()
     items = _as_list(response.json())
     if len(items) != len(places):
         raise ValueError(f"Expected {len(places)} forecast locations, got {len(items)}")
     return [_series(item, keys) for item in items]
+
+
+# ---------------------------------------------------------------------------
+# Backups: the weather section must always appear, so when Open-Meteo is unreachable the
+# forecast comes from MET Norway instead, and failing that from the last good Open-Meteo
+# forecast saved by an earlier run (it covers 8 days ahead, so yesterday's still has today).
+
+METNO_URL = "https://api.met.no/weatherapi/locationforecast/2.0/complete"
+FORECAST_CACHE_ENV = "BRIEF_FORECAST_CACHE"
+DEFAULT_FORECAST_CACHE_DIR = Path(".cache") / "forecast"
+FORECAST_CACHE_MAX_AGE_DAYS = 4
+# Open-Meteo topics that would only time out again once its forecast API is down.
+OPEN_METEO_TOPICS = {"climate_context", "on_this_day", "air_quality"}
+
+# MET Norway symbol codes (without _day/_night/_polartwilight) -> WMO codes used above.
+METNO_SYMBOLS: dict[str, int] = {
+    "clearsky": 0,
+    "fair": 1,
+    "partlycloudy": 2,
+    "cloudy": 3,
+    "fog": 45,
+    "lightrain": 61,
+    "rain": 63,
+    "heavyrain": 65,
+    "lightsleet": 66,
+    "sleet": 66,
+    "heavysleet": 67,
+    "lightsnow": 71,
+    "snow": 73,
+    "heavysnow": 75,
+    "lightrainshowers": 80,
+    "rainshowers": 81,
+    "heavyrainshowers": 82,
+    "lightsleetshowers": 80,
+    "sleetshowers": 81,
+    "heavysleetshowers": 82,
+    "lightsnowshowers": 85,
+    "snowshowers": 85,
+    "heavysnowshowers": 86,
+}
+
+
+def metno_code(symbol: str | None) -> int | None:
+    if not symbol:
+        return None
+    base = symbol.split("_", 1)[0]
+    if "thunder" in base:
+        return 95
+    return METNO_SYMBOLS.get(base)
+
+
+def metno_series(payload: dict[str, Any], timezone: str) -> DailySeries:
+    """Fold MET Norway's hourly/6-hourly steps into Open-Meteo-style local days.
+
+    Only whole days are kept (the first may have started already: its earlier hours are
+    gone). Sunrise, sunset, daylight and UV aren't provided, so those stay empty.
+    """
+    zone = ZoneInfo(timezone)
+    steps = payload["properties"]["timeseries"]
+    if not steps:
+        raise ValueError("MET Norway returned no forecast steps")
+    days: dict[date, dict[str, Any]] = {}
+    times = [datetime.fromisoformat(step["time"]) for step in steps]
+    for position, (moment, step) in enumerate(zip(times, steps, strict=True)):
+        data = step.get("data") or {}
+        local = moment.astimezone(zone)
+        day = days.setdefault(
+            local.date(), {"temps": [], "rain": 0.0, "pops": [], "codes": [], "hours": set()}
+        )
+        temp = ((data.get("instant") or {}).get("details") or {}).get("air_temperature")
+        if temp is not None:
+            day["temps"].append(float(temp))
+        gap = (
+            (times[position + 1] - moment).total_seconds() / 3600
+            if position + 1 < len(times)
+            else 6
+        )
+        window = data.get("next_1_hours") if gap <= 1 else data.get("next_6_hours")
+        window = window or data.get("next_6_hours") or {}
+        details = window.get("details") or {}
+        if details.get("precipitation_amount") is not None:
+            day["rain"] += float(details["precipitation_amount"])
+        for key in ("next_1_hours", "next_6_hours", "next_12_hours"):
+            pop = ((data.get(key) or {}).get("details") or {}).get(
+                "probability_of_precipitation"
+            )
+            if pop is not None:
+                day["pops"].append(float(pop))
+        six = data.get("next_6_hours") or {}
+        six_details = six.get("details") or {}
+        for key in ("air_temperature_max", "air_temperature_min"):
+            if six_details.get(key) is not None:
+                day["temps"].append(float(six_details[key]))
+        # The day's sky: the worst 6-hour symbol across daytime (06:00-18:00).
+        if 6 <= local.hour <= 12:
+            code = metno_code((six.get("summary") or {}).get("symbol_code"))
+            if code is not None:
+                day["codes"].append(code)
+        day["hours"].add(local.hour)
+
+    ordered = sorted(days)
+    # The last day is cut short by the end of the forecast; keep days with steps through
+    # the evening (6-hourly steps land at 00/06/12/18 UTC, so allow any 18:00+ step).
+    complete = [
+        day for day in ordered if days[day]["temps"] and max(days[day]["hours"]) >= 17
+    ]
+    if not complete:
+        raise ValueError("MET Norway forecast has no complete day")
+    values: dict[str, list[Any]] = {key: [] for key in FORECAST_DAILY}
+    for day in complete:
+        info = days[day]
+        values["weather_code"].append(max(info["codes"]) if info["codes"] else None)
+        values["temperature_2m_max"].append(max(info["temps"]))
+        values["temperature_2m_min"].append(min(info["temps"]))
+        values["precipitation_probability_max"].append(
+            max(info["pops"]) if info["pops"] else None
+        )
+        values["precipitation_sum"].append(round(info["rain"], 1))
+        for key in ("uv_index_max", "daylight_duration", "sunrise", "sunset"):
+            values[key].append(None)
+    return DailySeries(timezone=timezone, dates=complete, values=values)
+
+
+def fetch_metno(client: httpx.Client, places: list[Place]) -> list[DailySeries]:
+    """The backup forecast, one request per place (needs each place's `timezone`)."""
+    found: list[DailySeries] = []
+    for place in places:
+        if not place.timezone:
+            raise ValueError(f"{place.name} has no timezone for the backup forecast")
+        params = {"lat": f"{place.latitude:.4f}", "lon": f"{place.longitude:.4f}"}
+        response = _get(client, METNO_URL, params, FORECAST_TIMEOUT, FORECAST_RETRY_DELAYS)
+        response.raise_for_status()
+        found.append(metno_series(response.json(), place.timezone))
+    return found
+
+
+def _forecast_cache_path(place: Place) -> Path:
+    root = Path(os.getenv(FORECAST_CACHE_ENV) or DEFAULT_FORECAST_CACHE_DIR)
+    return root / f"{place.slug}-{place.latitude:.2f}-{place.longitude:.2f}.json"
+
+
+def save_forecasts(places: list[Place], series: list[DailySeries], fetched: datetime) -> None:
+    """Keep the latest good Open-Meteo forecast for a later run's last resort."""
+    for place, item in zip(places, series, strict=False):
+        path = _forecast_cache_path(place)
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(
+                json.dumps(
+                    {
+                        "fetched": fetched.isoformat(),
+                        "timezone": item.timezone,
+                        "daily": {
+                            "time": [day.isoformat() for day in item.dates],
+                            **item.values,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+        except OSError as exc:
+            print(f"  WARNING: could not save the forecast for {place.name}: {exc}")
+
+
+def load_saved_forecasts(
+    places: list[Place], keys: tuple[str, ...], now: datetime
+) -> list[DailySeries]:
+    """The saved forecasts, if every place has one recent enough to still be useful."""
+    found: list[DailySeries] = []
+    for place in places:
+        payload = json.loads(_forecast_cache_path(place).read_text(encoding="utf-8"))
+        fetched = datetime.fromisoformat(payload["fetched"])
+        if now - fetched > timedelta(days=FORECAST_CACHE_MAX_AGE_DAYS):
+            raise ValueError(f"saved forecast for {place.name} is from {fetched:%Y-%m-%d}")
+        found.append(_series(payload, keys))
+    return found
+
+
+def fetch_forecasts_resilient(
+    client: httpx.Client,
+    places: list[Place],
+    *,
+    featured: bool,
+    now: datetime,
+    notes: list[str],
+    open_meteo: bool = True,
+) -> tuple[list[DailySeries], str]:
+    """Open-Meteo, then MET Norway, then the last saved forecast. Returns (series, source).
+
+    The source is "open-meteo", "met-norway" or "saved"; raises only when all three fail.
+    `open_meteo=False` skips straight to the backups (it's already known to be down).
+    """
+    keys = FEATURED_DAILY if featured else FORECAST_DAILY
+    if open_meteo:
+        try:
+            series = fetch_forecasts(client, places, featured=featured)
+        except (httpx.HTTPError, ValueError, KeyError) as exc:
+            notes.append(f"Open-Meteo forecast unavailable: {type(exc).__name__}: {exc}")
+        else:
+            save_forecasts(places, series, now)
+            return series, "open-meteo"
+    try:
+        series = fetch_metno(client, places)
+    except (httpx.HTTPError, ValueError, KeyError, TypeError, IndexError) as exc:
+        notes.append(f"MET Norway forecast unavailable: {type(exc).__name__}: {exc}")
+    else:
+        return series, "met-norway"
+    try:
+        series = load_saved_forecasts(places, keys, now)
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        notes.append(f"no usable saved forecast: {type(exc).__name__}: {exc}")
+        raise RuntimeError("no forecast from Open-Meteo, MET Norway or an earlier run") from exc
+    return series, "saved"
 
 
 def _cache_dir() -> Path:
@@ -750,10 +977,28 @@ def build_weather(
     )
     notes: list[str] = []
     try:
-        featured_series = fetch_forecasts(client, config.featured, featured=True)
+        featured_series, source = fetch_forecasts_resilient(
+            client, config.featured, featured=True, now=reader_time, notes=notes
+        )
+        open_meteo_up = source == "open-meteo"
+        if not open_meteo_up:
+            notes.append(f"forecast source: {source}")
+            # Its archive and air-quality APIs share the outage; don't wait on them.
+            config = replace(
+                config, topics=[t for t in config.topics if t not in OPEN_METEO_TOPICS]
+            )
         try:
-            around_series = fetch_forecasts(client, config.around, featured=False)
-        except (httpx.HTTPError, ValueError, KeyError) as exc:
+            around_series, around_source = fetch_forecasts_resilient(
+                client,
+                config.around,
+                featured=False,
+                now=reader_time,
+                notes=notes,
+                open_meteo=open_meteo_up,
+            )
+            if around_source != "open-meteo":
+                notes.append(f"other cities source: {around_source}")
+        except RuntimeError as exc:
             notes.append(f"other cities unavailable: {exc}")
             around_series = []
 
@@ -770,7 +1015,7 @@ def build_weather(
 
         # Light requests first, then the (normally cached) heavy history downloads, so a
         # rate limit after a history download can only delay the next one.
-        for city in featured:
+        for city in featured if open_meteo_up else []:
             try:
                 city.recent = fetch_recent(client, city.place, city.local_now.date())
             except (httpx.HTTPError, ValueError, KeyError) as exc:

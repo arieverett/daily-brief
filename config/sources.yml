@@ -202,12 +202,12 @@ weather:
   # One topic is picked each day for the write-up (src/briefing/weather_topics.py).
   topics: [climate_context, rain_check, on_this_day, around_the_world, daylight, uv, air_quality, el_nino, aurora]
   featured:
-    - {name: Stockholm, country: Sweden, flag: "🇸🇪", latitude: 59.3293, longitude: 18.0686}
-    - {name: Jakarta, country: Indonesia, flag: "🇮🇩", latitude: -6.2088, longitude: 106.8456}
+    - {name: Stockholm, country: Sweden, flag: "🇸🇪", latitude: 59.3293, longitude: 18.0686, timezone: Europe/Stockholm}
+    - {name: Jakarta, country: Indonesia, flag: "🇮🇩", latitude: -6.2088, longitude: 106.8456, timezone: Asia/Jakarta}
   around:
-    - {name: Oslo, country: Norway, flag: "🇳🇴", latitude: 59.9139, longitude: 10.7522}
-    - {name: Kiruna, country: Sweden, flag: "🇸🇪", latitude: 67.8558, longitude: 20.2253}
-    - {name: Bandung, country: Indonesia, flag: "🇮🇩", latitude: -6.9175, longitude: 107.6191}
-    - {name: London, country: United Kingdom, flag: "🇬🇧", latitude: 51.5074, longitude: -0.1278}
-    - {name: Tokyo, country: Japan, flag: "🇯🇵", latitude: 35.6762, longitude: 139.6503}
-    - {name: New York, country: United States, flag: "🇺🇸", latitude: 40.7128, longitude: -74.0060}
+    - {name: Oslo, country: Norway, flag: "🇳🇴", latitude: 59.9139, longitude: 10.7522, timezone: Europe/Oslo}
+    - {name: Kiruna, country: Sweden, flag: "🇸🇪", latitude: 67.8558, longitude: 20.2253, timezone: Europe/Stockholm}
+    - {name: Bandung, country: Indonesia, flag: "🇮🇩", latitude: -6.9175, longitude: 107.6191, timezone: Asia/Jakarta}
+    - {name: London, country: United Kingdom, flag: "🇬🇧", latitude: 51.5074, longitude: -0.1278, timezone: Europe/London}
+    - {name: Tokyo, country: Japan, flag: "🇯🇵", latitude: 35.6762, longitude: 139.6503, timezone: Asia/Tokyo}
+    - {name: New York, country: United States, flag: "🇺🇸", latitude: 40.7128, longitude: -74.0060, timezone: America/New_York}

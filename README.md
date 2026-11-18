@@ -156,8 +156,12 @@ Generated HTML and text files are written to `out/`.
    the forecast model, gather the special topics that have data today (NOAA for El Niño and
    aurora), pick one (weighted toward newsworthy ones, never yesterday's), and have the editor
    write the day ahead plus that topic. Any number in that summary that isn't in the data
-   triggers one rewrite, then the summary is dropped. The whole step is best-effort: if anything
-   fails the edition goes out without (part of) the weather.
+   triggers one rewrite, then the summary is dropped. Every edition must carry the weather: if
+   Open-Meteo is unreachable the forecast comes from MET Norway (api.met.no, which needs each
+   city's `timezone` in the config), and failing that from the last good forecast an earlier
+   run saved (`.cache/forecast`, kept between runs by the Actions cache). Climate comparisons
+   and Open-Meteo-only topics are skipped during an outage. Only if all three fail does the
+   edition go out without weather, and the run is flagged with a "Weather missing" error.
 8. **Render:** build one responsive email template and the edition-specific plain-text fallback.
 9. **Send:** deliver through Resend, scheduled for 06:00 when the run finishes early. Transient
    Resend errors are retried with the same idempotency key. That key is stable per edition and

@@ -141,6 +141,7 @@ def no_retry_waits(monkeypatch):
 @pytest.fixture(autouse=True)
 def weather_cache(tmp_path, monkeypatch):
     monkeypatch.setenv(weather.CACHE_ENV, str(tmp_path / "weather-cache"))
+    monkeypatch.setenv(weather.FORECAST_CACHE_ENV, str(tmp_path / "forecast-cache"))
     return tmp_path / "weather-cache"
 
 
@@ -239,11 +240,12 @@ def test_missing_climate_history_still_gives_forecasts():
     assert data.report.topic in data.topics
 
 
-def test_forecast_outage_skips_the_section_without_failing_the_edition(monkeypatch, tmp_path):
+def test_total_forecast_outage_still_sends_but_flags_an_error(monkeypatch, capsys):
     def outage(*args, **kwargs):
-        raise httpx.ConnectError("down")
+        raise RuntimeError("no forecast from Open-Meteo, MET Norway or an earlier run")
 
     monkeypatch.setattr("briefing.main.build_weather", outage)
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
     edition = load_sample()
     edition = replace(edition, weather=None)
     args = SimpleNamespace(sources=ROOT / "config" / "sources.yml")
@@ -252,6 +254,134 @@ def test_forecast_outage_skips_the_section_without_failing_the_edition(monkeypat
         openai_api_key="x", openai_model="gpt-5-mini",
     )
     assert _add_weather(edition, args, settings, date(2026, 10, 16)) is edition
+    assert "::error title=Weather missing failed::" in capsys.readouterr().out
+
+
+ZONES = {"Stockholm": "Europe/Stockholm", "Jakarta": "Asia/Jakarta", "Gothenburg": "Europe/Stockholm"}
+ZONED = replace(
+    CONFIG,
+    featured=[replace(place, timezone=ZONES[place.name]) for place in CONFIG.featured],
+    around=[replace(place, timezone=ZONES[place.name]) for place in CONFIG.around],
+)
+
+
+def _metno_payload(start: datetime) -> dict:
+    """MET Norway's shape: hourly steps for ~2.5 days, then 6-hourly out to 9 days."""
+    first = start.astimezone(ZoneInfo("UTC")).replace(minute=0, second=0, microsecond=0)
+    times = [first + timedelta(hours=hour) for hour in range(60)]
+    step = times[-1]
+    while step.hour % 6:
+        step += timedelta(hours=1)
+    while step < first + timedelta(days=9):
+        times.append(step)
+        step += timedelta(hours=6)
+    steps = []
+    for moment in sorted(set(times)):
+        steps.append(
+            {
+                "time": moment.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "data": {
+                    "instant": {"details": {"air_temperature": 10.0}},
+                    "next_1_hours": {
+                        "summary": {"symbol_code": "cloudy"},
+                        "details": {"precipitation_amount": 0.1},
+                    },
+                    "next_6_hours": {
+                        "summary": {"symbol_code": "lightrainshowers_day"},
+                        "details": {
+                            "air_temperature_max": 14.0,
+                            "air_temperature_min": 4.0,
+                            "precipitation_amount": 0.6,
+                            "probability_of_precipitation": 30.0,
+                        },
+                    },
+                },
+            }
+        )
+    return {"type": "Feature", "properties": {"timeseries": steps}}
+
+
+class Outage:
+    """Open-Meteo unreachable (like 2026-11-18); MET Norway up unless `metno` is False."""
+
+    def __init__(self, *, metno: bool = True):
+        self.metno = metno
+        self.open_meteo_calls = 0
+        self.metno_calls = 0
+
+    def __call__(self, request: httpx.Request) -> httpx.Response:
+        if request.url.host == "api.met.no":
+            self.metno_calls += 1
+            assert "daily-brief" in request.headers["user-agent"]  # MET's terms require one
+            if not self.metno:
+                raise httpx.ConnectTimeout("handshake")
+            return httpx.Response(200, json=_metno_payload(READER_TIME), request=request)
+        if "open-meteo" in request.url.host:
+            self.open_meteo_calls += 1
+            raise httpx.ConnectTimeout("_ssl.c:994: The handshake operation timed out")
+        raise httpx.ConnectTimeout("other API down too")
+
+
+def _outage_client(fake: Outage) -> httpx.Client:
+    return httpx.Client(
+        transport=httpx.MockTransport(fake), headers={"User-Agent": "daily-brief test"}
+    )
+
+
+def test_open_meteo_outage_falls_back_to_met_norway():
+    fake = Outage()
+    data = build_weather(ZONED, READER_TIME, client=_outage_client(fake))
+    assert data is not None
+    stockholm, jakarta = data.report.featured
+    assert (stockholm.day_label, jakarta.day_label) == ("Today", "Tomorrow")
+    assert (stockholm.high, stockholm.low) == (57, 39)  # 14°C / 4°C
+    assert stockholm.condition == "Showers" and stockholm.rain_chance == 30
+    assert len(stockholm.days) == weather.STRIP_DAYS
+    assert [city.name for city in data.report.around] == ["Gothenburg"]
+    # Open-Meteo is tried once per retry for the featured forecast, then left alone.
+    assert fake.open_meteo_calls == len(weather.FORECAST_RETRY_DELAYS) + 1
+    assert fake.metno_calls == 3
+    assert "forecast source: met-norway" in data.notes
+    assert not weather.OPEN_METEO_TOPICS & set(data.topics)
+
+
+def test_both_apis_down_uses_the_last_saved_forecast():
+    # Yesterday's run got a good Open-Meteo forecast and saved it.
+    yesterday = READER_TIME - timedelta(days=1)
+    build_weather(ZONED, yesterday, client=_client(FakeOpenMeteo()))
+    data = build_weather(ZONED, READER_TIME, client=_outage_client(Outage(metno=False)))
+    assert data is not None and len(data.report.featured) == 2
+    assert "forecast source: saved" in data.notes
+
+
+def test_no_forecast_anywhere_raises_so_the_run_is_flagged():
+    with pytest.raises(RuntimeError):
+        build_weather(ZONED, READER_TIME, client=_outage_client(Outage(metno=False)))
+
+
+def test_old_saved_forecasts_are_not_used():
+    long_ago = READER_TIME - timedelta(days=weather.FORECAST_CACHE_MAX_AGE_DAYS + 1)
+    build_weather(ZONED, long_ago, client=_client(FakeOpenMeteo()))
+    with pytest.raises(RuntimeError):
+        build_weather(ZONED, READER_TIME, client=_outage_client(Outage(metno=False)))
+
+
+def test_metno_days_keep_only_whole_days_and_map_symbols():
+    series = weather.metno_series(_metno_payload(READER_TIME), "America/Phoenix")
+    assert series.dates[0] == date(2026, 10, 16)  # 03:00 in Phoenix: today is mostly ahead
+    assert all(later - earlier == timedelta(days=1) for earlier, later in zip(series.dates, series.dates[1:]))
+    assert series.values["temperature_2m_max"][0] == 14.0
+    assert series.values["weather_code"][0] == 80
+    assert weather.metno_code("heavyrainandthunder") == 95
+    assert weather.metno_code("partlycloudy_night") == 2
+
+
+def test_every_weather_city_has_a_timezone_for_the_backup_forecast():
+    for name in ("sources.yml", "indonesia_sources.yml", "us_sources.yml"):
+        config = load_weather_config(ROOT / "config" / name)
+        assert config is not None
+        for place in config.featured + config.around:
+            ZoneInfo(place.timezone)  # a real IANA zone, not empty
 
 
 def test_unsupported_numbers_catches_invented_figures():

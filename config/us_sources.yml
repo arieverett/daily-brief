@@ -187,15 +187,15 @@ weather:
   about: Phoenix and Denver
   topics: [climate_context, rain_check, on_this_day, around_the_world, daylight, uv, air_quality]
   featured:
-    - {name: Phoenix, country: United States, flag: "🌵", latitude: 33.4484, longitude: -112.0740}
-    - {name: Denver, country: United States, flag: "🏔️", latitude: 39.7392, longitude: -104.9903}
+    - {name: Phoenix, country: United States, flag: "🌵", latitude: 33.4484, longitude: -112.0740, timezone: America/Phoenix}
+    - {name: Denver, country: United States, flag: "🏔️", latitude: 39.7392, longitude: -104.9903, timezone: America/Denver}
   around:
-    - {name: Tucson, country: United States, flag: "🌵", latitude: 32.2226, longitude: -110.9747}
-    - {name: Flagstaff, country: United States, flag: "🌲", latitude: 35.1983, longitude: -111.6513}
-    - {name: Sedona, country: United States, flag: "🌵", latitude: 34.8697, longitude: -111.7610}
-    - {name: Boulder, country: United States, flag: "🏔️", latitude: 40.0150, longitude: -105.2705}
-    - {name: Colorado Springs, country: United States, flag: "🏔️", latitude: 38.8339, longitude: -104.8214}
-    - {name: Vail, country: United States, flag: "⛷️", latitude: 39.6403, longitude: -106.3742}
+    - {name: Tucson, country: United States, flag: "🌵", latitude: 32.2226, longitude: -110.9747, timezone: America/Phoenix}
+    - {name: Flagstaff, country: United States, flag: "🌲", latitude: 35.1983, longitude: -111.6513, timezone: America/Phoenix}
+    - {name: Sedona, country: United States, flag: "🌵", latitude: 34.8697, longitude: -111.7610, timezone: America/Phoenix}
+    - {name: Boulder, country: United States, flag: "🏔️", latitude: 40.0150, longitude: -105.2705, timezone: America/Denver}
+    - {name: Colorado Springs, country: United States, flag: "🏔️", latitude: 38.8339, longitude: -104.8214, timezone: America/Denver}
+    - {name: Vail, country: United States, flag: "⛷️", latitude: 39.6403, longitude: -106.3742, timezone: America/Denver}
 
 # Scoreboard (src/briefing/sports.py), after the news and before Today in history.
 # Teams: record, standing, any new result since the last edition and the next game, all from

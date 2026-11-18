@@ -386,14 +386,19 @@ def _add_weather(
     # Not `stage()`: that marks failures as errors, and a missing forecast isn't one.
     print("→ Fetching the weather...", flush=True)
     started = time.monotonic()
+    # Every edition must carry the weather: build_weather falls back from Open-Meteo to MET
+    # Norway to the last saved forecast. If even that fails the send still goes out, but
+    # the run is flagged as an error rather than a quiet warning.
     try:
         data = build_weather(config, reader_time)
     except Exception as exc:  # noqa: BLE001 - the weather must never block the send
-        _annotate_warning("Weather", exc)
+        print(f"  ERROR: no weather section today: {type(exc).__name__}: {exc}", flush=True)
+        _annotate_error("Weather missing", exc)
         return edition
     print(f"✓ Fetching the weather ({time.monotonic() - started:.1f}s)", flush=True)
     if data is None:
-        print("  No forecast available; sending without the weather section", flush=True)
+        print("  ERROR: no forecast for any featured city; no weather section", flush=True)
+        _annotate_error("Weather missing", RuntimeError("no forecast for any featured city"))
         return edition
 
     with stage("Writing the weather"):

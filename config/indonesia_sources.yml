@@ -111,11 +111,11 @@ weather:
   # One topic is picked each day for the write-up (src/briefing/weather_topics.py).
   topics: [climate_context, rain_check, on_this_day, around_the_world, daylight, uv, air_quality, el_nino]
   featured:
-    - {name: Bandung, country: Indonesia, flag: "🇮🇩", latitude: -6.9175, longitude: 107.6191}
+    - {name: Bandung, country: Indonesia, flag: "🇮🇩", latitude: -6.9175, longitude: 107.6191, timezone: Asia/Jakarta}
   around:
-    - {name: Jakarta, country: Indonesia, flag: "🇮🇩", latitude: -6.2088, longitude: 106.8456}
-    - {name: Surabaya, country: Indonesia, flag: "🇮🇩", latitude: -7.2575, longitude: 112.7521}
-    - {name: Denpasar, country: Indonesia, flag: "🇮🇩", latitude: -8.6705, longitude: 115.2126}
-    - {name: New York, country: Amerika Serikat, flag: "🇺🇸", latitude: 40.7128, longitude: -74.0060}
-    - {name: Phoenix, country: Amerika Serikat, flag: "🇺🇸", latitude: 33.4484, longitude: -112.0740}
-    - {name: Denver, country: Amerika Serikat, flag: "🇺🇸", latitude: 39.7392, longitude: -104.9903}
+    - {name: Jakarta, country: Indonesia, flag: "🇮🇩", latitude: -6.2088, longitude: 106.8456, timezone: Asia/Jakarta}
+    - {name: Surabaya, country: Indonesia, flag: "🇮🇩", latitude: -7.2575, longitude: 112.7521, timezone: Asia/Jakarta}
+    - {name: Denpasar, country: Indonesia, flag: "🇮🇩", latitude: -8.6705, longitude: 115.2126, timezone: Asia/Makassar}
+    - {name: New York, country: Amerika Serikat, flag: "🇺🇸", latitude: 40.7128, longitude: -74.0060, timezone: America/New_York}
+    - {name: Phoenix, country: Amerika Serikat, flag: "🇺🇸", latitude: 33.4484, longitude: -112.0740, timezone: America/Phoenix}
+    - {name: Denver, country: Amerika Serikat, flag: "🇺🇸", latitude: 39.7392, longitude: -104.9903, timezone: America/Denver}
