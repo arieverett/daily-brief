@@ -4,6 +4,9 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any
 
+# Enough of an article to reach the names (businesses, teams, people) that often sit past the lede.
+EXCERPT_MAX_CHARS = 2500
+
 
 @dataclass(frozen=True)
 class Candidate:
@@ -30,7 +33,7 @@ class Candidate:
             "url": self.url,
         }
         if self.excerpt:
-            fields["article_excerpt"] = self.excerpt[:1500]
+            fields["article_excerpt"] = self.excerpt[:EXCERPT_MAX_CHARS]
         return fields
 
 

@@ -145,6 +145,12 @@ WRITING RULES
   survives a quick skim and the kicker isn't already punning. No clickbait, vague teases, or inflated stakes.
 - Lead summaries are 110-170 words in 2-4 short paragraphs. Secondary summaries are 70-120 words in 2-3 short
   paragraphs. Separate paragraphs with one blank line.
+- Be specific enough that the reader never has to click to learn who or what the story is about. Name the
+  sport (and men's or women's when it's college or not obvious) in any game, ranking, or tournament story, e.g.
+  "No. 8 Arizona men's basketball", never just "No. 8 Arizona". When a story is about businesses, stores,
+  restaurants, schools, people, or places, name them (with hours, prices, or dates when the metadata has them),
+  e.g. "Safeway and Albertsons open 6 a.m. to 6 p.m.", not "several chains will be open". If the metadata
+  never names who or what the story is about, give the slot to a candidate that does.
 - Every sentence must add a fact. Never restate the headline or an earlier paragraph in different words, and
   skip "looking ahead" lines unless the metadata gives a concrete next step (a date, vote, decision, or deadline).
 - Bullets are optional and must complement the headline and summary. Use 0-3 complete sentences. Every bullet
@@ -153,7 +159,7 @@ WRITING RULES
 - Prefer an unused #/count, %, or currency figure in bullets when the metadata supports one. Never repeat a
   summary number in a bullet merely to make it look data-forward. Zero bullets is better than filler.
 - Speed reads are 1-2 sentences, roughly 20-45 words: a quick hook or wry framing plus the fact, with a useful
-  number when available.
+  number when available. The specificity rule applies to Speed reads too.
 - Sources live in the links. Never say "according to Reuters", "per SVT", "Reuters reports", "coverage appears
   across", or similar source-as-narrator phrasing. Attribute statements, allegations, estimates, polls, and
   forecasts to the person or institution making the claim when needed.
@@ -203,6 +209,11 @@ ATURAN PENULISAN
   jelas sekali baca dan kicker-nya tidak sedang bermain kata. Hindari clickbait, teka-teki, dan dramatisasi.
 - Ringkasan berita utama berisi 110-170 kata dalam 2-4 paragraf pendek. Ringkasan berita tambahan berisi 70-120
   kata dalam 2-3 paragraf pendek. Pisahkan paragraf dengan satu baris kosong.
+- Tulis cukup spesifik agar pembaca tidak perlu membuka tautan untuk tahu siapa atau apa beritanya. Sebut
+  cabang olahraganya (dan putra/putri bila perlu) di berita pertandingan, peringkat, atau turnamen. Bila berita
+  menyangkut usaha, toko, restoran, sekolah, orang, atau tempat, sebut namanya (beserta jam, harga, atau tanggal
+  bila ada di metadata), bukan "beberapa toko". Jika metadata tidak pernah menyebut siapa atau apa yang
+  diberitakan, pakai kandidat lain.
 - Setiap kalimat wajib menambah fakta. Jangan mengulang judul atau paragraf sebelumnya dengan kata lain, dan
   jangan menulis kalimat "ke depan" kecuali metadata memuat langkah konkret (tanggal, voting, keputusan, tenggat).
 - Bullet bersifat opsional dan harus melengkapi judul dan ringkasan. Gunakan 0-3 kalimat lengkap. Setiap bullet

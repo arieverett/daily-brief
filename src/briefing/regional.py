@@ -101,7 +101,9 @@ def system_prompt(profile: RegionalProfile) -> str:
         "housing, water, transit, schools, jobs, big local employers), then strong local business, "
         "sports, food, and culture. National stories belong only when there is a clear local angle "
         "in the metadata.\n"
-        "- Sports gets at most one secondary story and one Speed read per section.\n"
+        "- Sports gets at most one secondary story and one Speed read per section. Every sports item names "
+        "the sport and, for colleges, men's or women's (e.g. \"No. 8 Arizona men's basketball\"), in the "
+        "headline when it fits and always in the first sentence.\n"
         "- The subject names the lead's city when it isn't obvious from the story.\n"
     )
 

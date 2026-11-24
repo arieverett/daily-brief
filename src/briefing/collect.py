@@ -21,7 +21,15 @@ import httpx
 import yaml
 from dateutil import parser as date_parser
 
-from .models import Candidate, CountrySection, Edition, IndonesiaEdition, RegionalEdition, Story
+from .models import (
+    EXCERPT_MAX_CHARS,
+    Candidate,
+    CountrySection,
+    Edition,
+    IndonesiaEdition,
+    RegionalEdition,
+    Story,
+)
 
 TAG_RE = re.compile(r"<[^>]+>")
 SPACE_RE = re.compile(r"\s+")
@@ -40,7 +48,6 @@ IMAGE_CONCURRENCY = 4
 # candidates when the primary Google News searches come back thin or fail.
 BACKUP_FILL_TARGET = 12
 # Article text gives the editor real detail to write from beyond the RSS headline and blurb.
-EXCERPT_MAX_CHARS = 1500
 EXCERPT_CONCURRENCY = 8
 ARTICLE_SKIP_TAGS = frozenset(
     {"script", "style", "noscript", "nav", "header", "footer", "aside", "figure", "form"}
