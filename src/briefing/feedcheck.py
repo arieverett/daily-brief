@@ -78,7 +78,8 @@ def main(argv: list[str] | None = None) -> int:
     failed = False
     for path in args.paths:
         config = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-        results = asyncio.run(fetch_feeds(config.get("feeds", []), args.lookback_hours))
+        feeds = [*config.get("feeds", []), *config.get("sunday_feeds", [])]
+        results = asyncio.run(fetch_feeds(feeds, args.lookback_hours))
         lines, warnings, errors = build_report(
             path, results, args.lookback_hours, args.max_candidates
         )
