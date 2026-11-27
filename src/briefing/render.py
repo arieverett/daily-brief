@@ -121,7 +121,13 @@ def _weather_text(weather: WeatherReport | None, *, indonesian: bool) -> list[st
 
 
 def render_text(edition: Edition) -> str:
-    blocks = ["DAILY BRIEF", edition.date_label, "", "THE SETUP", plain(edition.setup)]
+    blocks = [
+        "DAILY BRIEF",
+        edition.date_label,
+        "",
+        f"THIS SUNDAY: {edition.theme.upper()}" if edition.theme else "THE SETUP",
+        plain(edition.setup),
+    ]
     blocks.extend(_weather_text(edition.weather, indonesian=False))
     blocks.extend(_sections_text((("SWEDEN", edition.sweden), ("INDONESIA", edition.indonesia))))
     return "\n\n".join(blocks)
@@ -134,6 +140,8 @@ def _sections_text(sections) -> list[str]:
         blocks.extend(
             _story_text(story, source_prefix="Read more") for story in section.stories
         )
+        if not section.quick_hits:
+            continue
         blocks.append("SPEED READ")
         blocks.extend(
             _story_text(story, source_prefix="Read article") for story in section.quick_hits
@@ -161,7 +169,7 @@ def render_regional_text(edition: RegionalEdition) -> str:
         edition.profile.title.upper(),
         edition.date_label,
         "",
-        "THE SETUP",
+        f"THIS SUNDAY: {edition.theme.upper()}" if edition.theme else "THE SETUP",
         plain(edition.setup),
         *_weather_text(edition.weather, indonesian=False),
         *_sections_text(
@@ -185,7 +193,7 @@ def render_indonesia_text(edition: IndonesiaEdition) -> str:
         "NUSANTARA DAILY",
         edition.date_label,
         "",
-        "DALAM EDISI HARI INI",
+        f"MINGGU INI: {edition.theme.upper()}" if edition.theme else "DALAM EDISI HARI INI",
         plain(edition.setup),
         *_weather_text(edition.weather, indonesian=True),
         "",
@@ -195,10 +203,10 @@ def render_indonesia_text(edition: IndonesiaEdition) -> str:
             _story_text(story, source_prefix="Baca selengkapnya")
             for story in section.stories
         ),
-        "BACA KILAT",
-        *(
-            _story_text(story, source_prefix="Baca artikel")
-            for story in section.quick_hits
-        ),
     ]
+    if section.quick_hits:
+        blocks.append("BACA KILAT")
+        blocks.extend(
+            _story_text(story, source_prefix="Baca artikel") for story in section.quick_hits
+        )
     return "\n\n".join(blocks)

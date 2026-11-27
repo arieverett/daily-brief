@@ -263,3 +263,57 @@ history:
     - emoji: "🏔️"
       terms: [Colorado, Denver, Boulder, Aspen, Vail, Pikes Peak, Rocky Mountain, Pueblo,
               Durango, Mesa Verde, Fort Collins]
+
+# Sunday edition: one theme told through 3-5 stories per section, from the past week.
+# These culture/lifestyle searches are added to the regular feeds (also read 7 days back)
+# so the editor has arts, schools, sports, civic life and trends to build a theme from.
+sunday_feeds:
+  - name: Sunday — Arizona arts & gaming
+    country: Phoenix
+    url: "https://news.google.com/rss/search?q=%28Arizona%20OR%20Phoenix%20OR%20Tucson%20OR%20Flagstaff%20OR%20Tempe%29%20%28arts%20OR%20music%20OR%20festival%20OR%20museum%20OR%20theater%20OR%20gaming%20OR%20esports%29%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *phoenix_sources
+
+  - name: Sunday — Arizona schools
+    country: Phoenix
+    url: "https://news.google.com/rss/search?q=%28Arizona%20OR%20Phoenix%29%20%28school%20OR%20schools%20OR%20students%20OR%20%22Arizona%20State%22%20OR%20ASU%20OR%20%22University%20of%20Arizona%22%20OR%20%22Northern%20Arizona%22%29%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *phoenix_sources
+
+  - name: Sunday — Arizona athletics & outdoors
+    country: Phoenix
+    url: "https://news.google.com/rss/search?q=%28Arizona%20OR%20Phoenix%29%20%28athletes%20OR%20sports%20OR%20golf%20OR%20hiking%20OR%20trails%20OR%20outdoors%29%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *phoenix_sources
+
+  - name: Sunday — Arizona food & trends
+    country: Phoenix
+    url: "https://news.google.com/rss/search?q=%28Arizona%20OR%20Phoenix%20OR%20Tucson%20OR%20Scottsdale%29%20%28restaurant%20OR%20food%20OR%20trend%20OR%20tourism%20OR%20holiday%20OR%20culture%29%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *phoenix_sources
+
+  - name: Sunday — Arizona local politics
+    country: Phoenix
+    url: "https://news.google.com/rss/search?q=%28Phoenix%20OR%20Tempe%20OR%20Mesa%20OR%20Scottsdale%20OR%20Chandler%20OR%20Tucson%29%20%28%22city%20council%22%20OR%20mayor%20OR%20%22school%20board%22%29%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *phoenix_sources
+
+  - name: Sunday — Colorado arts & gaming
+    country: Denver
+    url: "https://news.google.com/rss/search?q=%28Colorado%20OR%20Denver%20OR%20Boulder%20OR%20%22Colorado%20Springs%22%29%20%28arts%20OR%20music%20OR%20festival%20OR%20museum%20OR%20theater%20OR%20gaming%20OR%20esports%29%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *denver_sources
+
+  - name: Sunday — Colorado schools
+    country: Denver
+    url: "https://news.google.com/rss/search?q=%28Colorado%20OR%20Denver%29%20%28school%20OR%20schools%20OR%20students%20OR%20CU%20OR%20%22University%20of%20Colorado%22%20OR%20%22Colorado%20State%22%29%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *denver_sources
+
+  - name: Sunday — Colorado athletics & outdoors
+    country: Denver
+    url: "https://news.google.com/rss/search?q=%28Colorado%20OR%20Denver%29%20%28athletes%20OR%20sports%20OR%20ski%20OR%20skiing%20OR%20hiking%20OR%20outdoors%29%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *denver_sources
+
+  - name: Sunday — Colorado food & trends
+    country: Denver
+    url: "https://news.google.com/rss/search?q=%28Colorado%20OR%20Denver%20OR%20Boulder%29%20%28restaurant%20OR%20food%20OR%20trend%20OR%20tourism%20OR%20holiday%20OR%20culture%29%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *denver_sources
+
+  - name: Sunday — Colorado local politics
+    country: Denver
+    url: "https://news.google.com/rss/search?q=%28Denver%20OR%20Aurora%20OR%20Boulder%20OR%20Lakewood%20OR%20%22Colorado%20Springs%22%29%20%28%22city%20council%22%20OR%20mayor%20OR%20%22school%20board%22%29%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen"
+    allowed_sources: *denver_sources

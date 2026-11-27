@@ -7,7 +7,8 @@ and plain-text editions, and send through Resend.
 
 ## What ships
 
-Three editions, all at 6:00 AM New York time, Monday-Saturday (no edition on major holidays):
+Three editions, all at 6:00 AM New York time, every day (no edition on major holidays). On
+Sundays each edition is a single-topic Sunday issue instead of the news roundup (see below):
 
 - **Daily Brief** (`standard`, `config/sources.yml`): Sweden + Indonesia, to Ari.
 - **Nusantara Daily** (`indonesia`, `config/indonesia_sources.yml`): Indonesia in Bahasa
@@ -60,9 +61,23 @@ unless it lands inside the 05:00–15:00 window.
 Every successful automatic send uploads a `delivered-<edition>-<date>` artifact. All runs check
 that record before generating, and each edition's sends are serialized, so the primary and
 backstop can overlap without sending twice. Resend's per-edition, per-day idempotency key is a
-second, independent guard. Sundays are skipped, and so are New Year's Day, Memorial Day,
-Independence Day, Labor Day, Thanksgiving and Christmas Day (`holidays()` in
-`src/briefing/delivery.py`; a forced manual run still sends).
+second, independent guard. Each edition skips its major holidays (`holidays()` in
+`src/briefing/delivery.py`; a forced manual run still sends): the standard edition and Two-Mile
+High skip New Year's Day, Memorial Day, Independence Day, Labor Day, Thanksgiving and Christmas
+Day; Nusantara Daily skips Tahun Baru, Imlek, Nyepi, both days of Idulfitri, Iduladha, 17 Agustus
+and Natal. The moon-based Indonesian dates come from each year's SKB 3 Menteri list; add the next
+year to `INDONESIA_MOVING_HOLIDAYS` when it's published (usually September; the gate warns from
+October if it's missing).
+
+## Sunday edition
+
+On Sundays there's no news roundup. Like Morning Brew's Sunday issue, each edition picks one
+cultural or lifestyle theme that's having a moment (arts, gaming, athletics, schools, local
+politics, food, the outdoors...) and tells it in 3-5 stories per section, each specific to that
+section's place: Sweden and Indonesia, Indonesia, or Arizona and Colorado. Stories come from the
+past week of the regular feeds plus each sources file's `sunday_feeds`. The weather stays; Speed
+reads, the Scoreboard and Today in history don't run. Code: `src/briefing/sunday.py`. To preview
+it on another day, run *Morning briefs* with `format: sunday` (and `force`).
 
 If an automatic send fails, Ari gets one alert email per edition per day with a link to the run.
 

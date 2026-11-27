@@ -23,7 +23,7 @@ from .collect import (
     collect_candidates,
 )
 from .config import DEFAULT_OUT_DIR, DEFAULT_SOURCES_PATH, Settings
-from .delivery import parse_clock, scheduled_send_time
+from .delivery import is_sunday_edition, parse_clock, scheduled_send_time
 from .editor import create_edition, create_indonesia_edition
 from .history import build_history, load_history_config
 from .models import (
@@ -48,6 +48,9 @@ from .sports import (
     scoreboard_report,
 )
 from .style_check import score_edition
+from .sunday import LOOKBACK_HOURS as SUNDAY_LOOKBACK_HOURS
+from .sunday import MAX_CANDIDATES as SUNDAY_MAX_CANDIDATES
+from .sunday import create_sunday_edition
 from .weather import build_weather, load_weather_config, write_weather_summary
 
 COUNTRIES = ("Sweden", "Indonesia")
@@ -219,6 +222,48 @@ def edition_day(settings: Settings, now: datetime | None = None) -> date:
     if settings.edition_date:
         return date.fromisoformat(settings.edition_date)
     return (now or datetime.now(ZoneInfo(settings.timezone))).date()
+
+
+def sunday_format(day: date, value: str | None = None) -> bool:
+    """Sundays get the single-topic edition. BRIEF_FORMAT=sunday|daily overrides (test sends)."""
+    value = (os.getenv("BRIEF_FORMAT", "") if value is None else value).strip().casefold()
+    if value in ("sunday", "daily"):
+        return value == "sunday"
+    return is_sunday_edition(day)
+
+
+def _generate_sunday_edition(
+    args: argparse.Namespace,
+    settings: Settings,
+    day: date,
+) -> tuple[NewsletterEdition, list[Candidate]]:
+    with stage("Fetching the past week's news for the Sunday edition"):
+        candidates = asyncio.run(
+            collect_candidates(
+                args.sources,
+                SUNDAY_LOOKBACK_HOURS,
+                max(settings.max_candidates, SUNDAY_MAX_CANDIDATES),
+                sunday=True,
+            )
+        )
+    countries = edition_countries(args.edition, args.sources)
+    print(f"  Sunday candidate pool: {country_counts(candidates, countries)}", flush=True)
+
+    with stage("Reading article text"):
+        candidates = asyncio.run(add_article_excerpts(candidates))
+
+    with stage("Writing the Sunday edition with OpenAI"):
+        profile = load_profile(args.sources) if args.edition not in ("standard", "indonesia") else None
+        edition = create_sunday_edition(
+            candidates,
+            edition_name=args.edition,
+            api_key=settings.openai_api_key,
+            model=settings.openai_model,
+            day=day,
+            profile=profile,
+        )
+    _annotate_notice("Sunday theme", edition.theme)
+    return edition, candidates
 
 
 def delivery_time(settings: Settings, day: date, now: datetime | None = None) -> datetime | None:
@@ -511,11 +556,17 @@ def main() -> None:
         settings = Settings.from_env(require_delivery=args.send)
         day = edition_day(settings)
         print(f"  Edition date: {day.isoformat()}", flush=True)
-        edition, candidates = _generate_live_edition(args, settings, day)
-        edition = _add_images(edition, candidates, args.edition)
-        edition = _add_weather(edition, args, settings, day)
-        edition = _add_sports(edition, args, settings, day)
-        edition = _add_history(edition, args, day)
+        if sunday_format(day):
+            # One theme, no Scoreboard or history: just the stories and the weather.
+            edition, candidates = _generate_sunday_edition(args, settings, day)
+            edition = _add_images(edition, candidates, args.edition)
+            edition = _add_weather(edition, args, settings, day)
+        else:
+            edition, candidates = _generate_live_edition(args, settings, day)
+            edition = _add_images(edition, candidates, args.edition)
+            edition = _add_weather(edition, args, settings, day)
+            edition = _add_sports(edition, args, settings, day)
+            edition = _add_history(edition, args, day)
         _annotate_notice("House style", score_edition(edition).report())
         voice = compare_to_reference(edition)
         if voice:

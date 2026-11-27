@@ -564,9 +564,15 @@ async def collect_candidates(
     sources_path: Path,
     lookback_hours: int,
     max_candidates: int,
+    *,
+    sunday: bool = False,
 ) -> list[Candidate]:
     config = yaml.safe_load(sources_path.read_text(encoding="utf-8")) or {}
-    results = await fetch_feeds(config.get("feeds", []), lookback_hours)
+    feeds = config.get("feeds", [])
+    if sunday:
+        # The Sunday edition's culture/lifestyle searches go first so they lead each pool.
+        feeds = [*config.get("sunday_feeds", []), *feeds]
+    results = await fetch_feeds(feeds, lookback_hours)
     report_feed_health(results, lookback_hours)
     pool = pool_from_results(results, max_candidates)
     primary_urls = {c.url for r in results if r.tier == "primary" for c in r.candidates}

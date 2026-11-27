@@ -517,9 +517,16 @@ def strip_em_dashes(text: str) -> str:
 
 
 def validate_edition(
-    edition: Edition | IndonesiaEdition | RegionalEdition, candidates: list[Candidate]
+    edition: Edition | IndonesiaEdition | RegionalEdition,
+    candidates: list[Candidate],
+    *,
+    themed: bool = False,
 ) -> Edition | IndonesiaEdition | RegionalEdition:
-    """Repair links, remove duplicate topics, and enforce editorial quality gates."""
+    """Repair links, remove duplicate topics, and enforce editorial quality gates.
+
+    ``themed`` (the Sunday edition): every story shares one theme, so only a story built on
+    the same article or topic_key counts as a duplicate, and no Speed reads are added.
+    """
     by_url, by_title = build_link_index(candidates)
     dropped = 0
 
@@ -570,10 +577,16 @@ def validate_edition(
             if fixed is not None
         ]
 
+    def duplicate(story: Story, previous: Story) -> bool:
+        if not themed:
+            return _same_topic(story, previous)
+        same_key = story.topic_key and story.topic_key.casefold() == previous.topic_key.casefold()
+        return bool(same_key) or canonical_url_key(story.url) == canonical_url_key(previous.url)
+
     def dedupe(stories: list[Story], used: list[Story]) -> list[Story]:
         kept: list[Story] = []
         for story in stories:
-            if any(_same_topic(story, previous) for previous in [*used, *kept]):
+            if any(duplicate(story, previous) for previous in [*used, *kept]):
                 continue
             kept.append(story)
         return kept
@@ -619,7 +632,8 @@ def validate_edition(
 
         stories = dedupe(stories, [lead])
         quick_hits = dedupe(quick_hits, [lead, *stories])
-        quick_hits = backfill_quick_hits(country, lead, stories, quick_hits, localized)
+        if not themed:
+            quick_hits = backfill_quick_hits(country, lead, stories, quick_hits, localized)
         return replace(section, lead=lead, stories=stories, quick_hits=quick_hits)
 
     if isinstance(edition, RegionalEdition):

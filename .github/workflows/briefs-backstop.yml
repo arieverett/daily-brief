@@ -12,9 +12,9 @@ name: Morning briefs backstop
 
 on:
   schedule:
-    - cron: "17 20-23 * * 0-5"
+    - cron: "17 20-23 * * *"
       timezone: "America/New_York"
-    - cron: "17 0-11 * * 1-6"
+    - cron: "17 0-11 * * *"
       timezone: "America/New_York"
 
 concurrency:

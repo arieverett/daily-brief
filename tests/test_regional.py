@@ -168,7 +168,10 @@ def test_html_and_text_use_the_regional_branding(monkeypatch):
     assert html.index("Phoenix, Arizona") < html.index("Denver, Colorado")
     assert "#c2410c" in html
     assert "Sweden" not in html and "NUSANTARA" not in html and "Baca" not in html
-    assert "Good morning." in html and "Speed read" in html
+    assert "Good morning." in html
+    # This fixture's Speed reads all repeat the lead's topic, so validation drops them and
+    # the empty Speed read box is left out.
+    assert "Speed read" not in html
     text = render_regional_text(edition)
     assert text.startswith("TWO-MILE HIGH\n\nWednesday, October 21")
     assert "PHOENIX, ARIZONA" in text and "DENVER, COLORADO" in text

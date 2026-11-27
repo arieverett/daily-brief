@@ -1,5 +1,6 @@
 {% set regional = edition.profile is defined %}
 {% set indonesia_only = edition.sweden is not defined and not regional %}
+{% set sunday = edition.theme %}
 {% set accent = edition.profile.accent if regional else ('#991b1b' if indonesia_only else '#075dcc') %}
 {% macro source_list(story) -%}
 <div class="source">{{ 'Baca selengkapnya' if indonesia_only else 'Read more' }} ·
@@ -11,7 +12,7 @@
 {% macro story_card(story, lead=false) -%}
 <table role="presentation" class="story-card" width="100%">
   <tr><td class="story-body story-header{% if story.image_url %} has-image{% endif %}">
-    <div class="story-label">{% if lead %}{{ 'Yang utama' if indonesia_only else 'The big one' }} · {% endif %}{{ story.label | plain }}</div>
+    <div class="story-label">{% if lead and not sunday %}{{ 'Yang utama' if indonesia_only else 'The big one' }} · {% endif %}{{ story.label | plain }}</div>
     {% if lead %}<h2><a href="{{ story.url }}">{{ story.headline | plain }}</a></h2>{% else %}<h3><a href="{{ story.url }}">{{ story.headline | plain }}</a></h3>{% endif %}
   </td></tr>
   {% if story.image_url %}<tr><td><img class="story-image" src="{{ story.image_url }}" width="604" alt="{{ story.headline | plain }}"></td></tr>{% endif %}
@@ -217,22 +218,22 @@
         <tr><td class="inset" style="padding-top:18px;"><div class="top-rule">&nbsp;</div></td></tr>
         <tr><td class="masthead inset">
           {% if regional %}
-          <div class="brand-kicker">{{ edition.profile.kicker }}</div>
+          <div class="brand-kicker">{{ 'The Sunday edition' if sunday else edition.profile.kicker }}</div>
           <h1 class="brand"><span class="brand-mark">☕</span> {{ edition.profile.title | upper }}</h1>
           {% else %}
-          <div class="brand-kicker">{{ 'Ringkasan berita Indonesia setiap hari' if indonesia_only else 'Your daily country brief' }}</div>
+          <div class="brand-kicker">{% if sunday %}{{ 'Edisi Minggu' if indonesia_only else 'The Sunday edition' }}{% else %}{{ 'Ringkasan berita Indonesia setiap hari' if indonesia_only else 'Your daily country brief' }}{% endif %}</div>
           <h1 class="brand"><span class="brand-mark">☕</span> {{ 'NUSANTARA DAILY' if indonesia_only else 'NORDIC + NUSANTARA' }}</h1>
           {% endif %}
           <div class="date">{{ edition.date_label }}</div>
         </td></tr>
         <tr><td class="inset"><div class="top-rule">&nbsp;</div></td></tr>
         <tr><td class="inset hello">
-          <p><strong>{{ 'Selamat pagi.' if indonesia_only else 'Good morning.' }}</strong> {% if regional %}{{ edition.profile.intro }}{% else %}{{ 'Inilah kabar penting hari ini dari seluruh Indonesia, langsung ke intinya.' if indonesia_only else 'Here is what matters today in Sweden and Indonesia, without the filler.' }}{% endif %}</p>
+          <p><strong>{{ 'Selamat pagi.' if indonesia_only else 'Good morning.' }}</strong> {% if sunday %}{{ 'Hari ini Minggu, jadi kita membahas satu topik secara mendalam: ' if indonesia_only else "It's Sunday, so we're going deep on one topic: " }}<strong>{{ edition.theme }}</strong>.{% elif regional %}{{ edition.profile.intro }}{% else %}{{ 'Inilah kabar penting hari ini dari seluruh Indonesia, langsung ke intinya.' if indonesia_only else 'Here is what matters today in Sweden and Indonesia, without the filler.' }}{% endif %}</p>
         </td></tr>
 
         <tr><td class="inset">
           <table role="presentation" class="module setup-card" width="100%">
-            <tr><td class="setup-title">☕ {{ 'Dalam edisi hari ini' if indonesia_only else 'The setup' }}</td></tr>
+            <tr><td class="setup-title">{% if sunday %}☀️ {{ 'Minggu ini' if indonesia_only else 'This Sunday' }}: {{ edition.theme }}{% else %}☕ {{ 'Dalam edisi hari ini' if indonesia_only else 'The setup' }}{% endif %}</td></tr>
             <tr><td class="setup-copy">{{ edition.setup | rich_paragraphs('setup-para', true) }}</td></tr>
           </table>
         </td></tr>
@@ -255,12 +256,14 @@
           {{ story_card(section.lead, true) }}
           {% for story in section.stories %}{{ story_card(story) }}{% endfor %}
 
+          {% if section.quick_hits %}
           <table role="presentation" class="module" width="100%">
             <tr><td class="speed-title">⚡ {{ 'Baca kilat' if indonesia_only else 'Speed read' }}</td></tr>
             {% for story in section.quick_hits %}
             <tr class="speed-row{% if loop.first %} first{% else %} rule{% endif %}{% if loop.last %} last{% endif %}"><td><strong>{{ story.label | plain }}:</strong> {{ story.summary | rich_inline }} <a href="{{ story.url }}">{{ 'Baca artikel' if indonesia_only else 'Read article' }} →</a></td></tr>
             {% endfor %}
           </table>
+          {% endif %}
         </td></tr>
         {% endfor %}
 

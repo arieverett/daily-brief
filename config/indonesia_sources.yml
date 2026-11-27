@@ -119,3 +119,37 @@ weather:
     - {name: New York, country: Amerika Serikat, flag: "🇺🇸", latitude: 40.7128, longitude: -74.0060, timezone: America/New_York}
     - {name: Phoenix, country: Amerika Serikat, flag: "🇺🇸", latitude: 33.4484, longitude: -112.0740, timezone: America/Phoenix}
     - {name: Denver, country: Amerika Serikat, flag: "🇺🇸", latitude: 39.7392, longitude: -104.9903, timezone: America/Denver}
+
+# Sunday edition: one theme told through 3-5 stories per section, from the past week.
+# These culture/lifestyle searches are added to the regular feeds (also read 7 days back)
+# so the editor has arts, schools, sports, civic life and trends to build a theme from.
+sunday_feeds:
+  - name: Sunday — Indonesia game & esports
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=%28game%20OR%20gim%20OR%20esports%20OR%20gamer%29%20Indonesia%20when%3A7d&hl=id&gl=ID&ceid=ID%3Aid"
+    allowed_sources: *trusted_sources
+
+  - name: Sunday — Indonesia kampus & sekolah
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=%28kampus%20OR%20universitas%20OR%20sekolah%20OR%20mahasiswa%20OR%20pelajar%29%20Indonesia%20when%3A7d&hl=id&gl=ID&ceid=ID%3Aid"
+    allowed_sources: *trusted_sources
+
+  - name: Sunday — Indonesia olahraga
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=%28atlet%20OR%20%22bulu%20tangkis%22%20OR%20timnas%20OR%20olahraga%20OR%20maraton%29%20Indonesia%20when%3A7d&hl=id&gl=ID&ceid=ID%3Aid"
+    allowed_sources: *trusted_sources
+
+  - name: Sunday — Indonesia seni & festival
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=%28festival%20OR%20pameran%20OR%20konser%20OR%20seni%20OR%20budaya%29%20%28Jakarta%20OR%20Bandung%20OR%20Yogyakarta%20OR%20Bali%20OR%20Surabaya%29%20when%3A7d&hl=id&gl=ID&ceid=ID%3Aid"
+    allowed_sources: *trusted_sources
+
+  - name: Sunday — Indonesia politik daerah
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=%28DPRD%20OR%20%22wali%20kota%22%20OR%20gubernur%20OR%20bupati%29%20%28Bandung%20OR%20%22Jawa%20Barat%22%20OR%20Jakarta%20OR%20Surabaya%29%20when%3A7d&hl=id&gl=ID&ceid=ID%3Aid"
+    allowed_sources: *trusted_sources
+
+  - name: Sunday — Indonesia tren & gaya hidup
+    country: Indonesia
+    url: "https://news.google.com/rss/search?q=%28tren%20OR%20viral%20OR%20%22gaya%20hidup%22%20OR%20kuliner%20OR%20wisata%29%20Indonesia%20when%3A7d&hl=id&gl=ID&ceid=ID%3Aid"
+    allowed_sources: *trusted_sources

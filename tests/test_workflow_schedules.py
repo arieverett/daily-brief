@@ -38,8 +38,8 @@ def test_primary_workflow_is_dispatched_externally_and_never_scheduled():
 def test_backstop_polls_from_the_evening_before_through_late_morning():
     workflow = load("briefs-backstop.yml")
     assert triggers(workflow)["schedule"] == [
-        {"cron": "17 20-23 * * 0-5", "timezone": "America/New_York"},
-        {"cron": "17 0-11 * * 1-6", "timezone": "America/New_York"},
+        {"cron": "17 20-23 * * *", "timezone": "America/New_York"},
+        {"cron": "17 0-11 * * *", "timezone": "America/New_York"},
     ]
     assert workflow["concurrency"] == {"group": "briefs-backstop", "cancel-in-progress": False}
     gate = workflow["jobs"]["gate"]

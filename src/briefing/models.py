@@ -125,6 +125,8 @@ class Edition:
     indonesia: CountrySection
     setup: str
     weather: WeatherReport | None = None
+    # Set only on the Sunday edition: the one topic every story explores.
+    theme: str = ""
 
     def asdict(self) -> dict[str, Any]:
         return asdict(self)
@@ -139,6 +141,8 @@ class IndonesiaEdition:
     indonesia: CountrySection
     setup: str
     weather: WeatherReport | None = None
+    # Set only on the Sunday edition: the one topic every story explores.
+    theme: str = ""
 
     def asdict(self) -> dict[str, Any]:
         return asdict(self)
@@ -250,6 +254,8 @@ class RegionalEdition:
     history: list[HistoryItem] = field(default_factory=list)
     # Scores, standings and big plays; None when the edition has no sports block or ESPN failed.
     sports: SportsReport | None = None
+    # Set only on the Sunday edition: the one topic every story explores.
+    theme: str = ""
 
     def named_sections(self) -> list[tuple[Region, CountrySection]]:
         return [
@@ -314,6 +320,7 @@ def edition_from_dict(value: dict[str, Any]) -> Edition:
         indonesia=country_from_dict(value["indonesia"]),
         setup=value["setup"],
         weather=weather_from_dict(value.get("weather")),
+        theme=value.get("theme", ""),
     )
 
 
@@ -326,4 +333,5 @@ def indonesia_edition_from_dict(value: dict[str, Any]) -> IndonesiaEdition:
         indonesia=country_from_dict(value["indonesia"]),
         setup=value["setup"],
         weather=weather_from_dict(value.get("weather")),
+        theme=value.get("theme", ""),
     )

@@ -35,7 +35,7 @@ def ny(value: str) -> datetime:
         ("2026-09-29T14:59", True, 0),
         ("2026-09-29T15:00", False, 0),  # a "morning" brief is stale by the afternoon
         ("2026-09-29T23:10", False, 0),  # early-evening cron for tomorrow landed today
-        ("2026-10-04T05:30", False, 0),  # Sunday
+        ("2026-10-04T05:30", True, 25),  # Sunday: the Sunday edition
     ],
 )
 def test_backstop_window(now, proceed, wait_minutes):
@@ -98,11 +98,12 @@ def test_gate_fails_open_when_records_are_unavailable():
     assert result.send == {"standard": True, "indonesia": False, "us": False}
 
 
-def test_gate_skips_sunday_unless_forced():
+def test_gate_sends_on_sundays():
     sunday = ny("2026-10-04T05:45")
-    assert not any(run_gate(editions=["standard"], now=sunday).send.values())
-    forced = run_gate(editions=["standard"], now=sunday, force=True)
-    assert forced.send == {"standard": True, "indonesia": False, "us": False}
+    result = run_gate(editions=["standard", "indonesia", "us"], now=sunday)
+    assert result.send == {"standard": True, "indonesia": True, "us": True}
+    assert delivery.is_sunday_edition(sunday.date())
+    assert not delivery.is_sunday_edition(date(2026, 10, 3))
 
 
 @pytest.mark.parametrize(
@@ -130,15 +131,57 @@ def test_days_around_holidays_still_send():
         assert delivery.is_delivery_day(date.fromisoformat(day)), day
 
 
+@pytest.mark.parametrize(
+    ("day", "name"),
+    [
+        ("2026-01-01", "Tahun Baru Masehi"),
+        ("2026-02-17", "Tahun Baru Imlek"),
+        ("2026-03-19", "Hari Suci Nyepi"),
+        ("2026-03-21", "Idulfitri"),
+        ("2026-03-22", "Idulfitri"),
+        ("2026-05-27", "Iduladha"),
+        ("2026-08-17", "Hari Kemerdekaan"),
+        ("2026-12-25", "Natal"),
+        ("2027-02-06", "Tahun Baru Imlek"),
+        ("2027-03-08", "Hari Suci Nyepi"),
+        ("2027-03-10", "Idulfitri"),
+        ("2027-03-11", "Idulfitri"),
+        ("2027-05-17", "Iduladha"),
+    ],
+)
+def test_nusantara_daily_skips_indonesian_holidays(day, name):
+    holiday = date.fromisoformat(day)
+    assert delivery.holiday_name(holiday, "indonesia") == name
+    assert not delivery.is_delivery_day(holiday, "indonesia")
+
+
+def test_holiday_lists_are_per_edition():
+    thanksgiving, merdeka = date(2026, 11, 26), date(2026, 8, 17)
+    assert delivery.is_delivery_day(thanksgiving, "indonesia")
+    assert not delivery.is_delivery_day(thanksgiving, "us")
+    assert delivery.is_delivery_day(merdeka, "standard")
+    assert delivery.is_delivery_day(merdeka, "us")
+    assert delivery.is_delivery_day(date(2026, 7, 4), "indonesia")
+
+
 def test_gate_and_backstop_skip_holidays_unless_forced():
     thanksgiving = ny("2026-11-26T05:45")
     result = run_gate(editions=["standard", "indonesia", "us"], now=thanksgiving)
-    assert not any(result.send.values())
-    assert "Thanksgiving" in result.notes[0]
-    plan = plan_backstop(ny("2026-12-25T06:30"))
+    assert result.send == {"standard": False, "indonesia": True, "us": False}
+    assert any("standard: no edition on Thanksgiving" in note for note in result.notes)
+    # Christmas is a holiday for every edition, so a backstop run doesn't even wait.
+    plan = plan_backstop(ny("2026-12-25T05:30"))
     assert not plan.proceed and "Christmas Day" in plan.reason
+    # Idulfitri isn't a US holiday: the backstop still runs for the other editions.
+    assert plan_backstop(ny("2027-03-10T05:30")).proceed
     forced = run_gate(editions=["us"], now=thanksgiving, force=True)
     assert forced.send["us"]
+
+
+def test_missing_indonesian_holiday_year_is_flagged():
+    assert delivery.holiday_table_warning(date(2026, 11, 27)) is None
+    assert "2028" in delivery.holiday_table_warning(date(2027, 10, 1))
+    assert "2028" in delivery.holiday_table_warning(date(2028, 1, 3))
 
 
 def test_forced_gate_ignores_delivery_records():

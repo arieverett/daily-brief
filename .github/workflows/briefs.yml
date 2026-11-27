@@ -1,7 +1,7 @@
 name: Morning briefs
 
 # Primary trigger. An external exact-time scheduler calls this workflow's
-# workflow_dispatch API at 05:45 America/New_York, Monday-Saturday (setup in the
+# workflow_dispatch API at 05:45 America/New_York, every day (setup in the
 # README). Each edition is generated and handed to Resend to land at 06:00 sharp.
 #
 # GitHub's own cron runs hours late for this repo, so it is only used as a backstop
@@ -28,6 +28,14 @@ on:
         description: Send even if today's edition already went out (e.g. to test a revision)
         type: boolean
         default: false
+      format:
+        description: Daily news or the single-topic Sunday edition (auto = Sunday edition on Sundays)
+        type: choice
+        options:
+          - auto
+          - daily
+          - sunday
+        default: auto
   push:
     branches:
       - main
@@ -50,6 +58,7 @@ jobs:
     with:
       edition: standard
       force: ${{ inputs.force == true }}
+      format: ${{ inputs.format || 'auto' }}
       trigger: ${{ github.event_name }}
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -66,6 +75,7 @@ jobs:
     with:
       edition: indonesia
       force: ${{ inputs.force == true }}
+      format: ${{ inputs.format || 'auto' }}
       trigger: ${{ github.event_name }}
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -83,6 +93,7 @@ jobs:
     with:
       edition: us
       force: ${{ inputs.force == true }}
+      format: ${{ inputs.format || 'auto' }}
       trigger: ${{ github.event_name }}
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

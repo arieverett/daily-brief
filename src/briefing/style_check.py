@@ -80,10 +80,15 @@ def _story(card: Scorecard, story: Story, where: str, low: int, high: int, kicke
     card.check(not FILLER_RE.search(text), f"{where}: filler phrase")
 
 
-def _section(card: Scorecard, section: CountrySection, name: str) -> None:
+def _section(card: Scorecard, section: CountrySection, name: str, sunday: bool = False) -> None:
     _story(card, section.lead, f"{name} lead", 100, 180, kicker=True)
     for index, story in enumerate(section.stories, 1):
-        _story(card, story, f"{name} story {index}", 60, 130, kicker=True)
+        _story(card, story, f"{name} story {index}", 60, 140 if sunday else 130, kicker=True)
+    if sunday:
+        # One theme in 3-5 stories, no Speed reads.
+        total = 1 + len(section.stories)
+        card.check(3 <= total <= 5, f"{name}: {total} Sunday stories (aim 3-5)")
+        return
     card.check(
         2 <= len(section.stories) <= 3, f"{name}: {len(section.stories)} secondary stories"
     )
@@ -103,13 +108,14 @@ def score_edition(edition: NewsletterEdition) -> Scorecard:
     card.check(30 <= setup_words <= 80, f"setup is {setup_words} words (aim 35-70)")
     card.check(bool(RUN_IN_RE.match(edition.setup)), "setup doesn't open with a bold run-in")
     card.check(len(edition.subject) <= 70, f"subject is {len(edition.subject)} characters")
+    sunday = bool(edition.theme)
     if isinstance(edition, RegionalEdition):
         for region, section in edition.named_sections():
-            _section(card, section, region.name)
+            _section(card, section, region.name, sunday)
     else:
         if isinstance(edition, Edition):
-            _section(card, edition.sweden, "Sweden")
-        _section(card, edition.indonesia, "Indonesia")
+            _section(card, edition.sweden, "Sweden", sunday)
+        _section(card, edition.indonesia, "Indonesia", sunday)
     weather = edition.weather
     if weather is not None:
         card.check(bool(weather.summary), "weather write-up missing (forecasts only)")

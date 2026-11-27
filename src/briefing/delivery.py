@@ -3,8 +3,8 @@
 This module is deliberately stdlib-only: the workflow gate runs it with the runner's
 system Python before any package dependencies are installed.
 
-How a morning is supposed to go (all times America/New_York, Monday-Saturday, except
-the major holidays in ``holiday_name``):
+How a morning is supposed to go (all times America/New_York, every day except each
+edition's major holidays in ``holiday_name``; Sundays get the single-topic Sunday edition):
 
 * 05:45  An external exact-time scheduler dispatches ``briefs.yml``. Each edition is
          generated and handed to Resend with ``scheduled_at`` = 06:00, so it lands in
@@ -65,8 +65,8 @@ def _nth_weekday(year: int, month: int, weekday: int, n: int) -> date:
     return last - timedelta(days=(last.weekday() - weekday) % 7)
 
 
-def holidays(year: int) -> dict[date, str]:
-    """Major holidays with no edition. The actual date, not the federal "observed" one."""
+def us_holidays(year: int) -> dict[date, str]:
+    """Major US holidays with no edition. The actual date, not the federal "observed" one."""
     return {
         date(year, 1, 1): "New Year's Day",
         _nth_weekday(year, 5, 0, -1): "Memorial Day",
@@ -77,17 +77,63 @@ def holidays(year: int) -> dict[date, str]:
     }
 
 
-def holiday_name(day: date) -> str | None:
-    return holidays(day.year).get(day)
+# Indonesia's moving holidays, from each year's SKB 3 Menteri (libur nasional). Add the next
+# year when the government publishes it (usually September); the gate warns when it's missing.
+INDONESIA_MOVING_HOLIDAYS: dict[int, dict[date, str]] = {
+    2026: {
+        date(2026, 2, 17): "Tahun Baru Imlek",
+        date(2026, 3, 19): "Hari Suci Nyepi",
+        date(2026, 3, 21): "Idulfitri",
+        date(2026, 3, 22): "Idulfitri",
+        date(2026, 5, 27): "Iduladha",
+    },
+    2027: {
+        date(2027, 2, 6): "Tahun Baru Imlek",
+        date(2027, 3, 8): "Hari Suci Nyepi",
+        date(2027, 3, 10): "Idulfitri",
+        date(2027, 3, 11): "Idulfitri",
+        date(2027, 5, 17): "Iduladha",
+    },
+}
 
 
-def is_delivery_day(day: date) -> bool:
-    return day.weekday() != SUNDAY and holiday_name(day) is None
+def indonesia_holidays(year: int) -> dict[date, str]:
+    """Major Indonesian holidays with no Nusantara Daily (Mom's edition)."""
+    return {
+        date(year, 1, 1): "Tahun Baru Masehi",
+        date(year, 8, 17): "Hari Kemerdekaan",
+        date(year, 12, 25): "Natal",
+        **INDONESIA_MOVING_HOLIDAYS.get(year, {}),
+    }
 
 
-def no_edition_reason(day: date) -> str:
-    holiday = holiday_name(day)
-    return f"No edition on {holiday}." if holiday else "No edition on Sundays."
+def holidays(year: int, edition: str = "standard") -> dict[date, str]:
+    return indonesia_holidays(year) if edition == "indonesia" else us_holidays(year)
+
+
+def holiday_name(day: date, edition: str = "standard") -> str | None:
+    return holidays(day.year, edition).get(day)
+
+
+def is_delivery_day(day: date, edition: str = "standard") -> bool:
+    """Every day but the edition's major holidays (Sundays get the Sunday edition)."""
+    return holiday_name(day, edition) is None
+
+
+def is_sunday_edition(day: date) -> bool:
+    return day.weekday() == SUNDAY
+
+
+def holiday_table_warning(day: date) -> str | None:
+    if day.year in INDONESIA_MOVING_HOLIDAYS and (
+        day.month < 10 or day.year + 1 in INDONESIA_MOVING_HOLIDAYS
+    ):
+        return None
+    missing = day.year if day.year not in INDONESIA_MOVING_HOLIDAYS else day.year + 1
+    return (
+        f"Indonesian moving holidays for {missing} aren't in delivery.py yet; "
+        "add them from the SKB 3 Menteri list."
+    )
 
 
 def record_name(edition: str, day: date) -> str:
@@ -116,8 +162,8 @@ class BackstopPlan:
 
 def plan_backstop(now: datetime) -> BackstopPlan:
     """Decide what a (possibly very late) GitHub cron backstop run should do."""
-    if not is_delivery_day(now.date()):
-        return BackstopPlan(False, 0.0, no_edition_reason(now.date()))
+    if not any(is_delivery_day(now.date(), edition) for edition in EDITIONS):
+        return BackstopPlan(False, 0.0, f"No edition on {holiday_name(now.date())}.")
 
     local_clock = now.time()
     if local_clock < BACKSTOP_OPENS:
@@ -324,13 +370,17 @@ def run_gate(
             print(f"  {notes[-1]}", flush=True)
             sleep(plan.wait_seconds)
             now = clock() if clock else local_now(str(now.tzinfo))
-    elif not is_delivery_day(now.date()):
-        notes.append(f"{no_edition_reason(now.date())} Use force to send anyway.")
-        return GateResult(now.date(), none, notes)
 
     day = now.date()
+    warning = holiday_table_warning(day)
+    if warning:
+        notes.append(warning)
     send = dict(none)
     for edition in editions:
+        holiday = holiday_name(day, edition)
+        if holiday:
+            notes.append(f"{edition}: no edition on {holiday}. Use force to send anyway.")
+            continue
         delivered = is_delivered(edition, day) if is_delivered else None
         if delivered:
             notes.append(f"{edition}: already delivered for {day}.")

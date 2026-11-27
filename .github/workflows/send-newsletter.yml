@@ -12,6 +12,11 @@ on:
         required: false
         default: false
         type: boolean
+      format:
+        description: auto, daily, or sunday (auto = the Sunday edition on Sundays)
+        required: false
+        default: auto
+        type: string
       trigger:
         description: What started this run, for logs and failure alerts
         required: false
@@ -144,6 +149,7 @@ jobs:
           BRIEF_TIMEZONE: America/New_York
           BRIEF_MAX_CANDIDATES: ${{ inputs.edition == 'indonesia' && '60' || '40' }}
           BRIEF_EDITION_DATE: ${{ steps.guard.outputs.date }}
+          BRIEF_FORMAT: ${{ inputs.format }}
           BRIEF_WEATHER_CACHE: .cache/weather
           BRIEF_FORECAST_CACHE: .cache/forecast
           # Automatic runs are handed to Resend to land at exactly 06:00 New York time
