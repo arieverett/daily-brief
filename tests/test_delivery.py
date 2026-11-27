@@ -105,6 +105,42 @@ def test_gate_skips_sunday_unless_forced():
     assert forced.send == {"standard": True, "indonesia": False, "us": False}
 
 
+@pytest.mark.parametrize(
+    ("day", "name"),
+    [
+        ("2026-01-01", "New Year's Day"),
+        ("2026-05-25", "Memorial Day"),
+        ("2026-07-04", "Independence Day"),
+        ("2026-09-07", "Labor Day"),
+        ("2026-11-26", "Thanksgiving"),
+        ("2026-12-25", "Christmas Day"),
+        ("2027-05-31", "Memorial Day"),
+        ("2027-09-06", "Labor Day"),
+        ("2027-11-25", "Thanksgiving"),
+    ],
+)
+def test_major_holidays_have_no_edition(day, name):
+    holiday = date.fromisoformat(day)
+    assert delivery.holiday_name(holiday) == name
+    assert not delivery.is_delivery_day(holiday)
+
+
+def test_days_around_holidays_still_send():
+    for day in ("2026-11-27", "2026-12-24", "2026-12-26", "2026-07-03", "2026-05-26"):
+        assert delivery.is_delivery_day(date.fromisoformat(day)), day
+
+
+def test_gate_and_backstop_skip_holidays_unless_forced():
+    thanksgiving = ny("2026-11-26T05:45")
+    result = run_gate(editions=["standard", "indonesia", "us"], now=thanksgiving)
+    assert not any(result.send.values())
+    assert "Thanksgiving" in result.notes[0]
+    plan = plan_backstop(ny("2026-12-25T06:30"))
+    assert not plan.proceed and "Christmas Day" in plan.reason
+    forced = run_gate(editions=["us"], now=thanksgiving, force=True)
+    assert forced.send["us"]
+
+
 def test_forced_gate_ignores_delivery_records():
     result = run_gate(
         editions=["standard", "indonesia"],

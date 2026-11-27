@@ -7,7 +7,7 @@ and plain-text editions, and send through Resend.
 
 ## What ships
 
-Three editions, all at 6:00 AM New York time, Monday-Saturday:
+Three editions, all at 6:00 AM New York time, Monday-Saturday (no edition on major holidays):
 
 - **Daily Brief** (`standard`, `config/sources.yml`): Sweden + Indonesia, to Ari.
 - **Nusantara Daily** (`indonesia`, `config/indonesia_sources.yml`): Indonesia in Bahasa
@@ -60,7 +60,9 @@ unless it lands inside the 05:00–15:00 window.
 Every successful automatic send uploads a `delivered-<edition>-<date>` artifact. All runs check
 that record before generating, and each edition's sends are serialized, so the primary and
 backstop can overlap without sending twice. Resend's per-edition, per-day idempotency key is a
-second, independent guard. Sundays are skipped.
+second, independent guard. Sundays are skipped, and so are New Year's Day, Memorial Day,
+Independence Day, Labor Day, Thanksgiving and Christmas Day (`holidays()` in
+`src/briefing/delivery.py`; a forced manual run still sends).
 
 If an automatic send fails, Ari gets one alert email per edition per day with a link to the run.
 

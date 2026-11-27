@@ -3,7 +3,8 @@
 This module is deliberately stdlib-only: the workflow gate runs it with the runner's
 system Python before any package dependencies are installed.
 
-How a morning is supposed to go (all times America/New_York, Monday-Saturday):
+How a morning is supposed to go (all times America/New_York, Monday-Saturday, except
+the major holidays in ``holiday_name``):
 
 * 05:45  An external exact-time scheduler dispatches ``briefs.yml``. Each edition is
          generated and handed to Resend with ``scheduled_at`` = 06:00, so it lands in
@@ -55,8 +56,38 @@ def local_now(timezone_name: str = TIMEZONE) -> datetime:
     return datetime.now(ZoneInfo(timezone_name))
 
 
+def _nth_weekday(year: int, month: int, weekday: int, n: int) -> date:
+    """The n-th ``weekday`` (Mon=0) of a month; n=-1 means the last one."""
+    if n > 0:
+        first = date(year, month, 1)
+        return first + timedelta(days=(weekday - first.weekday()) % 7 + 7 * (n - 1))
+    last = (date(year + month // 12, month % 12 + 1, 1)) - timedelta(days=1)
+    return last - timedelta(days=(last.weekday() - weekday) % 7)
+
+
+def holidays(year: int) -> dict[date, str]:
+    """Major holidays with no edition. The actual date, not the federal "observed" one."""
+    return {
+        date(year, 1, 1): "New Year's Day",
+        _nth_weekday(year, 5, 0, -1): "Memorial Day",
+        date(year, 7, 4): "Independence Day",
+        _nth_weekday(year, 9, 0, 1): "Labor Day",
+        _nth_weekday(year, 11, 3, 4): "Thanksgiving",
+        date(year, 12, 25): "Christmas Day",
+    }
+
+
+def holiday_name(day: date) -> str | None:
+    return holidays(day.year).get(day)
+
+
 def is_delivery_day(day: date) -> bool:
-    return day.weekday() != SUNDAY
+    return day.weekday() != SUNDAY and holiday_name(day) is None
+
+
+def no_edition_reason(day: date) -> str:
+    holiday = holiday_name(day)
+    return f"No edition on {holiday}." if holiday else "No edition on Sundays."
 
 
 def record_name(edition: str, day: date) -> str:
@@ -86,7 +117,7 @@ class BackstopPlan:
 def plan_backstop(now: datetime) -> BackstopPlan:
     """Decide what a (possibly very late) GitHub cron backstop run should do."""
     if not is_delivery_day(now.date()):
-        return BackstopPlan(False, 0.0, "No edition on Sundays.")
+        return BackstopPlan(False, 0.0, no_edition_reason(now.date()))
 
     local_clock = now.time()
     if local_clock < BACKSTOP_OPENS:
@@ -294,7 +325,7 @@ def run_gate(
             sleep(plan.wait_seconds)
             now = clock() if clock else local_now(str(now.tzinfo))
     elif not is_delivery_day(now.date()):
-        notes.append("No automatic edition on Sundays. Use force to send anyway.")
+        notes.append(f"{no_edition_reason(now.date())} Use force to send anyway.")
         return GateResult(now.date(), none, notes)
 
     day = now.date()
